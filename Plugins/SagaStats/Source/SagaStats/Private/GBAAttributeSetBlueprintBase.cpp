@@ -637,6 +637,8 @@ EDataValidationResult UGBAAttributeSetBlueprintBase::IsDataValidBlueprintEditor(
 	GBA_LOG(Verbose, TEXT("UGBAAttributeSetBlueprintBase::IsDataValid TestObject: %s"), *GetNameSafe(TestObject))
 	GBA_LOG(Verbose, TEXT("UGBAAttributeSetBlueprintBase::IsDataValid EditorName: %s"), *EditorName)
 
+	
+	/* TODO: 需要补充BlueprintEditor的功能
 	// TODO: Have FGBABlueprintEditor::GetToolkitFName use a constant defined somewhere
 	if (EditorName != TEXT("GBABlueprintEditor"))
 	{
@@ -656,7 +658,9 @@ EDataValidationResult UGBAAttributeSetBlueprintBase::IsDataValidBlueprintEditor(
 			"You'll be missing key features and can experience crashes when renaming Attribute properties while having Gameplay Effect Blueprints opened if they are referencing them."
 		));
 	}
+	*/
 
+	
 	return Result;
 }
 

@@ -18,7 +18,12 @@
 		{
 			"Name": "SagaStats",
 			"Type": "Runtime",
-			"LoadingPhase": "Default"
+			"LoadingPhase": "PreDefault"
+		},
+		{
+			"Name": "SagaStatsEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PreLoadingScreen"
 		}
 	],
 	"Plugins": [
