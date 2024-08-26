@@ -34,11 +34,14 @@ private:
 
 	/** The name property */
 	TSharedPtr<IPropertyHandle> NameProperty;
-
+	
+	/** The property owner class */
+	TSharedPtr<IPropertyHandle> OwnerClassProperty;
+	
 	/** Slate Attribute Widget */
 	TSharedPtr<SGBAGameplayAttributeWidget> AttributeWidget;
 
-	void OnAttributeChanged(FProperty* SelectedAttribute) const;
+	void OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass) const;
 	
 	void HandleRequestRefresh(const TSharedPtr<IPropertyUtilities> InPropertyUtilities);
 };

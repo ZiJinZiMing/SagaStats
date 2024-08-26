@@ -20,7 +20,7 @@ public:
 	virtual TSharedRef<SWidget>	GetDefaultValueWidget() override;
 	//~ End SGraphPin Interface
 
-	void OnAttributeChanged(FProperty* SelectedAttribute);
+	void OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass);
 
 	TWeakFieldPtr<FProperty> LastSelectedProperty;
 

@@ -1,10 +1,10 @@
 ﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
 
-#include "IGBAGameplayAttributeDataDetailsBase.h"
+#include "Details/IGBAGameplayAttributeDataDetailsBase.h"
 
 #include "AttributeSet.h"
 #include "GBAEditorLog.h"
-#include "GBAEditorSettings.h"
+// #include "GBAEditorSettings.h"
 #include "IPropertyUtilities.h"
 #include "PropertyHandle.h"
 #include "ScopedTransaction.h"
@@ -25,12 +25,12 @@ IGBAGameplayAttributeDataDetailsBase::~IGBAGameplayAttributeDataDetailsBase()
 	BlueprintBeingCustomized.Reset();
 	AttributeSetBeingCustomized.Reset();
 
-	UGBAEditorSettings::GetMutable().OnSettingChanged().RemoveAll(this);
+	// UGBAEditorSettings::GetMutable().OnSettingChanged().RemoveAll(this);
 }
 
 void IGBAGameplayAttributeDataDetailsBase::Initialize()
 {
-	UGBAEditorSettings::GetMutable().OnSettingChanged().AddSP(this, &IGBAGameplayAttributeDataDetailsBase::HandleSettingsChanged);
+	// UGBAEditorSettings::GetMutable().OnSettingChanged().AddSP(this, &IGBAGameplayAttributeDataDetailsBase::HandleSettingsChanged);
 }
 
 void IGBAGameplayAttributeDataDetailsBase::InitializeFromStructHandle(const TSharedRef<IPropertyHandle>& InStructPropertyHandle, IPropertyTypeCustomizationUtils& InStructCustomizationUtils)
@@ -130,7 +130,8 @@ void IGBAGameplayAttributeDataDetailsBase::SetValueWithTransaction(const float I
 
 bool IGBAGameplayAttributeDataDetailsBase::IsCompactView()
 {
-	return UGBAEditorSettings::Get().bUseCompactView;
+	// return UGBAEditorSettings::Get().bUseCompactView;
+	return false;
 }
 
 FText IGBAGameplayAttributeDataDetailsBase::GetHeaderBaseValueText() const
@@ -139,7 +140,8 @@ FText IGBAGameplayAttributeDataDetailsBase::GetHeaderBaseValueText() const
 	check(AttributeData);
 	
 	return FText::Format(
-		UGBAEditorSettings::Get().HeaderFormatText,
+		// UGBAEditorSettings::Get().HeaderFormatText,
+		FText::FromString(TEXT("Base:{0}, Current:{1}")),
 		FText::FromString(FString::Printf(TEXT("%.2f"), AttributeData->GetBaseValue())),
 		FText::FromString(FString::Printf(TEXT("%.2f"), AttributeData->GetCurrentValue()))
 	);

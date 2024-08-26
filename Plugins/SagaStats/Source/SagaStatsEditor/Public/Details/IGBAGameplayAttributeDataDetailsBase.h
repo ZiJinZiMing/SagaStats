@@ -6,7 +6,7 @@
 #include "IPropertyTypeCustomization.h"
 #include "UObject/WeakFieldPtr.h"
 
-class FGBABlueprintEditor;
+// class FGBABlueprintEditor;
 class UAttributeSet;
 struct FGameplayAttributeData;
 

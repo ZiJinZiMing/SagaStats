@@ -1,13 +1,13 @@
 ﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
 
-#include "GBAGameplayAttributeDataClampedDetails.h"
+#include "Details/GBAGameplayAttributeDataClampedDetails.h"
 
 #include "AttributeSet.h"
 #include "DetailWidgetRow.h"
 #include "GBAEditorLog.h"
-#include "GBAGameplayAttributeDataDetailsRow.h"
+#include "Details/GBAGameplayAttributeDataDetailsRow.h"
 #include "IDetailChildrenBuilder.h"
-#include "Abilities/GBAAttributeSetBlueprintBase.h"
+#include "GBAAttributeSetBlueprintBase.h"
 #include "Widgets/Text/STextBlock.h"
 
 #define LOCTEXT_NAMESPACE "GBAGameplayAttributeDataDetails"

@@ -14,14 +14,16 @@ class SGBAGameplayAttributeWidget : public SCompoundWidget
 public:
 
 	/** Called when a tag status is changed */
-	DECLARE_DELEGATE_OneParam(FOnAttributeChanged, FProperty*)
+	DECLARE_DELEGATE_TwoParams(FOnAttributeChanged, FProperty*, UClass*)
 
 	SLATE_BEGIN_ARGS(SGBAGameplayAttributeWidget)
 	: _DefaultProperty(nullptr)
+	, _DefaultAttributeOwnerClass(nullptr)
 	, _FilterClass(nullptr)
 	{}
 	SLATE_ARGUMENT(FString, FilterMetaData)
 	SLATE_ARGUMENT(FProperty*, DefaultProperty)
+	SLATE_ARGUMENT(UClass*, DefaultAttributeOwnerClass)
 	SLATE_ARGUMENT(const UClass*, FilterClass)
 	SLATE_ARGUMENT(bool, ShowOnlyOwnedAttributes)
 	SLATE_EVENT(FOnAttributeChanged, OnAttributeChanged) // Called when a tag status changes
@@ -39,7 +41,7 @@ private:
 	FText GetSelectedValueAsString() const;
 
 	/** Handles updates when the selected attribute changes */
-	void OnAttributePicked(FProperty* InProperty);
+	void OnAttributePicked(FProperty* InProperty, UClass* InAttributeOwnerClass);
 
 	/** Delegate to call when the selected attribute changes */
 	FOnAttributeChanged OnAttributeChanged;
@@ -49,6 +51,9 @@ private:
 
 	/** The currently selected attribute */
 	TWeakFieldPtr<FProperty> SelectedPropertyPtr;
+
+	/*The owner of the currently selected attribute*/
+	TWeakObjectPtr<UClass> SelectedAttributeOwnerClassPtr;
 
 	/** Used to display an attribute picker. */
 	TSharedPtr<SComboButton> ComboButton;

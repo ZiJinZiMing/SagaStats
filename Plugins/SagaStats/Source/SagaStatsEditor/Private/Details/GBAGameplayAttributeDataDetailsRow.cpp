@@ -1,13 +1,13 @@
 ﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
 
-#include "GBAGameplayAttributeDataDetailsRow.h"
+#include "Details/GBAGameplayAttributeDataDetailsRow.h"
 
 #include "AttributeSet.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailWidgetRow.h"
 #include "GBAEditorLog.h"
 #include "IDetailChildrenBuilder.h"
-#include "IGBAGameplayAttributeDataDetailsBase.h"
+#include "Details/IGBAGameplayAttributeDataDetailsBase.h"
 #include "ScopedTransaction.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Widgets/Input/SNumericEntryBox.h"

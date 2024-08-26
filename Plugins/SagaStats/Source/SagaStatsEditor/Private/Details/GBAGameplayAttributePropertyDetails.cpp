@@ -1,18 +1,18 @@
 ﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
 
 
-#include "GBAGameplayAttributePropertyDetails.h"
+#include "Details/GBAGameplayAttributePropertyDetails.h"
 
 #include "AttributeSet.h"
 #include "DetailWidgetRow.h"
-#include "GBADelegates.h"
+// #include "GBADelegates.h"
 #include "GBAEditorLog.h"
 #include "IPropertyUtilities.h"
 #include "Details/Slate/SGBAGameplayAttributeWidget.h"
 
 FGBAGameplayAttributePropertyDetails::~FGBAGameplayAttributePropertyDetails()
 {
-	FGBADelegates::OnRequestDetailsRefresh.RemoveAll(this);
+	// FGBADelegates::OnRequestDetailsRefresh.RemoveAll(this);
 }
 
 TSharedRef<IPropertyTypeCustomization> FGBAGameplayAttributePropertyDetails::MakeInstance()
@@ -26,7 +26,7 @@ void FGBAGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyH
 	GBA_EDITOR_LOG(Verbose, TEXT("FGBAGameplayAttributePropertyDetails::CustomizeHeader ..."))
 
 	const TSharedPtr<IPropertyUtilities> Utilities = StructCustomizationUtils.GetPropertyUtilities();
-	FGBADelegates::OnRequestDetailsRefresh.AddSP(this, &FGBAGameplayAttributePropertyDetails::HandleRequestRefresh, Utilities);
+	// FGBADelegates::OnRequestDetailsRefresh.AddSP(this, &FGBAGameplayAttributePropertyDetails::HandleRequestRefresh, Utilities);
 
 	// Can't use GET_MEMBER_NAME_CHECKED for those two props since they're private and requires adding this class as a friend class to FGameplayAttribute
 	//
@@ -36,6 +36,7 @@ void FGBAGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyH
 	MyProperty = StructPropertyHandle->GetChildHandle(FName(TEXT("Attribute")));
 	OwnerProperty = StructPropertyHandle->GetChildHandle(FName(TEXT("AttributeOwner")));
 	NameProperty = StructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FGameplayAttribute, AttributeName));
+	OwnerClassProperty = StructPropertyHandle->GetChildHandle(FName(TEXT("AttributeOwnerClass")));
 
 	const FString& FilterMetaStr = StructPropertyHandle->GetProperty()->GetMetaData(TEXT("FilterMetaTag"));
 	const bool bShowOnlyOwnedAttributes = StructPropertyHandle->GetProperty()->HasMetaData(TEXT("ShowOnlyOwnedAttributes"));
@@ -55,9 +56,18 @@ void FGBAGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyH
 		PropertyValue = ObjPtr;
 	}
 
+	UClass* AttributeOwnerValue = nullptr;
+	if (OwnerClassProperty.IsValid())
+	{
+		UObject* ObjPtr = nullptr;
+		OwnerClassProperty->GetValue(ObjPtr);
+		AttributeOwnerValue = Cast<UClass>(ObjPtr);
+	}
+
 	AttributeWidget = SNew(SGBAGameplayAttributeWidget)
 		.OnAttributeChanged(this, &FGBAGameplayAttributePropertyDetails::OnAttributeChanged)
 		.DefaultProperty(PropertyValue)
+		.DefaultAttributeOwnerClass(AttributeOwnerValue)
 		.FilterMetaData(FilterMetaStr)
 		.ShowOnlyOwnedAttributes(bShowOnlyOwnedAttributes)
 		.FilterClass(bShowOnlyOwnedAttributes ? OuterBaseClass : nullptr);
@@ -85,11 +95,12 @@ void FGBAGameplayAttributePropertyDetails::CustomizeChildren(TSharedRef<IPropert
 {
 }
 
-void FGBAGameplayAttributePropertyDetails::OnAttributeChanged(FProperty* SelectedAttribute) const
+void FGBAGameplayAttributePropertyDetails::OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass) const
 {
 	if (MyProperty.IsValid())
 	{
 		MyProperty->SetValue(SelectedAttribute);
+		OwnerClassProperty->SetValue(InAttributeOwnerClass);
 
 		// When we set the attribute we should also set the owner and name info
 		if (OwnerProperty.IsValid())

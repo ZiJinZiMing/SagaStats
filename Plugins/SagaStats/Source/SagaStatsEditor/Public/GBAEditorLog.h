@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 
-BLUEPRINTATTRIBUTESEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogBlueprintAttributesEditor, Display, All);
+SAGASTATSEDITOR_API DECLARE_LOG_CATEGORY_EXTERN(LogBlueprintAttributesEditor, Display, All);
 
 #define GBA_EDITOR_LOG(Verbosity, Format, ...) \
 { \

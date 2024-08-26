@@ -20,6 +20,7 @@ public class SagaStatsEditor : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
+				"BlueprintGraph",
 				"DeveloperSettings",
 				"EditorStyle",
 				"EditorSubsystem",

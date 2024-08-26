@@ -1,15 +1,14 @@
 // Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
 
-#include "SGBAGameplayAttributeWidget.h"
-
+#include "Details/Slate/SGBAGameplayAttributeWidget.h"
 #include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
 #include "Editor.h"
 #include "GBAEditorLog.h"
-#include "GBAEditorSettings.h"
-#include "IGBAEditorModule.h"
+// #include "GBAEditorSettings.h"
+// #include "IGBAEditorModule.h"
 #include "SlateOptMacros.h"
-#include "Blueprint/GBAAttributeSetBlueprint.h"
+// #include "Blueprint/GBAAttributeSetBlueprint.h"
 #include "Misc/TextFilter.h"
 #include "UObject/PropertyAccessUtil.h"
 #include "UObject/UObjectIterator.h"
@@ -26,22 +25,26 @@
 #define LOCTEXT_NAMESPACE "K2Node"
 
 
-DECLARE_DELEGATE_OneParam(FOnAttributePicked, FProperty*);
+DECLARE_DELEGATE_TwoParams(FOnAttributePicked, FProperty*, UClass*);
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 struct FGBAGameplayAttributeViewerNode
 {
-	FGBAGameplayAttributeViewerNode(const FProperty* InAttribute, const FString InAttributeName)
+	FGBAGameplayAttributeViewerNode(const FProperty* InAttribute, const FString& InAttributeName, UClass* InAttributeOwnerClass)
 	{
 		Attribute = InAttribute;
 		AttributeName = MakeShareable(new FString(InAttributeName));
+		AttributeOwnerClass = InAttributeOwnerClass;
 	}
+
 
 	/** The displayed name for this node. */
 	TSharedPtr<FString> AttributeName;
 
 	TWeakFieldPtr<FProperty> Attribute;
+	
+	TWeakObjectPtr<UClass> AttributeOwnerClass;
 };
 
 /** The item used for visualizing the attribute in the list. */
@@ -139,7 +142,7 @@ public:
 	virtual ~SGBAGameplayAttributeListWidget() override;
 
 private:
-	typedef TTextFilter<const FProperty&> FAttributeTextFilter;
+	typedef TTextFilter<const FGameplayAttribute&> FAttributeTextFilter;
 
 	/** Called by Slate when the filter box changes text. */
 	void OnFilterTextChanged(const FText& InFilterText);
@@ -190,7 +193,7 @@ void SGBAGameplayAttributeListWidget::Construct(const FArguments& InArgs)
 {
 	struct FLocal
 	{
-		static void AttributeToStringArray(const FProperty& Property, OUT TArray<FString>& StringArray)
+		static void AttributeToStringArray(const FGameplayAttribute& InAttribute, OUT TArray<FString>& StringArray)
 		{
 			// UClass* Class = Property.GetOwnerClass();
 			// if ((Class->IsChildOf(UAttributeSet::StaticClass()) && !Class->ClassGeneratedBy) ||
@@ -200,11 +203,12 @@ void SGBAGameplayAttributeListWidget::Construct(const FArguments& InArgs)
 			// }
 
 			// GBA Changed ...
-			const UClass* Class = Property.GetOwnerClass();
+			
+			const UClass* Class = InAttribute.GetAttributeSetClass();
 			if (Class->IsChildOf(UAttributeSet::StaticClass()) ||
 				(Class->IsChildOf(UAbilitySystemComponent::StaticClass()) && !Class->ClassGeneratedBy))
 			{
-				StringArray.Add(FString::Printf(TEXT("%s.%s"), *Class->GetName(), *Property.GetName()));
+				StringArray.Add(FString::Printf(TEXT("%s.%s"), *FGBAUtils::GetAttributeClassName(Class), *InAttribute.GetName()));
 			}
 		}
 	};
@@ -217,8 +221,10 @@ void SGBAGameplayAttributeListWidget::Construct(const FArguments& InArgs)
 	// Setup text filtering
 	AttributeTextFilter = MakeShared<FAttributeTextFilter>(FAttributeTextFilter::FItemToStringArray::CreateStatic(&FLocal::AttributeToStringArray));
 
+	/*
 	// Preload to ensure BP Attributes are loaded in memory so that they can be listed here
 	IGBAEditorModule::Get().PreloadAssetsByClass(UGBAAttributeSetBlueprint::StaticClass());
+	*/
 
 	UpdatePropertyOptions();
 	
@@ -290,23 +296,26 @@ TSharedRef<ITableRow> SGBAGameplayAttributeListWidget::OnGenerateRowForAttribute
 TSharedPtr<FGBAGameplayAttributeViewerNode> SGBAGameplayAttributeListWidget::UpdatePropertyOptions()
 {
 	PropertyOptions.Empty();
-	TSharedPtr<FGBAGameplayAttributeViewerNode> InitiallySelected = MakeShared<FGBAGameplayAttributeViewerNode>(nullptr, TEXT("None"));
+	TSharedPtr<FGBAGameplayAttributeViewerNode> InitiallySelected = MakeShared<FGBAGameplayAttributeViewerNode>(nullptr, TEXT("None"), nullptr);
 
 	PropertyOptions.Add(InitiallySelected);
 
+	/*
 	const UGBAEditorSettings& Settings = UGBAEditorSettings::Get();
+	*/
 
 	// Use IncludeSuper for iteration here only if bShowOnlyOwnedAttributed is used. To handle the use case of
 	// FGBAGameplayClampedAttributeData defined in a native class (for instance after wizard generation), whose value
 	// are tweaked in the details panel of a child Blueprint
 	
 	// EFieldIteratorFlags::SuperClassFlags IteratorFlag = EFieldIteratorFlags::ExcludeSuper;
-	const EFieldIteratorFlags::SuperClassFlags IteratorFlag = bShowOnlyOwnedAttributes ? EFieldIteratorFlags::IncludeSuper : EFieldIteratorFlags::ExcludeSuper;
+	// const EFieldIteratorFlags::SuperClassFlags IteratorFlag = bShowOnlyOwnedAttributes ? EFieldIteratorFlags::IncludeSuper : EFieldIteratorFlags::ExcludeSuper;
+	const EFieldIteratorFlags::SuperClassFlags IteratorFlag = EFieldIteratorFlags::IncludeSuper ;
 
 	// Gather all UAttribute classes
 	for (TObjectIterator<UClass> ClassIt; ClassIt; ++ClassIt)
 	{
-		const UClass* Class = *ClassIt;
+		UClass* Class = *ClassIt;
 
 		// If we have been given a FilterClass, only show attributes of this AttributeSet class
 		// (Way it's done right now, is containing details customization checks for ShowOnlyOwnedAttributed metadata on the
@@ -328,8 +337,15 @@ TSharedPtr<FGBAGameplayAttributeViewerNode> SGBAGameplayAttributeListWidget::Upd
 			{
 				FProperty* Property = *PropertyIt;
 
+				FGameplayAttribute Attribute(Property);
+				Attribute.SetAttributeOwnerClass(Class);
+				if(!Attribute.IsValid())
+				{
+					continue;
+				}
+				
 				// if we have a search string and this doesn't match, don't show it
-				if (AttributeTextFilter.IsValid() && !AttributeTextFilter->PassesFilter(*Property))
+				if (AttributeTextFilter.IsValid() && !AttributeTextFilter->PassesFilter(Attribute))
 				{
 					continue;
 				}
@@ -355,13 +371,15 @@ TSharedPtr<FGBAGameplayAttributeViewerNode> SGBAGameplayAttributeListWidget::Upd
 
 				const FString AttributeName = FString::Printf(TEXT("%s.%s"), *FGBAUtils::GetAttributeClassName(Class), *Property->GetName());
 
+				/*
 				// Allow properties to be filtered globally via Developer Settings (never show up)
 				if (UGBAEditorSettings::IsAttributeFiltered(Settings.FilterAttributesList, AttributeName))
 				{
 					continue;
 				}
+				*/
 
-				PropertyOptions.Add(MakeShared<FGBAGameplayAttributeViewerNode>(Property, AttributeName));
+				PropertyOptions.Add(MakeShared<FGBAGameplayAttributeViewerNode>(Property, AttributeName, Class));
 			}
 		}
 
@@ -378,21 +396,30 @@ TSharedPtr<FGBAGameplayAttributeViewerNode> SGBAGameplayAttributeListWidget::Upd
 					continue;
 				}
 
+				FGameplayAttribute Attribute(Property);
+				Attribute.SetAttributeOwnerClass(Class);
+				if(!Attribute.IsValid())
+				{
+					continue;
+				}
+				
 				// if we have a search string and this doesn't match, don't show it
-				if (AttributeTextFilter.IsValid() && !AttributeTextFilter->PassesFilter(*Property))
+				if (AttributeTextFilter.IsValid() && !AttributeTextFilter->PassesFilter(Attribute))
 				{
 					continue;
 				}
 
 				const FString AttributeName = FString::Printf(TEXT("%s.%s"), *Class->GetName(), *Property->GetName());
 				
+				/*
 				// Allow properties to be filtered globally via Developer Settings (never show up)
 				if (UGBAEditorSettings::IsAttributeFiltered(Settings.FilterAttributesList, AttributeName))
 				{
 					continue;
 				}
+				*/
 
-				PropertyOptions.Add(MakeShared<FGBAGameplayAttributeViewerNode>(Property, AttributeName));
+				PropertyOptions.Add(MakeShared<FGBAGameplayAttributeViewerNode>(Property, AttributeName, Class));
 			}
 		}
 	}
@@ -411,7 +438,7 @@ void SGBAGameplayAttributeListWidget::OnFilterTextChanged(const FText& InFilterT
 // ReSharper disable once CppParameterNeverUsed
 void SGBAGameplayAttributeListWidget::OnAttributeSelectionChanged(const TSharedPtr<FGBAGameplayAttributeViewerNode> Item, ESelectInfo::Type SelectInfo) const
 {
-	OnAttributePicked.ExecuteIfBound(Item->Attribute.Get());
+	OnAttributePicked.ExecuteIfBound(Item->Attribute.Get(),Item->AttributeOwnerClass.Get());
 }
 
 void SGBAGameplayAttributeWidget::Construct(const FArguments& InArgs)
@@ -419,6 +446,7 @@ void SGBAGameplayAttributeWidget::Construct(const FArguments& InArgs)
 	FilterMetaData = InArgs._FilterMetaData;
 	OnAttributeChanged = InArgs._OnAttributeChanged;
 	SelectedPropertyPtr = InArgs._DefaultProperty;
+	SelectedAttributeOwnerClassPtr = InArgs._DefaultAttributeOwnerClass;
 	FilterClass = InArgs._FilterClass;
 	bShowOnlyOwnedAttributes = InArgs._ShowOnlyOwnedAttributes;
 	
@@ -440,17 +468,19 @@ void SGBAGameplayAttributeWidget::Construct(const FArguments& InArgs)
 }
 
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
-void SGBAGameplayAttributeWidget::OnAttributePicked(FProperty* InProperty)
+void SGBAGameplayAttributeWidget::OnAttributePicked(FProperty* InProperty, UClass* InAttributeOwnerClass)
 {
 	FProperty* Property = InProperty ? PropertyAccessUtil::FindPropertyByName(InProperty->GetFName(), InProperty->GetOwnerStruct()) : nullptr;
 
 	if (OnAttributeChanged.IsBound())
 	{
-		OnAttributeChanged.Execute(Property ? Property : nullptr);
+		OnAttributeChanged.Execute(Property ? Property : nullptr, InAttributeOwnerClass);
 	}
 
 	// Update the selected item for displaying
 	SelectedPropertyPtr = Property ? Property : nullptr;
+
+	SelectedAttributeOwnerClassPtr = InAttributeOwnerClass;
 
 	// close the list
 	ComboButton->SetIsOpen(false);
@@ -500,7 +530,7 @@ FText SGBAGameplayAttributeWidget::GetSelectedValueAsString() const
 		return None;
 	}
 
-	const UClass* Class = SelectedPropertyPtr->GetOwnerClass();
+	const UClass* Class =  SelectedAttributeOwnerClassPtr != nullptr ? SelectedAttributeOwnerClassPtr.Get() : SelectedPropertyPtr->GetOwnerClass();
 	const FString PropertyName = SelectedPropertyPtr->GetDisplayNameText().ToString();
 	const FString PropertyString = FString::Printf(TEXT("%s.%s"), *FGBAUtils::GetAttributeClassName(Class), *PropertyName);
 	return FText::FromString(PropertyString);

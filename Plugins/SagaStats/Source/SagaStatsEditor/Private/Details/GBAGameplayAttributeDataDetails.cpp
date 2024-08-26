@@ -1,11 +1,11 @@
 ﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
 
-#include "GBAGameplayAttributeDataDetails.h"
+#include "Details/GBAGameplayAttributeDataDetails.h"
 
 #include "AttributeSet.h"
 #include "DetailWidgetRow.h"
 #include "GBAEditorLog.h"
-#include "GBAGameplayAttributeDataDetailsRow.h"
+#include "Details/GBAGameplayAttributeDataDetailsRow.h"
 #include "IDetailChildrenBuilder.h"
 #include "Widgets/Text/STextBlock.h"
 
