@@ -3,6 +3,7 @@
 #include "GBAEditorLog.h"
 #include "PropertyEditorModule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
+#include "AssetTypes/GBAAssetTypeActions_AttributeSet.h"
 #include "Details/GBAGameplayAttributeDataClampedDetails.h"
 #include "Details/GBAGameplayAttributeDataDetails.h"
 #include "Details/GBAGameplayAttributePropertyDetails.h"
@@ -82,7 +83,23 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GBAGameplayClampedAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGBAGameplayAttributeDataClampedDetails::MakeInstance));
 		
 		// PropertyModule.RegisterCustomClassLayout(TEXT("GBAAttributeSetBlueprintBase"), FOnGetDetailCustomizationInstance::CreateStatic(&FGBAAttributeSetDetails::MakeInstance));
+
+		// Asset Types
+		{
+			IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
+
+			constexpr EAssetTypeCategories::Type AssetCategory = EAssetTypeCategories::Gameplay;
+			GBA_EDITOR_LOG(Verbose, TEXT("FGBAEditorModule::RegisterAssetTypeAction FGBAAssetTypeActions_AttributeSet"))
+			RegisterAssetTypeAction(AssetTools, MakeShared<FGBAAssetTypeActions_AttributeSet>(AssetCategory));
+		}
 	}
+}
+
+void FSagaStatsEditorModule::RegisterAssetTypeAction(class IAssetTools& AssetTools,
+	TSharedRef<IAssetTypeActions> Action)
+{
+	AssetTools.RegisterAssetTypeActions(Action);
+	CreatedAssetTypeActions.Add(Action);
 }
 
 #undef LOCTEXT_NAMESPACE

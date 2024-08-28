@@ -11,6 +11,7 @@ public class SagaStatsEditor : ModuleRules
 			new string[]
 			{
 				"Core",
+				"AssetTools",
 				"SagaStats",
 			}
 		);

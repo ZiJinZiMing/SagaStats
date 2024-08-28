@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{A61E25AF-4BF5-CD76-F100-BA8319463704}",
+	"EngineAssociation": "{92CF8D60-473A-DD2C-9AF2-2CBA735BB469}",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -17,7 +17,8 @@
 			"TargetAllowList": [
 				"Editor"
 			]
-		},{
+		},
+		{
 			"Name": "GameplayAbilities",
 			"Enabled": true
 		}

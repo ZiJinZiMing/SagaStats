@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+class IAssetTypeActions;
 struct FGraphPanelPinFactory;
 
 class FSagaStatsEditorModule : public IModuleInterface
@@ -21,7 +22,12 @@ public:
 
     void OnPostEngineInit();
 
+    void RegisterAssetTypeAction(class IAssetTools& AssetTools, TSharedRef<IAssetTypeActions> Action);
+    
 private:
     /** Pin factory for gameplay abilities; Cached so it can be unregistered */
     TSharedPtr<FGraphPanelPinFactory> GameplayAbilitiesGraphPanelPinFactory;
+
+    /** All created asset type actions. Cached here so that we can unregister it during shutdown. */
+    TArray<TSharedPtr<IAssetTypeActions>> CreatedAssetTypeActions;
 };

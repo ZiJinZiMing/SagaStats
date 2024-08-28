@@ -61,6 +61,7 @@ public class SagaStats : ModuleRules
 					"BlueprintGraph",
 					"EditorFramework",
 					"UnrealEd",
+					"RigVMDeveloper",
 					"Slate",
 					"SlateCore",
 				}
