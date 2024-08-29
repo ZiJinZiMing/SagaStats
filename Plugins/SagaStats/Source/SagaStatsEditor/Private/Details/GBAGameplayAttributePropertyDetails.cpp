@@ -5,14 +5,14 @@
 
 #include "AttributeSet.h"
 #include "DetailWidgetRow.h"
-// #include "GBADelegates.h"
+#include "GBADelegates.h"
 #include "GBAEditorLog.h"
 #include "IPropertyUtilities.h"
 #include "Details/Slate/SGBAGameplayAttributeWidget.h"
 
 FGBAGameplayAttributePropertyDetails::~FGBAGameplayAttributePropertyDetails()
 {
-	// FGBADelegates::OnRequestDetailsRefresh.RemoveAll(this);
+	FGBADelegates::OnRequestDetailsRefresh.RemoveAll(this);
 }
 
 TSharedRef<IPropertyTypeCustomization> FGBAGameplayAttributePropertyDetails::MakeInstance()
@@ -26,7 +26,7 @@ void FGBAGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyH
 	GBA_EDITOR_LOG(Verbose, TEXT("FGBAGameplayAttributePropertyDetails::CustomizeHeader ..."))
 
 	const TSharedPtr<IPropertyUtilities> Utilities = StructCustomizationUtils.GetPropertyUtilities();
-	// FGBADelegates::OnRequestDetailsRefresh.AddSP(this, &FGBAGameplayAttributePropertyDetails::HandleRequestRefresh, Utilities);
+	FGBADelegates::OnRequestDetailsRefresh.AddSP(this, &FGBAGameplayAttributePropertyDetails::HandleRequestRefresh, Utilities);
 
 	// Can't use GET_MEMBER_NAME_CHECKED for those two props since they're private and requires adding this class as a friend class to FGameplayAttribute
 	//

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 
-// class FGBABlueprintEditor;
+class FGBABlueprintEditor;
 class IDetailLayoutBuilder;
 class UAttributeSet;
 class UBlueprint;
@@ -13,5 +13,5 @@ namespace UE::GBA::EditorUtils
 {
 	UAttributeSet* GetAttributeBeingCustomized(const IDetailLayoutBuilder& InDetailLayout);
 	UBlueprint* GetBlueprintFromClass(const UClass* InClass);
-	// TWeakPtr<FGBABlueprintEditor> FindBlueprintEditorForAsset(UObject* InObject);
+	TWeakPtr<FGBABlueprintEditor> FindBlueprintEditorForAsset(UObject* InObject);
 }

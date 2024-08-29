@@ -4,6 +4,7 @@
 #include "PropertyEditorModule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetTypes/GBAAssetTypeActions_AttributeSet.h"
+#include "Details/GBAAttributeSetDetails.h"
 #include "Details/GBAGameplayAttributeDataClampedDetails.h"
 #include "Details/GBAGameplayAttributeDataDetails.h"
 #include "Details/GBAGameplayAttributePropertyDetails.h"
@@ -51,8 +52,22 @@ void FSagaStatsEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"));
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("GBAGameplayClampedAttributeData"));
 
-		// PropertyModule.UnregisterCustomClassLayout(TEXT("GBAAttributeSetBlueprintBase"));
+		PropertyModule.UnregisterCustomClassLayout(TEXT("GBAAttributeSetBlueprintBase"));
 	}
+
+	// Unregister asset type actions
+	if (FModuleManager::Get().IsModuleLoaded(TEXT("AssetTools")))
+	{
+		IAssetTools& AssetToolsModule = FModuleManager::GetModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
+		for (TSharedPtr<IAssetTypeActions>& AssetTypeAction : CreatedAssetTypeActions)
+		{
+			if (AssetTypeAction.IsValid())
+			{
+				AssetToolsModule.UnregisterAssetTypeActions(AssetTypeAction.ToSharedRef());
+			}
+		}
+	}
+	CreatedAssetTypeActions.Empty();
 
 	// Unregister graph factories
 	if (GameplayAbilitiesGraphPanelPinFactory.IsValid())
@@ -64,7 +79,30 @@ void FSagaStatsEditorModule::ShutdownModule()
 
 void FSagaStatsEditorModule::PreloadAssetsByClass(UClass* InClass) const
 {
-	//TODO:
+	GBA_EDITOR_LOG(Verbose, TEXT("FGBAEditorModule::PreloadAssetsByClass - Preloading assets with class %s"), *GetNameSafe(InClass))
+	if (!InClass)
+	{
+		return;
+	}
+
+	const IAssetRegistry& AssetRegistry = FModuleManager::LoadModuleChecked<FAssetRegistryModule>(TEXT("AssetRegistry")).Get();
+
+	TArray<FAssetData> Assets;
+#if UE_VERSION_NEWER_THAN(5, 1, -1)
+	AssetRegistry.GetAssetsByClass(InClass->GetClassPathName(), Assets, true);
+#else
+	AssetRegistry.GetAssetsByClass(InClass->GetFName(), Assets, true);
+#endif
+
+	GBA_EDITOR_LOG(Verbose, TEXT("FGBAEditorModule::PreloadAssetsByClass - Preloading %d assets with class %s"), Assets.Num(), *GetNameSafe(InClass))
+	for (const FAssetData& Asset : Assets)
+	{
+		GBA_EDITOR_LOG(Verbose, TEXT("\nFGBAEditorModule::PreloadAssetsByClass Preload asset PackageName: %s"), *Asset.PackageName.ToString())
+		if (!Asset.IsAssetLoaded())
+		{
+			Asset.GetAsset();
+		}
+	}
 }
 
 void FSagaStatsEditorModule::OnPostEngineInit()
@@ -74,7 +112,7 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
 
 		// Unregister GAS default customization for Gameplay Attributes and Sets
-		// PropertyModule.UnregisterCustomClassLayout(TEXT("AttributeSet"));
+		PropertyModule.UnregisterCustomClassLayout(TEXT("AttributeSet"));
 		PropertyModule.UnregisterCustomPropertyTypeLayout("GameplayAttribute");
 
 		// And register our own customizations
@@ -82,7 +120,7 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGBAGameplayAttributeDataDetails::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GBAGameplayClampedAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGBAGameplayAttributeDataClampedDetails::MakeInstance));
 		
-		// PropertyModule.RegisterCustomClassLayout(TEXT("GBAAttributeSetBlueprintBase"), FOnGetDetailCustomizationInstance::CreateStatic(&FGBAAttributeSetDetails::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(TEXT("GBAAttributeSetBlueprintBase"), FOnGetDetailCustomizationInstance::CreateStatic(&FGBAAttributeSetDetails::MakeInstance));
 
 		// Asset Types
 		{

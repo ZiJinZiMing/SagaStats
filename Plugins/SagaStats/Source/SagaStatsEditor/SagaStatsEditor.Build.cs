@@ -36,6 +36,7 @@ public class SagaStatsEditor : ModuleRules
 				"MainFrame", // 5.0 only ?
 				"MessageLog",
 				"RigVMDeveloper",
+				"Projects",
 				"Slate",
 				"SlateCore",
 				"ToolWidgets",

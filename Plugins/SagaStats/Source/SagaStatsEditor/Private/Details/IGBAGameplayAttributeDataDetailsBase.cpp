@@ -46,7 +46,6 @@ void IGBAGameplayAttributeDataDetailsBase::InitializeFromStructHandle(const TSha
 	const UClass* OuterBaseClass = InStructPropertyHandle->GetOuterBaseClass();
 	check(OuterBaseClass);
 
-	// AttributeSetBeingCustomized = Cast<UAttributeSet>(OwnerClass->GetDefaultObject());
 	AttributeSetBeingCustomized = Cast<UAttributeSet>(OuterBaseClass->GetDefaultObject());
 	
 	BlueprintBeingCustomized = UE::GBA::EditorUtils::GetBlueprintFromClass(OuterBaseClass);

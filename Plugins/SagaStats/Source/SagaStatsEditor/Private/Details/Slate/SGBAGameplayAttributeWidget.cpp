@@ -6,9 +6,9 @@
 #include "Editor.h"
 #include "GBAEditorLog.h"
 // #include "GBAEditorSettings.h"
-// #include "IGBAEditorModule.h"
 #include "SlateOptMacros.h"
-// #include "Blueprint/GBAAttributeSetBlueprint.h"
+#include "GBAAttributeSetBlueprint.h"
+#include "SagaStatsEditor.h"
 #include "Misc/TextFilter.h"
 #include "UObject/PropertyAccessUtil.h"
 #include "UObject/UObjectIterator.h"
@@ -221,11 +221,10 @@ void SGBAGameplayAttributeListWidget::Construct(const FArguments& InArgs)
 	// Setup text filtering
 	AttributeTextFilter = MakeShared<FAttributeTextFilter>(FAttributeTextFilter::FItemToStringArray::CreateStatic(&FLocal::AttributeToStringArray));
 
-	/*
 	// Preload to ensure BP Attributes are loaded in memory so that they can be listed here
-	IGBAEditorModule::Get().PreloadAssetsByClass(UGBAAttributeSetBlueprint::StaticClass());
-	*/
-
+	// IGBAEditorModule::Get().PreloadAssetsByClass(UGBAAttributeSetBlueprint::StaticClass());
+	FSagaStatsEditorModule::Get().PreloadAssetsByClass(UGBAAttributeSetBlueprint::StaticClass());
+	
 	UpdatePropertyOptions();
 	
 	TSharedPtr<SWidget> ClassViewerContent;

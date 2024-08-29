@@ -7,6 +7,7 @@
 
 // class FGBANewAttributeViewModel;
 
+class FGBANewAttributeViewModel;
 /**
  * Blueprint Attribute Set asset editor (extends Blueprint editor)
  */
@@ -71,17 +72,19 @@ private:
 	/** Construct toolbar widgets for custom actions */
 	void FillToolbar(FToolBarBuilder& InToolbarBuilder);
 
-	/*
-	/** Creates widget for toolbar content #1#
+	
+	/** Creates widget for toolbar content */
 	TSharedRef<SWidget> GenerateToolbarMenu();
 
-	// static void HandleAttributeWindowCancel(const TSharedPtr<FGBANewAttributeViewModel>& InViewModel);
+	static void HandleAttributeWindowCancel(const TSharedPtr<FGBANewAttributeViewModel>& InViewModel);
 	void HandleAttributeWindowFinish(const TSharedPtr<FGBANewAttributeViewModel>& InViewModel);
+	
+	/*
 
-	// void CreateAttributeWizard();
+	void CreateAttributeWizard();
 	void HandleAttributeWizardClosed(const TSharedRef<SWindow>& InWindow);
 
-	// void CreateDataTableWindow();
+	void CreateDataTableWindow();
 	void HandleDataTableWindowClosed(const TSharedRef<SWindow>& InWindow);
 	*/
 

@@ -6,13 +6,10 @@
 #include "EdGraphSchema_K2.h"
 #include "GBADelegates.h"
 #include "GBAEditorLog.h"
-// #include "IGBAEditorModule.h"
-// #include "IGBAScaffoldModule.h"
 #include "GBAAttributeSetBlueprint.h"
-// #include "Details/Slate/GBANewAttributeViewModel.h"
-// #include "Details/Slate/SGBANewAttributeVariableWidget.h"
+#include "Details/Slate/GBANewAttributeViewModel.h"
+#include "Details/Slate/SGBANewAttributeVariableWidget.h"
 #include "Framework/MultiBox/MultiBoxBuilder.h"
-// #include "Styling/GBAEditorStyle.h"
 
 #define LOCTEXT_NAMESPACE "GBABlueprintEditor"
 
@@ -149,7 +146,6 @@ void FGBABlueprintEditor::FillToolbar(FToolBarBuilder& InToolbarBuilder)
 	InToolbarBuilder.BeginSection(TEXT("BlueprintAttributes"));
 	{
 		
-		/*
 		InToolbarBuilder.AddComboButton(
 			FUIAction(),
 			FOnGetContent::CreateSP(this, &FGBABlueprintEditor::GenerateToolbarMenu),
@@ -158,7 +154,8 @@ void FGBABlueprintEditor::FillToolbar(FToolBarBuilder& InToolbarBuilder)
 			FSlateIcon(FAppStyle::GetAppStyleSetName(), "Icons.Plus"),
 			false
 		);
-
+		
+		/* TODO：DataTable功能和生成C++功能
 		InToolbarBuilder.AddToolBarButton(
 			FUIAction(FExecuteAction::CreateSP(this, &FGBABlueprintEditor::CreateDataTableWindow)),
 			NAME_None,
@@ -184,7 +181,6 @@ void FGBABlueprintEditor::FillToolbar(FToolBarBuilder& InToolbarBuilder)
 	InToolbarBuilder.EndSection();
 }
 
-/*
 TSharedRef<SWidget> FGBABlueprintEditor::GenerateToolbarMenu()
 {
 	FMenuBuilder MenuBuilder(true, nullptr);
@@ -229,6 +225,7 @@ void FGBABlueprintEditor::HandleAttributeWindowFinish(const TSharedPtr<FGBANewAt
 		InViewModel->GetbIsReplicated()
 	);
 }
+/*
 
 void FGBABlueprintEditor::CreateAttributeWizard()
 {
@@ -253,6 +250,7 @@ void FGBABlueprintEditor::HandleAttributeWizardClosed(const TSharedRef<SWindow>&
 		AttributeWizardWindow.Reset();
 	}
 }
+
 
 void FGBABlueprintEditor::CreateDataTableWindow()
 {

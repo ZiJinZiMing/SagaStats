@@ -5,7 +5,7 @@
 #include "AttributeSet.h"
 #include "DetailLayoutBuilder.h"
 #include "Editor.h"
-// #include "Editor/GBABlueprintEditor.h"
+#include "Editor/GBABlueprintEditor.h"
 #include "Misc/EngineVersionComparison.h"
 #include "Subsystems/AssetEditorSubsystem.h"
 
@@ -36,7 +36,6 @@ UBlueprint* UE::GBA::EditorUtils::GetBlueprintFromClass(const UClass* InClass)
 	return Cast<UBlueprint>(InClass->ClassGeneratedBy);
 }
 
-/*
 TWeakPtr<FGBABlueprintEditor> UE::GBA::EditorUtils::FindBlueprintEditorForAsset(UObject* InObject)
 {
 	if (!GEditor || !IsValid(InObject))
@@ -68,4 +67,3 @@ TWeakPtr<FGBABlueprintEditor> UE::GBA::EditorUtils::FindBlueprintEditorForAsset(
 	return WeakPtr;
 #endif
 }
-*/
