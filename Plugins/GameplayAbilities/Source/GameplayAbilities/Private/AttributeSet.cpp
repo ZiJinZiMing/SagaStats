@@ -78,6 +78,13 @@ FGameplayAttribute::FGameplayAttribute(FProperty *NewProperty)
 	}
 }
 
+//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+FGameplayAttribute::FGameplayAttribute(FProperty* NewProperty, UClass* InAttributeOwnerClass):FGameplayAttribute(NewProperty)
+{
+	AttributeOwnerClass = InAttributeOwnerClass;
+}
+//ZhangJinming EndChange
+
 void FGameplayAttribute::SetNumericValueChecked(float& NewValue, class UAttributeSet* Dest) const
 {
 	check(Dest);
@@ -453,14 +460,12 @@ void UAttributeSet::GetAttributesFromSetClass(const TSubclassOf<UAttributeSet>& 
 	{
 		if (FFloatProperty* FloatProperty = CastField<FFloatProperty>(*It))
 		{
-			FGameplayAttribute Attribute = FGameplayAttribute(FloatProperty);
-			Attribute.SetAttributeOwnerClass(AttributeSetClass);
+			FGameplayAttribute Attribute = FGameplayAttribute(FloatProperty, AttributeSetClass);
 			Attributes.Add(Attribute);
 		}
 		else if (FGameplayAttribute::IsGameplayAttributeDataProperty(*It))
 		{
-			FGameplayAttribute Attribute = FGameplayAttribute(FloatProperty);
-			Attribute.SetAttributeOwnerClass(AttributeSetClass);
+			FGameplayAttribute Attribute = FGameplayAttribute(FloatProperty, AttributeSetClass);
 			Attributes.Add(Attribute);
 		}
 	}

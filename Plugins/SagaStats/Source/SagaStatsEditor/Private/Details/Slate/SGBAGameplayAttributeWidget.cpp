@@ -336,8 +336,8 @@ TSharedPtr<FGBAGameplayAttributeViewerNode> SGBAGameplayAttributeListWidget::Upd
 			{
 				FProperty* Property = *PropertyIt;
 
-				FGameplayAttribute Attribute(Property);
-				Attribute.SetAttributeOwnerClass(Class);
+				FGameplayAttribute Attribute(Property, Class);
+
 				if(!Attribute.IsValid())
 				{
 					continue;
@@ -395,8 +395,8 @@ TSharedPtr<FGBAGameplayAttributeViewerNode> SGBAGameplayAttributeListWidget::Upd
 					continue;
 				}
 
-				FGameplayAttribute Attribute(Property);
-				Attribute.SetAttributeOwnerClass(Class);
+				FGameplayAttribute Attribute(Property, Class);
+
 				if(!Attribute.IsValid())
 				{
 					continue;

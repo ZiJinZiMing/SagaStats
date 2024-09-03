@@ -130,9 +130,7 @@ TSharedRef<SWidget>	SGBAGameplayAttributeGraphPin::GetDefaultValueWidget()
 void SGBAGameplayAttributeGraphPin::OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass)
 {
 	FString FinalValue;
-	FGameplayAttribute NewAttributeStruct;
-	NewAttributeStruct.SetUProperty(SelectedAttribute);
-	NewAttributeStruct.SetAttributeOwnerClass(InAttributeOwnerClass);
+	FGameplayAttribute NewAttributeStruct(SelectedAttribute,InAttributeOwnerClass);
 
 	FGameplayAttribute::StaticStruct()->ExportText(FinalValue, &NewAttributeStruct, &NewAttributeStruct, nullptr, PPF_SerializedAsImportText, nullptr);
 

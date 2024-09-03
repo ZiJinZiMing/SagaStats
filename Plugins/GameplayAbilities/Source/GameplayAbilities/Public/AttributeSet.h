@@ -68,6 +68,10 @@ struct GAMEPLAYABILITIES_API FGameplayAttribute
 	}
 
 	FGameplayAttribute(FProperty *NewProperty);
+	
+	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+	FGameplayAttribute(FProperty *NewProperty,UClass* InAttributeOwnerClass);
+	//ZhangJinming EndChange
 
 	bool IsValid() const
 	{
@@ -96,12 +100,6 @@ struct GAMEPLAYABILITIES_API FGameplayAttribute
 		return Attribute.Get();
 	}
 
-	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-	void SetAttributeOwnerClass(UClass* InAttributeOwnerClass)
-	{
-		AttributeOwnerClass = InAttributeOwnerClass;
-	}
-	//ZhangJinming EndChange
 
 	/** Returns the AttributeSet subclass holding this attribute */
 	UClass* GetAttributeSetClass() const

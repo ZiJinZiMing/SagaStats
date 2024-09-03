@@ -1,12 +1,27 @@
-﻿using UnrealBuildTool;
+﻿using System.IO;
+using UnrealBuildTool;
 
 public class SagaStatsEditor : ModuleRules
 {
 	public SagaStatsEditor(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		ShortName = "SSEditor";
+		ShortName = "SagaStatsEditor";
 
+		/*
+		var EngineDir = Path.GetFullPath(Target.RelativeEnginePath);
+
+		// NOTE: General rule is not to access the private folder of another module,
+		// but to use SPathPicker (used in SGBANewDataTableWindowContent), we need to include some private headers
+		PrivateIncludePaths.AddRange(
+			new string[]
+			{
+				// For access to SPathPicker (used in SGBANewDataTableWindowContent)
+				Path.Combine(EngineDir, @"Source/Editor/ContentBrowser/Private")
+			}
+		);
+		*/
+		
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{

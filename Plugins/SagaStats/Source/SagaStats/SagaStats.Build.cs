@@ -7,7 +7,7 @@ public class SagaStats : ModuleRules
 	public SagaStats(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		ShortName = "SSRuntime";
+		ShortName = "SagaStats";
 
 		PublicIncludePaths.AddRange(
 			new string[]
