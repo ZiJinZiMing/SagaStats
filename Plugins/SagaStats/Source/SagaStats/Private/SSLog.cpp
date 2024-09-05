@@ -5,6 +5,6 @@
 ******************************************************************************/
 
 
-#include "GBALog.h"
+#include "SSLog.h"
 
 DEFINE_LOG_CATEGORY(LogSagaStats)

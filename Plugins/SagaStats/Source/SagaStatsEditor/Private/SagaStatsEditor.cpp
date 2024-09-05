@@ -1,14 +1,14 @@
 ﻿#include "SagaStatsEditor.h"
 #include "AssetToolsModule.h"
-#include "GBAEditorLog.h"
+#include "SSEditorLog.h"
 #include "PropertyEditorModule.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "AssetTypes/GBAAssetTypeActions_AttributeSet.h"
-#include "Details/GBAAttributeSetDetails.h"
-#include "Details/GBAGameplayAttributeDataClampedDetails.h"
-#include "Details/GBAGameplayAttributeDataDetails.h"
-#include "Details/GBAGameplayAttributePropertyDetails.h"
-#include "Editor/GBAGraphPanelPinFactory.h"
+#include "AssetTypes/SSAssetTypeActions_AttributeSet.h"
+#include "Details/SSAttributeSetDetails.h"
+#include "Details/SSGameplayAttributeDataClampedDetails.h"
+#include "Details/SSGameplayAttributeDataDetails.h"
+#include "Details/SSGameplayAttributePropertyDetails.h"
+#include "Editor/SSGraphPanelPinFactory.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Interfaces/IMainFrameModule.h"
 #include "Misc/EngineVersionComparison.h"
@@ -24,7 +24,7 @@ void FSagaStatsEditorModule::StartupModule()
 	//
 	// Registering ours earlier so that editor considers it before evaluating the default one (we need to expose Attributes added in BP for K2 Nodes)
 	//
-	GBA_EDITOR_LOG(Verbose, TEXT("FGBAEditorModule::StartupModule"))
+	SS_EDITOR_LOG(Verbose, TEXT("FSSEditorModule::StartupModule"))
 
 
 	// Every other logic that would have happen in here is delayed to OnPostEngineInit
@@ -33,13 +33,13 @@ void FSagaStatsEditorModule::StartupModule()
 	// Register factories for pins and nodes
 	//
 	// That is for K2 nodes with FGameplayAttribute pins, like GetFloatAttributeBase from ASC
-	GameplayAbilitiesGraphPanelPinFactory = MakeShared<FGBAGraphPanelPinFactory>();
+	GameplayAbilitiesGraphPanelPinFactory = MakeShared<FSSGraphPanelPinFactory>();
 	FEdGraphUtilities::RegisterVisualPinFactory(GameplayAbilitiesGraphPanelPinFactory);
 }
 
 void FSagaStatsEditorModule::ShutdownModule()
 {
-	GBA_EDITOR_LOG(Verbose, TEXT("FGBAEditorModule::ShutdownModule"))
+	SS_EDITOR_LOG(Verbose, TEXT("FSSEditorModule::ShutdownModule"))
 
 	FCoreDelegates::OnPostEngineInit.RemoveAll(this);
 	
@@ -50,9 +50,9 @@ void FSagaStatsEditorModule::ShutdownModule()
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("GameplayAttribute"));
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"));
-		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("GBAGameplayClampedAttributeData"));
+		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("SSGameplayClampedAttributeData"));
 
-		PropertyModule.UnregisterCustomClassLayout(TEXT("GBAAttributeSetBlueprintBase"));
+		PropertyModule.UnregisterCustomClassLayout(TEXT("SSAttributeSetBlueprintBase"));
 	}
 
 	// Unregister asset type actions
@@ -79,7 +79,7 @@ void FSagaStatsEditorModule::ShutdownModule()
 
 void FSagaStatsEditorModule::PreloadAssetsByClass(UClass* InClass) const
 {
-	GBA_EDITOR_LOG(Verbose, TEXT("FGBAEditorModule::PreloadAssetsByClass - Preloading assets with class %s"), *GetNameSafe(InClass))
+	SS_EDITOR_LOG(Verbose, TEXT("FSSEditorModule::PreloadAssetsByClass - Preloading assets with class %s"), *GetNameSafe(InClass))
 	if (!InClass)
 	{
 		return;
@@ -94,10 +94,10 @@ void FSagaStatsEditorModule::PreloadAssetsByClass(UClass* InClass) const
 	AssetRegistry.GetAssetsByClass(InClass->GetFName(), Assets, true);
 #endif
 
-	GBA_EDITOR_LOG(Verbose, TEXT("FGBAEditorModule::PreloadAssetsByClass - Preloading %d assets with class %s"), Assets.Num(), *GetNameSafe(InClass))
+	SS_EDITOR_LOG(Verbose, TEXT("FSSEditorModule::PreloadAssetsByClass - Preloading %d assets with class %s"), Assets.Num(), *GetNameSafe(InClass))
 	for (const FAssetData& Asset : Assets)
 	{
-		GBA_EDITOR_LOG(Verbose, TEXT("\nFGBAEditorModule::PreloadAssetsByClass Preload asset PackageName: %s"), *Asset.PackageName.ToString())
+		SS_EDITOR_LOG(Verbose, TEXT("\nFSSEditorModule::PreloadAssetsByClass Preload asset PackageName: %s"), *Asset.PackageName.ToString())
 		if (!Asset.IsAssetLoaded())
 		{
 			Asset.GetAsset();
@@ -116,19 +116,19 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		PropertyModule.UnregisterCustomPropertyTypeLayout("GameplayAttribute");
 
 		// And register our own customizations
-		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttribute"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGBAGameplayAttributePropertyDetails::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGBAGameplayAttributeDataDetails::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GBAGameplayClampedAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FGBAGameplayAttributeDataClampedDetails::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttribute"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributePropertyDetails::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributeDataDetails::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SSGameplayClampedAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributeDataClampedDetails::MakeInstance));
 		
-		PropertyModule.RegisterCustomClassLayout(TEXT("GBAAttributeSetBlueprintBase"), FOnGetDetailCustomizationInstance::CreateStatic(&FGBAAttributeSetDetails::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(TEXT("SSAttributeSetBlueprintBase"), FOnGetDetailCustomizationInstance::CreateStatic(&FSSAttributeSetDetails::MakeInstance));
 
 		// Asset Types
 		{
 			IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
 
 			constexpr EAssetTypeCategories::Type AssetCategory = EAssetTypeCategories::Gameplay;
-			GBA_EDITOR_LOG(Verbose, TEXT("FGBAEditorModule::RegisterAssetTypeAction FGBAAssetTypeActions_AttributeSet"))
-			RegisterAssetTypeAction(AssetTools, MakeShared<FGBAAssetTypeActions_AttributeSet>(AssetCategory));
+			SS_EDITOR_LOG(Verbose, TEXT("FSSEditorModule::RegisterAssetTypeAction FSSAssetTypeActions_AttributeSet"))
+			RegisterAssetTypeAction(AssetTools, MakeShared<FSSAssetTypeActions_AttributeSet>(AssetCategory));
 		}
 	}
 }

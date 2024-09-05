@@ -1,0 +1,29 @@
+// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
+
+#pragma once
+
+#include "CoreMinimal.h"
+
+class UGameplayAbility;
+
+struct SAGASTATS_API FSSDelegates
+{
+	DECLARE_MULTICAST_DELEGATE_OneParam(FSSOnVariableAddedOrRemoved, const FName&);
+	DECLARE_MULTICAST_DELEGATE_ThreeParams(FSSOnVariableRenamed, const FName&, const FName&, const FName&);
+	DECLARE_MULTICAST_DELEGATE_ThreeParams(FSSOnVariableTypeChanged, const FName&, FString, UObject*);
+	
+	DECLARE_MULTICAST_DELEGATE_OneParam(FSSOnPostCompile, const FName&);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FSSOnPreCompile, const FName&);
+
+	DECLARE_MULTICAST_DELEGATE(FSSOnRequestDetailsRefresh)
+
+	static FSSOnVariableAddedOrRemoved OnVariableAdded;
+	static FSSOnVariableAddedOrRemoved OnVariableRemoved;
+	static FSSOnVariableRenamed OnVariableRenamed;
+	static FSSOnVariableTypeChanged OnVariableTypeChanged;
+	
+	static FSSOnPreCompile OnPreCompile;
+	static FSSOnPostCompile OnPostCompile;
+	
+	static FSSOnRequestDetailsRefresh OnRequestDetailsRefresh;
+};
