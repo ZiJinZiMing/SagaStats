@@ -154,6 +154,8 @@ public:
 	/** Extracts attribute owner info from Pin Default value and returns it as a PackageName equivalent */
 	static bool ParseAttributeFromDefaultValue(const FString& InDefaultValue, FString& OutPackageName, FString& OutAttributeName);
 	
+	static bool ParseAttributeOwnerClassNameFromDefaultValue(const FString& InDefaultValue, FString& OutAttributeOwnerClassName);
+	
 	/** Handles update of FGameplayAttribute properties in the referencers asset to point to the new FGameplayAttribute that was renamed */
 	void UpdateReferencers(TArray<FAssetData> InReferencers, const FName& InPackageName, const FName& InOldPropertyName, const FName& InNewPropertyName);
 

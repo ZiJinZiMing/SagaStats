@@ -478,6 +478,10 @@ void UGBAEditorSubsystem::HandlePins(const TArray<FPinToModify>& InPinsToModify,
 		UBlueprint* Blueprint = BlueprintNode->GetBlueprint();
 		const UEdGraph* OwningGraph = BlueprintNode->GetGraph();
 		FString DefaultValue = Pin->GetDefaultAsString();
+		
+		FString AttributeOwnerClassName;
+		ParseAttributeOwnerClassNameFromDefaultValue(DefaultValue, AttributeOwnerClassName);
+		UClass* AttributeOwnerClass = LoadObject<UClass>(NULL, *AttributeOwnerClassName);
 
 		GBA_EDITOR_LOG(Verbose, TEXT("\t UGBAEditorSubsystem::UpdateK2NodeReferencers - PinToModify Blueprint: %s"), *GetNameSafe(Blueprint))
 		GBA_EDITOR_LOG(Verbose, TEXT("\t UGBAEditorSubsystem::UpdateK2NodeReferencers - PinToModify Pin: %s"), *Pin->GetName())
@@ -487,8 +491,7 @@ void UGBAEditorSubsystem::HandlePins(const TArray<FPinToModify>& InPinsToModify,
 			GBA_EDITOR_LOG(Verbose, TEXT("\t Prop: %s (Owner: %s)"), *GetNameSafe(Prop), *InOwnerAttributeSetBP->GeneratedClass->GetName())
 
 			FString FinalValue;
-			FGameplayAttribute NewAttributeStruct;
-			NewAttributeStruct.SetUProperty(Prop);
+			FGameplayAttribute NewAttributeStruct(Prop, AttributeOwnerClass);
 
 			FGameplayAttribute::StaticStruct()->ExportText(FinalValue, &NewAttributeStruct, &NewAttributeStruct, nullptr, PPF_SerializedAsImportText, nullptr);
 
@@ -641,6 +644,41 @@ bool UGBAEditorSubsystem::ParseAttributeFromDefaultValue(const FString& InDefaul
 			return true;
 		}
 	}
+
+	return false;
+}
+
+bool UGBAEditorSubsystem::ParseAttributeOwnerClassNameFromDefaultValue(const FString& InDefaultValue, FString& OutAttributeOwnerClassName)
+{
+	GBA_EDITOR_LOG(Verbose, TEXT("UGBAEditorSubsystem::ParseAttributeOwnerClassNameFromDefaultValue InDefaultValue: %s"), *InDefaultValue)
+	FString DefaultValue = InDefaultValue;
+
+	// Example of DefaultValue: 
+	// (AttributeName="Ref_01:z",Attribute=/Game/RenameTests/GBA_Ref_Test.GBA_Ref_Test_C:Ref_01:z,AttributeOwner=BlueprintGeneratedClass'"/Game/RenameTests/GBA_Ref_Test.GBA_Ref_Test_C"')
+	DefaultValue.RemoveFromStart(TEXT("("));
+	DefaultValue.RemoveFromEnd(TEXT(")"));
+
+	TArray<FString> Segments;
+	DefaultValue.ParseIntoArray(Segments, TEXT(","));
+
+	if (Segments.IsEmpty())
+	{
+		return false;
+	}
+
+	for (const FString& Segment : Segments)
+	{
+		FString Key;
+		FString Value;
+		Segment.Split(TEXT("="), &Key, &Value);
+
+		if (Key != TEXT("AttributeOwnerClass") || Value.IsEmpty())
+		{
+			continue;
+		}
+		OutAttributeOwnerClassName = Value;
+		return true;
+	}	
 
 	return false;
 }
