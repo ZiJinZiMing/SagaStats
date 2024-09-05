@@ -2,6 +2,7 @@
 #include "AssetToolsModule.h"
 #include "SSEditorLog.h"
 #include "PropertyEditorModule.h"
+#include "SSEditorSubsystem.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetTypes/SSAssetTypeActions_AttributeSet.h"
 #include "Details/SSAttributeSetDetails.h"
@@ -10,8 +11,8 @@
 #include "Details/SSGameplayAttributePropertyDetails.h"
 #include "Editor/SSGraphPanelPinFactory.h"
 #include "Framework/Application/SlateApplication.h"
-#include "Interfaces/IMainFrameModule.h"
 #include "Misc/EngineVersionComparison.h"
+#include "ReferencerHandlers/FSSSwitchNodeReferencerHandler.h"
 #define LOCTEXT_NAMESPACE "FSagaStatsEditorModule"
 
 void FSagaStatsEditorModule::StartupModule()
@@ -24,7 +25,7 @@ void FSagaStatsEditorModule::StartupModule()
 	//
 	// Registering ours earlier so that editor considers it before evaluating the default one (we need to expose Attributes added in BP for K2 Nodes)
 	//
-	SS_EDITOR_LOG(Verbose, TEXT("FSSEditorModule::StartupModule"))
+	SS_EDITOR_LOG(Verbose, TEXT("FSagaStatsEditorModule::StartupModule"))
 
 
 	// Every other logic that would have happen in here is delayed to OnPostEngineInit
@@ -39,7 +40,7 @@ void FSagaStatsEditorModule::StartupModule()
 
 void FSagaStatsEditorModule::ShutdownModule()
 {
-	SS_EDITOR_LOG(Verbose, TEXT("FSSEditorModule::ShutdownModule"))
+	SS_EDITOR_LOG(Verbose, TEXT("FSagaStatsEditorModule::ShutdownModule"))
 
 	FCoreDelegates::OnPostEngineInit.RemoveAll(this);
 	
@@ -75,11 +76,16 @@ void FSagaStatsEditorModule::ShutdownModule()
 		FEdGraphUtilities::UnregisterVisualPinFactory(GameplayAbilitiesGraphPanelPinFactory);
 		GameplayAbilitiesGraphPanelPinFactory.Reset();
 	}
+
+	if (GEditor)
+	{
+		USSEditorSubsystem::Get().UnregisterReferencerHandler(TEXT("SSK2Node_SwitchGameplayAttribute"));
+	}
 }
 
 void FSagaStatsEditorModule::PreloadAssetsByClass(UClass* InClass) const
 {
-	SS_EDITOR_LOG(Verbose, TEXT("FSSEditorModule::PreloadAssetsByClass - Preloading assets with class %s"), *GetNameSafe(InClass))
+	SS_EDITOR_LOG(Verbose, TEXT("FSagaStatsEditorModule::PreloadAssetsByClass - Preloading assets with class %s"), *GetNameSafe(InClass))
 	if (!InClass)
 	{
 		return;
@@ -94,10 +100,10 @@ void FSagaStatsEditorModule::PreloadAssetsByClass(UClass* InClass) const
 	AssetRegistry.GetAssetsByClass(InClass->GetFName(), Assets, true);
 #endif
 
-	SS_EDITOR_LOG(Verbose, TEXT("FSSEditorModule::PreloadAssetsByClass - Preloading %d assets with class %s"), Assets.Num(), *GetNameSafe(InClass))
+	SS_EDITOR_LOG(Verbose, TEXT("FSagaStatsEditorModule::PreloadAssetsByClass - Preloading %d assets with class %s"), Assets.Num(), *GetNameSafe(InClass))
 	for (const FAssetData& Asset : Assets)
 	{
-		SS_EDITOR_LOG(Verbose, TEXT("\nFSSEditorModule::PreloadAssetsByClass Preload asset PackageName: %s"), *Asset.PackageName.ToString())
+		SS_EDITOR_LOG(Verbose, TEXT("\nFSagaStatsEditorModule::PreloadAssetsByClass Preload asset PackageName: %s"), *Asset.PackageName.ToString())
 		if (!Asset.IsAssetLoaded())
 		{
 			Asset.GetAsset();
@@ -127,9 +133,14 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 			IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
 
 			constexpr EAssetTypeCategories::Type AssetCategory = EAssetTypeCategories::Gameplay;
-			SS_EDITOR_LOG(Verbose, TEXT("FSSEditorModule::RegisterAssetTypeAction FSSAssetTypeActions_AttributeSet"))
+			SS_EDITOR_LOG(Verbose, TEXT("FSagaStatsEditorModule::RegisterAssetTypeAction FSSAssetTypeActions_AttributeSet"))
 			RegisterAssetTypeAction(AssetTools, MakeShared<FSSAssetTypeActions_AttributeSet>(AssetCategory));
 		}
+	}
+
+	if (GEditor)
+	{
+		USSEditorSubsystem::Get().RegisterReferencerHandler(TEXT("SSK2Node_SwitchGameplayAttribute"), FSSSwitchNodeReferencerHandler::Create());
 	}
 }
 
