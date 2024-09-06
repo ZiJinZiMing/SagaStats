@@ -1,3 +1,6 @@
-﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+﻿/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 #include "ViewModel/ISSSlateViewModel.h"

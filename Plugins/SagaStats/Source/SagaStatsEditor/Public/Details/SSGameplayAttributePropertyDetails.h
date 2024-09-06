@@ -1,5 +1,8 @@
-﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+﻿/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 #pragma once
 
 #include "CoreMinimal.h"
@@ -34,14 +37,19 @@ private:
 
 	/** The name property */
 	TSharedPtr<IPropertyHandle> NameProperty;
-	
+
+	//Feature Begin Attribute In subclass of AttributeSet
 	/** The property owner class */
 	TSharedPtr<IPropertyHandle> OwnerClassProperty;
+	//Feature End
+
 	
 	/** Slate Attribute Widget */
 	TSharedPtr<SSSGameplayAttributeWidget> AttributeWidget;
 
+	//Feature Begin Attribute In subclass of AttributeSet
 	void OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass) const;
+	//Feature End
 	
 	void HandleRequestRefresh(const TSharedPtr<IPropertyUtilities> InPropertyUtilities);
 };

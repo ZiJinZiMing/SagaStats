@@ -1,5 +1,8 @@
-// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 #pragma once
 
 #include "CoreMinimal.h"
@@ -47,7 +50,7 @@ class SAGASTATSEDITOR_API USSEditorSubsystem : public UEditorSubsystem
 
 public:
 	/** The message log category */
-	static constexpr const TCHAR* LogName = TEXT("BlueprintAttributesLog");
+	static constexpr const TCHAR* LogName = TEXT("SagaStatsLog");
 
 	/** List of referencer handler registered via RegisterReferencerHandler() */
 	TMap<FName, TSharedPtr<ISSAttributeReferencerHandler>> RegisteredHandlers;
@@ -153,8 +156,10 @@ public:
 
 	/** Extracts attribute owner info from Pin Default value and returns it as a PackageName equivalent */
 	static bool ParseAttributeFromDefaultValue(const FString& InDefaultValue, FString& OutPackageName, FString& OutAttributeName);
-	
+
+	//Feature Begin Attribute In subclass of AttributeSet
 	static bool ParseAttributeOwnerClassNameFromDefaultValue(const FString& InDefaultValue, FString& OutAttributeOwnerClassName);
+	//Feature End
 	
 	/** Handles update of FGameplayAttribute properties in the referencers asset to point to the new FGameplayAttribute that was renamed */
 	void UpdateReferencers(TArray<FAssetData> InReferencers, const FName& InPackageName, const FName& InOldPropertyName, const FName& InNewPropertyName);

@@ -1,5 +1,8 @@
-// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 #include "Details/Slate/SSSGameplayAttributeWidget.h"
 #include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
@@ -30,6 +33,7 @@ BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 struct FSSGameplayAttributeViewerNode
 {
+	//Feature Begin Attribute In subclass of AttributeSet
 	FSSGameplayAttributeViewerNode(const FProperty* InAttribute, const FString& InAttributeName, UClass* InAttributeOwnerClass)
 	{
 		Attribute = InAttribute;
@@ -44,6 +48,7 @@ struct FSSGameplayAttributeViewerNode
 	TWeakFieldPtr<FProperty> Attribute;
 	
 	TWeakObjectPtr<UClass> AttributeOwnerClass;
+	//Feature End
 };
 
 /** The item used for visualizing the attribute in the list. */
@@ -192,8 +197,10 @@ void SSSGameplayAttributeListWidget::Construct(const FArguments& InArgs)
 {
 	struct FLocal
 	{
+		//Feature Begin Attribute In subclass of AttributeSet
 		static void AttributeToStringArray(const FGameplayAttribute& InAttribute, OUT TArray<FString>& StringArray)
 		{
+			
 			// UClass* Class = Property.GetOwnerClass();
 			// if ((Class->IsChildOf(UAttributeSet::StaticClass()) && !Class->ClassGeneratedBy) ||
 			// 	(Class->IsChildOf(UAbilitySystemComponent::StaticClass()) && !Class->ClassGeneratedBy))
@@ -210,12 +217,15 @@ void SSSGameplayAttributeListWidget::Construct(const FArguments& InArgs)
 				StringArray.Add(FString::Printf(TEXT("%s.%s"), *FSSUtils::GetAttributeClassName(Class), *InAttribute.GetName()));
 			}
 		}
+		//Feature End
 	};
 
 	FilterMetaData = InArgs._FilterMetaData;
 	OnAttributePicked = InArgs._OnAttributePickedDelegate;
 	FilterClass = InArgs._FilterClass;
+	//Feature Begin Attribute In subclass of AttributeSet
 	bShowOnlyOwnedAttributes = InArgs._ShowOnlyOwnedAttributes;
+	//Feature End
 
 	// Setup text filtering
 	AttributeTextFilter = MakeShared<FAttributeTextFilter>(FAttributeTextFilter::FItemToStringArray::CreateStatic(&FLocal::AttributeToStringArray));
@@ -306,9 +316,11 @@ TSharedPtr<FSSGameplayAttributeViewerNode> SSSGameplayAttributeListWidget::Updat
 	// FSSGameplayClampedAttributeData defined in a native class (for instance after wizard generation), whose value
 	// are tweaked in the details panel of a child Blueprint
 	
+	//Feature Begin Attribute In subclass of AttributeSet
 	// EFieldIteratorFlags::SuperClassFlags IteratorFlag = EFieldIteratorFlags::ExcludeSuper;
 	// const EFieldIteratorFlags::SuperClassFlags IteratorFlag = bShowOnlyOwnedAttributes ? EFieldIteratorFlags::IncludeSuper : EFieldIteratorFlags::ExcludeSuper;
 	const EFieldIteratorFlags::SuperClassFlags IteratorFlag = EFieldIteratorFlags::IncludeSuper ;
+	//Feature End
 
 	// Gather all UAttribute classes
 	for (TObjectIterator<UClass> ClassIt; ClassIt; ++ClassIt)
@@ -444,7 +456,9 @@ void SSSGameplayAttributeWidget::Construct(const FArguments& InArgs)
 	FilterMetaData = InArgs._FilterMetaData;
 	OnAttributeChanged = InArgs._OnAttributeChanged;
 	SelectedPropertyPtr = InArgs._DefaultProperty;
+	//Feature Begin Attribute In subclass of AttributeSet
 	SelectedAttributeOwnerClassPtr = InArgs._DefaultAttributeOwnerClass;
+	//Feature End
 	FilterClass = InArgs._FilterClass;
 	bShowOnlyOwnedAttributes = InArgs._ShowOnlyOwnedAttributes;
 	
@@ -470,15 +484,19 @@ void SSSGameplayAttributeWidget::OnAttributePicked(FProperty* InProperty, UClass
 {
 	FProperty* Property = InProperty ? PropertyAccessUtil::FindPropertyByName(InProperty->GetFName(), InProperty->GetOwnerStruct()) : nullptr;
 
+	//Feature Begin Attribute In subclass of AttributeSet
 	if (OnAttributeChanged.IsBound())
 	{
 		OnAttributeChanged.Execute(Property ? Property : nullptr, InAttributeOwnerClass);
 	}
+	//Feature End
 
 	// Update the selected item for displaying
 	SelectedPropertyPtr = Property ? Property : nullptr;
 
+	//Feature Begin Attribute In subclass of AttributeSet
 	SelectedAttributeOwnerClassPtr = InAttributeOwnerClass;
+	//Feature End
 
 	// close the list
 	ComboButton->SetIsOpen(false);
@@ -528,7 +546,10 @@ FText SSSGameplayAttributeWidget::GetSelectedValueAsString() const
 		return None;
 	}
 
+	//Feature Begin Attribute In subclass of AttributeSet
 	const UClass* Class =  SelectedAttributeOwnerClassPtr != nullptr ? SelectedAttributeOwnerClassPtr.Get() : SelectedPropertyPtr->GetOwnerClass();
+	//Feature End
+	
 	const FString PropertyName = SelectedPropertyPtr->GetDisplayNameText().ToString();
 	const FString PropertyString = FString::Printf(TEXT("%s.%s"), *FSSUtils::GetAttributeClassName(Class), *PropertyName);
 	return FText::FromString(PropertyString);

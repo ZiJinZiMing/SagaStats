@@ -1,5 +1,8 @@
-// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 #include "Editor/SSSGameplayAttributeGraphPin.h"
 
 #include "AbilitySystemComponent.h"
@@ -119,14 +122,16 @@ TSharedRef<SWidget>	SSSGameplayAttributeGraphPin::GetDefaultValueWidget()
 			SNew(SSSGameplayAttributeWidget)
 			.OnAttributeChanged(this, &SSSGameplayAttributeGraphPin::OnAttributeChanged)
 			.DefaultProperty(DefaultAttribute.GetUProperty())
+			//Feature Begin Attribute In subclass of AttributeSet
 			.DefaultAttributeOwnerClass(DefaultAttribute.IsValid()? DefaultAttribute.GetAttributeSetClass() : nullptr)
+			//Feature End
 			.Visibility(this, &SGraphPin::GetDefaultValueVisibility)
 			.IsEnabled(this, &SSSGameplayAttributeGraphPin::GetDefaultValueIsEnabled)
 
 		];
 }
 
-
+//Feature Begin Attribute In subclass of AttributeSet
 void SSSGameplayAttributeGraphPin::OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass)
 {
 	FString FinalValue;
@@ -143,5 +148,6 @@ void SSSGameplayAttributeGraphPin::OnAttributeChanged(FProperty* SelectedAttribu
 
 	LastSelectedProperty = SelectedAttribute;
 }
+//Feature End
 
 #undef LOCTEXT_NAMESPACE

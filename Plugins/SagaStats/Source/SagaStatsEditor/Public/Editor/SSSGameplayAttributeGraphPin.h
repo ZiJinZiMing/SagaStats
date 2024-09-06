@@ -1,5 +1,8 @@
-// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 #pragma once
 
 #include "CoreMinimal.h"
@@ -20,7 +23,9 @@ public:
 	virtual TSharedRef<SWidget>	GetDefaultValueWidget() override;
 	//~ End SGraphPin Interface
 
+	//Feature Begin Attribute In subclass of AttributeSet
 	void OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass);
+	//Feature End
 
 	TWeakFieldPtr<FProperty> LastSelectedProperty;
 

@@ -1,5 +1,8 @@
-﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+﻿/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 #include "SSGameplayEffectReferencerHandler.h"
 
 #include "SSEditorLog.h"
@@ -220,7 +223,10 @@ bool FSSGameplayEffectReferencerHandler::BuildModifierInfoAttributeReference(con
 	{
 		return false;
 	}
-	Reference.AttributeOwnerClass = InModifier.Attribute.GetAttributeSetClass();	
+	//Feature Begin Attribute In subclass of AttributeSet
+	Reference.AttributeOwnerClass = InModifier.Attribute.GetAttributeSetClass();
+	//Feature End
+	
 	OutAttributeReference = MoveTemp(Reference);
 	return true;
 }
@@ -253,7 +259,9 @@ bool FSSGameplayEffectReferencerHandler::BuildModifierMagnitudeAttributeReferenc
 		{
 			return false;
 		}
+		//Feature Begin Attribute In subclass of AttributeSet
 		Reference.AttributeOwnerClass = AttributeToCapture.GetAttributeSetClass();
+		//Feature End
 
 		OutAttributeReference = MoveTemp(Reference);
 		return true;
@@ -276,7 +284,9 @@ bool FSSGameplayEffectReferencerHandler::BuildEffectCueMagnitudeAttributeReferen
 	{
 		return false;
 	}
+	//Feature Begin Attribute In subclass of AttributeSet
 	AttributeReference.AttributeOwnerClass = InEffectCue.MagnitudeAttribute.GetAttributeSetClass();
+	//Feature End
 	
 	OutAttributeReference = MoveTemp(AttributeReference);
 	return true;
@@ -296,7 +306,9 @@ bool FSSGameplayEffectReferencerHandler::BuildEffectQueryAttributeReference(cons
 	{
 		return false;
 	}
+	//Feature Begin Attribute In subclass of AttributeSet
 	AttributeReference.AttributeOwnerClass = InEffectQuery.ModifyingAttribute.GetAttributeSetClass();
+	//Feature End
 	
 	OutAttributeReference = MoveTemp(AttributeReference);
 	return true;
@@ -341,7 +353,9 @@ bool FSSGameplayEffectReferencerHandler::UpdateModifiers(UGameplayEffect* InEffe
 
 			if (FProperty* Prop = FindFProperty<FProperty>(InBlueprint->GeneratedClass, FName(*InPayload.NewPropertyName)))
 			{
+				//Feature Begin Attribute In subclass of AttributeSet
 				ModifiersToReplace.Add(FAttributeModifierToReplace(CurrentIndex, Prop,CachedModifier.AttributeOwnerClass));
+				//Feature End
 			}
 		}
 
@@ -361,7 +375,9 @@ bool FSSGameplayEffectReferencerHandler::UpdateModifiers(UGameplayEffect* InEffe
 		}
 
 		FGameplayModifierInfo& ModifierInfo = InEffectCDO->Modifiers[Index];
+		//Feature Begin Attribute In subclass of AttributeSet
 		ModifierInfo.Attribute = FGameplayAttribute(ModifierToReplace.Property.Get(),ModifierToReplace.AttributeOwnerClass);
+		//Feature End
 
 		TSharedRef<FTokenizedMessage> Message = FTokenizedMessage::Create(EMessageSeverity::Info);
 
@@ -440,7 +456,9 @@ bool FSSGameplayEffectReferencerHandler::UpdateModifiersBackingAttribute(UGamepl
 				
 				SS_EDITOR_NS_LOG(VeryVerbose, TEXT("Replacing modifier magnitude backing attribute with %s"), *GetNameSafe(NewAttributeProp))
 
+				//Feature Begin Attribute In subclass of AttributeSet
 				const FGameplayAttribute NewAttribute = FGameplayAttribute(NewAttributeProp,CachedAttribute.AttributeOwnerClass);
+				//Feature End
 
 				FAttributeBasedFloat AttributeBasedFloat = FAttributeBasedFloat();
 				if (const FAttributeBasedFloat* PrevAttributeBased = GetAttributeBasedFloatFromContainer(&Modifier.ModifierMagnitude))
@@ -540,8 +558,10 @@ bool FSSGameplayEffectReferencerHandler::UpdateDuration(UGameplayEffect* InEffec
 			}
 
 			SS_EDITOR_NS_LOG(VeryVerbose, TEXT("Replacing duration magnitude attribute with %s"), *GetNameSafe(NewAttributeProp))
-			
+
+			//Feature Begin Attribute In subclass of AttributeSet
 			const FGameplayAttribute NewAttribute = FGameplayAttribute(NewAttributeProp,CachedAttribute.AttributeOwnerClass);
+			//Feature End
 
 			FAttributeBasedFloat AttributeBasedFloat = FAttributeBasedFloat();
 			if (const FAttributeBasedFloat* PrevAttributeBased = GetAttributeBasedFloatFromContainer(&InEffectCDO->DurationMagnitude))
@@ -635,7 +655,9 @@ bool FSSGameplayEffectReferencerHandler::UpdateCues(UGameplayEffect* InEffectCDO
 		{
 			if (FProperty* NewAttributeProp = FindFProperty<FProperty>(InBlueprint->GeneratedClass, FName(*InPayload.NewPropertyName)))
 			{
+				//Feature Begin Attribute In subclass of AttributeSet
 				GameplayCue.MagnitudeAttribute = FGameplayAttribute(NewAttributeProp,CachedAttribute.AttributeOwnerClass);
+				//Feature End
 				
 				bWasModified = true;
 
@@ -782,8 +804,10 @@ bool FSSGameplayEffectReferencerHandler::UpdateEffectQuery(const UBlueprint* InB
 
 		SS_EDITOR_NS_LOG(VeryVerbose, TEXT("Replacing %s with %s"), *InMessageText.ToString(), *GetNameSafe(NewAttributeProp))
 
+		//Feature Begin Attribute In subclass of AttributeSet
 		// Update it to the new attribute
 		OutModifyingAttribute = FGameplayAttribute(NewAttributeProp,CachedAttribute.AttributeOwnerClass);
+		//Feature End
 
 		// Build up a message for message log
 		const TSharedRef<FTokenizedMessage> Message = FTokenizedMessage::Create(EMessageSeverity::Info);

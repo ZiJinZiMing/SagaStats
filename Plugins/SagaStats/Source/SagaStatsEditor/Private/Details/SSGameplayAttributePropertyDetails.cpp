@@ -1,5 +1,8 @@
-﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+﻿/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 
 #include "Details/SSGameplayAttributePropertyDetails.h"
 
@@ -36,7 +39,10 @@ void FSSGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyHa
 	MyProperty = StructPropertyHandle->GetChildHandle(FName(TEXT("Attribute")));
 	OwnerProperty = StructPropertyHandle->GetChildHandle(FName(TEXT("AttributeOwner")));
 	NameProperty = StructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FGameplayAttribute, AttributeName));
+	
+	//Feature Begin Attribute In subclass of AttributeSet
 	OwnerClassProperty = StructPropertyHandle->GetChildHandle(FName(TEXT("AttributeOwnerClass")));
+	//Feature End
 
 	const FString& FilterMetaStr = StructPropertyHandle->GetProperty()->GetMetaData(TEXT("FilterMetaTag"));
 	const bool bShowOnlyOwnedAttributes = StructPropertyHandle->GetProperty()->HasMetaData(TEXT("ShowOnlyOwnedAttributes"));
@@ -56,6 +62,7 @@ void FSSGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyHa
 		PropertyValue = ObjPtr;
 	}
 
+	//Feature Begin Attribute In subclass of AttributeSet
 	UClass* AttributeOwnerValue = nullptr;
 	if (OwnerClassProperty.IsValid())
 	{
@@ -63,11 +70,14 @@ void FSSGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyHa
 		OwnerClassProperty->GetValue(ObjPtr);
 		AttributeOwnerValue = Cast<UClass>(ObjPtr);
 	}
+	//Feature End
 
 	AttributeWidget = SNew(SSSGameplayAttributeWidget)
 		.OnAttributeChanged(this, &FSSGameplayAttributePropertyDetails::OnAttributeChanged)
 		.DefaultProperty(PropertyValue)
+		//Feature Begin Attribute In subclass of AttributeSet
 		.DefaultAttributeOwnerClass(AttributeOwnerValue)
+		//Feature End
 		.FilterMetaData(FilterMetaStr)
 		.ShowOnlyOwnedAttributes(bShowOnlyOwnedAttributes)
 		.FilterClass(bShowOnlyOwnedAttributes ? OuterBaseClass : nullptr);
@@ -95,12 +105,16 @@ void FSSGameplayAttributePropertyDetails::CustomizeChildren(TSharedRef<IProperty
 {
 }
 
+//Feature Begin Attribute In subclass of AttributeSet
 void FSSGameplayAttributePropertyDetails::OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass) const
 {
 	if (MyProperty.IsValid())
 	{
 		MyProperty->SetValue(SelectedAttribute);
+
+		//Feature Begin Attribute In subclass of AttributeSet
 		OwnerClassProperty->SetValue(InAttributeOwnerClass);
+		//Feature End
 
 		// When we set the attribute we should also set the owner and name info
 		if (OwnerProperty.IsValid())
@@ -119,6 +133,8 @@ void FSSGameplayAttributePropertyDetails::OnAttributeChanged(FProperty* Selected
 		}
 	}
 }
+//Feature End
+
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
 void FSSGameplayAttributePropertyDetails::HandleRequestRefresh(const TSharedPtr<IPropertyUtilities> InPropertyUtilities)

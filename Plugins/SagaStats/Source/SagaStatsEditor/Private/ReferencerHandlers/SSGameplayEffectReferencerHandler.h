@@ -1,5 +1,8 @@
-﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+﻿/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 #pragma once
 
 #include "CoreMinimal.h"
@@ -42,12 +45,16 @@ public:
 	{
 		int32 Index = 0;
 		TWeakFieldPtr<FProperty> Property = nullptr;
+		//Feature Begin Attribute In subclass of AttributeSet
 		TObjectPtr<UClass> AttributeOwnerClass;
+		//Feature End
 
 		FAttributeModifierToReplace(const int32 Index, FProperty* Property, UClass* InAttributeOwnerClass)
 			: Index(Index)
 			, Property(Property)
+			//Feature Begin Attribute In subclass of AttributeSet
 			, AttributeOwnerClass(InAttributeOwnerClass)
+			//Feature End
 		{
 		}
 	};
@@ -82,7 +89,9 @@ public:
 		FString PackageNameOwner;
 		FString AttributeName;
 		int32 Index = -1;
+		//Feature Begin Attribute In subclass of AttributeSet
 		TObjectPtr<UClass> AttributeOwnerClass;
+		//Feature End
 
 		EAttributeReferenceType Type = EAttributeReferenceType::Unknown;
 

@@ -1,5 +1,8 @@
-// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 
 #include "SSEditorSubsystem.h"
 
@@ -33,7 +36,7 @@ void USSEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	FMessageLogInitializationOptions InitOptions;
 	InitOptions.bShowFilters = true;
 	InitOptions.bShowPages = true;
-	MessageLogModule.RegisterLogListing(LogName, LOCTEXT("BlueprintAttributesLog", "Blueprint Attributes Log"), InitOptions);
+	MessageLogModule.RegisterLogListing(LogName, LOCTEXT("SagaStatsLog", "SagaStats Log"), InitOptions);
 
 	FSSDelegates::OnVariableRenamed.AddUObject(this, &USSEditorSubsystem::HandleAttributeRename);
 	FSSDelegates::OnPreCompile.AddUObject(this, &USSEditorSubsystem::HandlePreCompile);
@@ -478,10 +481,12 @@ void USSEditorSubsystem::HandlePins(const TArray<FPinToModify>& InPinsToModify, 
 		UBlueprint* Blueprint = BlueprintNode->GetBlueprint();
 		const UEdGraph* OwningGraph = BlueprintNode->GetGraph();
 		FString DefaultValue = Pin->GetDefaultAsString();
-		
+
+		//Feature Begin Attribute In subclass of AttributeSet
 		FString AttributeOwnerClassName;
 		ParseAttributeOwnerClassNameFromDefaultValue(DefaultValue, AttributeOwnerClassName);
 		UClass* AttributeOwnerClass = LoadObject<UClass>(NULL, *AttributeOwnerClassName);
+		//Feature End
 
 		SS_EDITOR_LOG(Verbose, TEXT("\t USSEditorSubsystem::UpdateK2NodeReferencers - PinToModify Blueprint: %s"), *GetNameSafe(Blueprint))
 		SS_EDITOR_LOG(Verbose, TEXT("\t USSEditorSubsystem::UpdateK2NodeReferencers - PinToModify Pin: %s"), *Pin->GetName())
@@ -491,7 +496,9 @@ void USSEditorSubsystem::HandlePins(const TArray<FPinToModify>& InPinsToModify, 
 			SS_EDITOR_LOG(Verbose, TEXT("\t Prop: %s (Owner: %s)"), *GetNameSafe(Prop), *InOwnerAttributeSetBP->GeneratedClass->GetName())
 
 			FString FinalValue;
+			//Feature Begin Attribute In subclass of AttributeSet
 			FGameplayAttribute NewAttributeStruct(Prop, AttributeOwnerClass);
+			//Feature End
 
 			FGameplayAttribute::StaticStruct()->ExportText(FinalValue, &NewAttributeStruct, &NewAttributeStruct, nullptr, PPF_SerializedAsImportText, nullptr);
 
@@ -605,8 +612,6 @@ bool USSEditorSubsystem::ParseAttributeFromDefaultValue(const FString& InDefault
 	SS_EDITOR_LOG(Verbose, TEXT("USSEditorSubsystem::ParsePackageNameFromDefaultValue InDefaultValue: %s"), *InDefaultValue)
 	FString DefaultValue = InDefaultValue;
 
-	// Example of DefaultValue: 
-	// (AttributeName="Ref_01:z",Attribute=/Game/RenameTests/GBA_Ref_Test.GBA_Ref_Test_C:Ref_01:z,AttributeOwner=BlueprintGeneratedClass'"/Game/RenameTests/GBA_Ref_Test.GBA_Ref_Test_C"')
 	DefaultValue.RemoveFromStart(TEXT("("));
 	DefaultValue.RemoveFromEnd(TEXT(")"));
 
@@ -648,13 +653,12 @@ bool USSEditorSubsystem::ParseAttributeFromDefaultValue(const FString& InDefault
 	return false;
 }
 
+//Feature Begin Attribute In subclass of AttributeSet
 bool USSEditorSubsystem::ParseAttributeOwnerClassNameFromDefaultValue(const FString& InDefaultValue, FString& OutAttributeOwnerClassName)
 {
 	SS_EDITOR_LOG(Verbose, TEXT("USSEditorSubsystem::ParseAttributeOwnerClassNameFromDefaultValue InDefaultValue: %s"), *InDefaultValue)
 	FString DefaultValue = InDefaultValue;
 
-	// Example of DefaultValue: 
-	// (AttributeName="Ref_01:z",Attribute=/Game/RenameTests/GBA_Ref_Test.GBA_Ref_Test_C:Ref_01:z,AttributeOwner=BlueprintGeneratedClass'"/Game/RenameTests/GBA_Ref_Test.GBA_Ref_Test_C"')
 	DefaultValue.RemoveFromStart(TEXT("("));
 	DefaultValue.RemoveFromEnd(TEXT(")"));
 
@@ -682,6 +686,8 @@ bool USSEditorSubsystem::ParseAttributeOwnerClassNameFromDefaultValue(const FStr
 
 	return false;
 }
+//Feature End
+
 
 void USSEditorSubsystem::UpdateReferencers(TArray<FAssetData> InReferencers, const FName& InPackageName, const FName& InOldPropertyName, const FName& InNewPropertyName)
 {

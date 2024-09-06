@@ -1,4 +1,10 @@
-﻿#include "SagaStatsEditor.h"
+﻿/******************************************************************************
+* ProjectName:  SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************/
+
+#include "SagaStatsEditor.h"
 #include "AssetToolsModule.h"
 #include "SSEditorLog.h"
 #include "PropertyEditorModule.h"
@@ -28,7 +34,7 @@ void FSagaStatsEditorModule::StartupModule()
 	SS_EDITOR_LOG(Verbose, TEXT("FSagaStatsEditorModule::StartupModule"))
 
 
-	// Every other logic that would have happen in here is delayed to OnPostEngineInit
+	// Every other logic that would have happened in here is delayed to OnPostEngineInit
 	FCoreDelegates::OnPostEngineInit.AddRaw(this, &FSagaStatsEditorModule::OnPostEngineInit);
 
 	// Register factories for pins and nodes

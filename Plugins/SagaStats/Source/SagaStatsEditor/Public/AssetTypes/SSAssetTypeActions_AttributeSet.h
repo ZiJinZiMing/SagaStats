@@ -1,5 +1,8 @@
-﻿// Copyright 2022-2024 Mickael Daniel. All Rights Reserved.
-
+﻿/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 #pragma once
 
 #include "CoreMinimal.h"
@@ -14,7 +17,7 @@ public:
 	// IAssetTypeActions Implementation
 	virtual FText GetName() const override
 	{
-		return NSLOCTEXT("AssetTypeActions", "SSAssetTypeActions_AttributeSet", "Gameplay Blueprint Attribute Set");
+		return NSLOCTEXT("AssetTypeActions", "SSAssetTypeActions_AttributeSet", "SagaStats Attribute Set");
 	}
 
 	virtual FColor GetTypeColor() const override
