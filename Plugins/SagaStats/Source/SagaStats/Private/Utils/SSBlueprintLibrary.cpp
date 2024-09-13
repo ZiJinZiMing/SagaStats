@@ -31,3 +31,13 @@ FText USSBlueprintLibrary::GetAttributeDisplayNameText(const FGameplayAttribute&
 {
 	return FText::FromString(InAttribute.GetName());
 }
+
+bool USSBlueprintLibrary::GetAttributeByPropertyName(const TSubclassOf<UAttributeSet>& AttributeSetClass, const FName& PropertyName, FGameplayAttribute& OutAttribute)
+{
+	if (FProperty* Property = FindFieldChecked<FProperty>(AttributeSetClass, PropertyName))
+	{
+		OutAttribute = FGameplayAttribute(Property, AttributeSetClass);
+		return true;
+	}
+	return false;
+}

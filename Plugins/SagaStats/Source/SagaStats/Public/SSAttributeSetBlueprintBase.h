@@ -21,6 +21,69 @@ class UEdGraphPin;
 
 #include "SSAttributeSetBlueprintBase.generated.h"
 
+
+
+/**
+ * This defines a set of helper functions for accessing and initializing attributes, to avoid having to manually write these functions.
+ * It would creates the following functions, for attribute Health
+ *
+ *	static FGameplayAttribute UMyHealthSet::GetHealthAttribute();
+ *	FORCEINLINE float UMyHealthSet::GetHealth() const;
+ *	FORCEINLINE void UMyHealthSet::SetHealth(float NewVal);
+ *	FORCEINLINE void UMyHealthSet::InitHealth(float NewVal);
+ *
+ * To use this in your game you can define something like this, and then add game-specific functions as necessary:
+ * 
+ *	#define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
+ *	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
+ *	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+ *	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
+ *	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
+ * 
+ *	ATTRIBUTE_ACCESSORS(UMyHealthSet, Health)
+ */
+
+#define SS_GAMEPLAYATTRIBUTE_REPNOTIFY(PropertyName, OldValue) \
+{ \
+GetOwningAbilitySystemComponentChecked()->SetBaseAttributeValueFromReplication(Get##PropertyName##Attribute(), PropertyName, OldValue); \
+}
+
+#define SS_ATTRIBUTE_ACCESSORS(PropertyName) \
+SS_GAMEPLAYATTRIBUTE_PROPERTY_GETTER(PropertyName) \
+SS_GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+SS_GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
+SS_GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
+
+#define SS_GAMEPLAYATTRIBUTE_PROPERTY_GETTER(PropertyName) \
+FGameplayAttribute Get##PropertyName##Attribute() const \
+{ \
+return FGameplayAttribute(FindFieldChecked<FProperty>(GetClass(), FName(TEXT(#PropertyName))), GetClass()); \
+}
+
+#define SS_GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+FORCEINLINE float Get##PropertyName() const \
+{ \
+return PropertyName.GetCurrentValue(); \
+}
+
+#define SS_GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
+FORCEINLINE void Set##PropertyName(float NewVal) \
+{ \
+UAbilitySystemComponent* AbilityComp = GetOwningAbilitySystemComponent(); \
+if (ensure(AbilityComp)) \
+{ \
+AbilityComp->SetNumericAttributeBase(Get##PropertyName##Attribute(), NewVal); \
+}; \
+}
+
+#define SS_GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName) \
+FORCEINLINE void Init##PropertyName(float NewVal) \
+{ \
+PropertyName.SetBaseValue(NewVal); \
+PropertyName.SetCurrentValue(NewVal); \
+}
+
+
 /**
  * Structure holding various information to deal with AttributeSet lifecycle events (such as Pre/PostGameplayEffectExecute),
  * extracting info from FGameplayEffectModCallbackData.
@@ -325,7 +388,7 @@ public:
 	 * 
 	 * @returns true whether clamping was done and OutValue was changed
 	 */
-	bool PerformClampingForAttribute(const FGameplayAttribute& InAttribute, float& OutValue);
+	bool PerformClampingForAttribute(const FGameplayAttribute& InAttribute, float& OutValue) const;
 
 	/**
 	 * Clamps the Attribute from MinValue to MaxValue
@@ -483,22 +546,22 @@ protected:
 	void InitDataTableProperties(const UDataTable* DataTable);
 	
 	/** Returns whether given Attribute is defined using a FSSGameplayClampedAttributeData property, and if it has valid clamping values */
-	bool IsValidClampedProperty(const FGameplayAttribute& Attribute);
+	bool IsValidClampedProperty(const FGameplayAttribute& Attribute) const;
 
 	/** Returns the new value for an attribute after clamping via FSSGameplayClampedAttributeData defaults Min / Max values */
-	float GetClampedValueForClampedProperty(const FGameplayAttribute& Attribute, float InValue);
+	float GetClampedValueForClampedProperty(const FGameplayAttribute& Attribute, float InValue) const;
 	
 	/** Returns whether given Attribute metadata has valid clamping values */
-	static bool IsValidAttributeMetadata(const FAttributeMetaData& InAttributeMetadata);
+	static bool IsValidAttributeMetadata(const FAttributeMetaData& InAttributeMetadata) ;
 	
 	/** Returns whether given Attribute metadata has valid clamping values */
 	static bool IsValidAttributeMetadata(const TSharedPtr<FAttributeMetaData>& InAttributeMetadata);
 
 	/** Returns whether given Attribute has stored MetaData, and if it has valid clamping values */
-	bool HasClampedMetaData(const FGameplayAttribute& Attribute);
+	bool HasClampedMetaData(const FGameplayAttribute& Attribute) const;
 
 	/** Returns the new value for an attribute after clamping via stored MetaData (from DataTable) */
-	float GetClampedValueForMetaData(const FGameplayAttribute& Attribute, float InValue);
+	float GetClampedValueForMetaData(const FGameplayAttribute& Attribute, float InValue) const;
 
 	/** Returns all Blueprint member variables marked as replicated for this class */
 	void GetAllBlueprintReplicatedProps(TArray<FProperty*>& OutProperties, EPropertyFlags InCheckFlag = CPF_Net) const;

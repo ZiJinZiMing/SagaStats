@@ -284,7 +284,7 @@ void USSAttributeSetBlueprintBase::PrintDebug()
 	Super::PrintDebug();
 }
 
-bool USSAttributeSetBlueprintBase::PerformClampingForAttribute(const FGameplayAttribute& InAttribute, float& OutValue)
+bool USSAttributeSetBlueprintBase::PerformClampingForAttribute(const FGameplayAttribute& InAttribute, float& OutValue) const
 {
 	float NewValue = OutValue;
 	bool bWasClamped = false;
@@ -965,11 +965,12 @@ void USSAttributeSetBlueprintBase::InitDataTableProperties(const UDataTable* Dat
 	}
 }
 
-bool USSAttributeSetBlueprintBase::IsValidClampedProperty(const FGameplayAttribute& Attribute)
+bool USSAttributeSetBlueprintBase::IsValidClampedProperty(const FGameplayAttribute& Attribute) const
 {
 	if (IsGameplayAttributeDataClampedProperty(Attribute.GetUProperty()))
 	{
-		const FSSGameplayClampedAttributeData* Clamped = static_cast<FSSGameplayClampedAttributeData*>(Attribute.GetGameplayAttributeData(this));
+		// const FSSGameplayClampedAttributeData* Clamped = static_cast<FSSGameplayClampedAttributeData*>(Attribute.GetGameplayAttributeData(this));
+		const FSSGameplayClampedAttributeData* Clamped = static_cast<const FSSGameplayClampedAttributeData*>(Attribute.GetGameplayAttributeData(this));
 		// Valid whenever we are sure it is a FSSGameplayClampedAttributeData
 		// We'll handle invalidity of lower / max bounds in GetClampedValueForClampedProperty
 		return Clamped != nullptr;
@@ -978,13 +979,13 @@ bool USSAttributeSetBlueprintBase::IsValidClampedProperty(const FGameplayAttribu
 	return false;
 }
 
-float USSAttributeSetBlueprintBase::GetClampedValueForClampedProperty(const FGameplayAttribute& Attribute, const float InValue)
+float USSAttributeSetBlueprintBase::GetClampedValueForClampedProperty(const FGameplayAttribute& Attribute, const float InValue) const
 {
 	float NewValue = InValue;
 
 	if (IsGameplayAttributeDataClampedProperty(Attribute.GetUProperty()))
 	{
-		if (const FSSGameplayClampedAttributeData* Clamped = static_cast<FSSGameplayClampedAttributeData*>(Attribute.GetGameplayAttributeData(this)))
+		if (const FSSGameplayClampedAttributeData* Clamped = static_cast<const FSSGameplayClampedAttributeData*>(Attribute.GetGameplayAttributeData(this)))
 		{
 			float MinValue;
 			const bool bIsMinValid = Clamped->MinValue.GetValueForClamping(this, MinValue);
@@ -1043,7 +1044,7 @@ bool USSAttributeSetBlueprintBase::IsValidAttributeMetadata(const TSharedPtr<FAt
 	return IsValidAttributeMetadata(*InAttributeMetadata.Get());
 }
 
-bool USSAttributeSetBlueprintBase::HasClampedMetaData(const FGameplayAttribute& Attribute)
+bool USSAttributeSetBlueprintBase::HasClampedMetaData(const FGameplayAttribute& Attribute) const
 {
 	const FString AttributeName = Attribute.GetName();
 	if (AttributesMetaData.Contains(AttributeName))
@@ -1054,7 +1055,7 @@ bool USSAttributeSetBlueprintBase::HasClampedMetaData(const FGameplayAttribute& 
 	return false;
 }
 
-float USSAttributeSetBlueprintBase::GetClampedValueForMetaData(const FGameplayAttribute& Attribute, const float InValue)
+float USSAttributeSetBlueprintBase::GetClampedValueForMetaData(const FGameplayAttribute& Attribute, const float InValue) const
 {
 	float NewValue = InValue;
 	const FString AttributeName = Attribute.GetName();

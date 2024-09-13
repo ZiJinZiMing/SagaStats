@@ -28,7 +28,7 @@ public:
 	 *
 	 * @param ExecutionData	The data to get the debug string from.
 	 */
-	UFUNCTION(BlueprintPure, Category = "Blueprint Attributes")
+	UFUNCTION(BlueprintPure, Category = "Attributes")
 	static FString GetDebugStringFromExecutionData(const FSSAttributeSetExecutionData& ExecutionData);
 
 	/**
@@ -37,11 +37,11 @@ public:
 	 * @param ExecutionData	The data to get the debug string from.
 	 * @param Separator String separator to use when joining the structure values (Default: "\n" - new line)
 	 */
-	UFUNCTION(BlueprintPure, Category = "Blueprint Attributes")
+	UFUNCTION(BlueprintPure, Category = "Attributes")
 	static FString GetDebugStringFromExecutionDataSeparator(const FSSAttributeSetExecutionData& ExecutionData, const FString& Separator = TEXT(", "));
 
 	/** Returns the Attribute name */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Blueprint Attributes")
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Attributes")
 	static FString GetDebugStringFromAttribute(const FGameplayAttribute& Attribute);
 
 	/** Simple equality operator for gameplay attributes and string (for K2 Switch Node) */
@@ -49,6 +49,10 @@ public:
 	static bool NotEqual_GameplayAttributeGameplayAttribute(FGameplayAttribute A, FString B);
 
 	/** Returns the Attribute name as an FText */
-	UFUNCTION(BlueprintPure, Category = "Blueprint Attributes")
+	UFUNCTION(BlueprintPure, Category = "Attributes")
 	static FText GetAttributeDisplayNameText(const FGameplayAttribute& InAttribute);
+
+	UFUNCTION(BlueprintPure, Category = "Attributes")
+	static bool GetAttributeByPropertyName(const TSubclassOf<UAttributeSet>& AttributeSetClass, const FName& PropertyName, FGameplayAttribute& OutAttribute);
+	
 };

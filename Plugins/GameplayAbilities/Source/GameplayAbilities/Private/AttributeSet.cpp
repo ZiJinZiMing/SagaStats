@@ -465,7 +465,7 @@ void UAttributeSet::GetAttributesFromSetClass(const TSubclassOf<UAttributeSet>& 
 		}
 		else if (FGameplayAttribute::IsGameplayAttributeDataProperty(*It))
 		{
-			FGameplayAttribute Attribute = FGameplayAttribute(FloatProperty, AttributeSetClass);
+			FGameplayAttribute Attribute = FGameplayAttribute(*It, AttributeSetClass);
 			Attributes.Add(Attribute);
 		}
 	}
