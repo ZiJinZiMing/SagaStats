@@ -14,5 +14,10 @@ public class MySagaStats : ModuleRules
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "GameplayAbilities", "GameplayTasks", "GameplayTags", "SagaStats", });
+
+		if (Target.bBuildEditor == true)
+		{
+			PrivateDependencyModuleNames.Add("SagaStatsEditor");
+		}
 	}
 }

@@ -9,9 +9,6 @@
 #include "Net/UnrealNetwork.h"
 
 
-DEFINE_ENUM_TO_STRING(EMeterFillStatus, "/Script/SagaStats")
-
-
 USSMeterBase::USSMeterBase(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
 {
 	Current.MinValue.ClampType = ESSClampingType::Float;
@@ -20,7 +17,6 @@ USSMeterBase::USSMeterBase(const FObjectInitializer& ObjectInitializer): Super(O
 	FGameplayAttribute MaximumAttribute = GetMaximumAttribute();
 	Current.MaxValue.Attribute = MaximumAttribute;
 
-	FillStatus = EMeterFillStatus::Filled;
 	InitMaximum(1.f);
 }
 
@@ -47,28 +43,6 @@ void USSMeterBase::PostAttributeChange(const FGameplayAttribute& Attribute, floa
 	{
 		OnCurrentChanged(OldValue, NewValue);
 	}
-
-	/*if (IsEmptied())
-	{
-		if (FillStatus != EMeterFillStatus::Emptied)
-		{
-			FillStatus = EMeterFillStatus::Emptied;
-			OnEmptied();
-		}
-	}
-	else if (IsFilled())
-	{
-		if (FillStatus != EMeterFillStatus::Filled)
-		{
-			FillStatus = EMeterFillStatus::Filled;
-			OnFilled();
-		}
-	}
-	else
-	{
-		FillStatus = EMeterFillStatus::Normal;
-	}
-	*/
 }
 
 void USSMeterBase::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
@@ -85,6 +59,12 @@ void USSMeterBase::PreAttributeBaseChange(const FGameplayAttribute& Attribute, f
 	}
 }
 
+float USSMeterBase::GetPercent() const
+{
+	if (GetMaximum() == 0) return 0.f;
+	return GetCurrent() / GetMaximum();
+}
+
 void USSMeterBase::OnEmptied_Implementation()
 {
 }
@@ -99,7 +79,7 @@ void USSMeterBase::OnMaximumChanged(float OldValue, float NewValue)
 	float NewCurrent = GetCurrent();
 	if (PerformClampingForAttribute(GetCurrentAttribute(), NewCurrent))
 	{
-		bool ClampedFilled = GetCurrent() > NewCurrent;
+		bool ClampedFilled = GetCurrent() < OldValue && GetCurrent() >= NewValue;
 		SetAttributeValue(GetCurrentAttribute(), NewCurrent);
 		if (ClampedFilled)
 		{

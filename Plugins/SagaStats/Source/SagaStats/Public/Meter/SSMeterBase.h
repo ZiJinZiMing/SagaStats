@@ -17,18 +17,6 @@ class USSMeterBase;
 
 #define METER_MINIMUM 0
 
-/*Fill status of Meter*/
-UENUM(BlueprintType)
-enum class EMeterFillStatus : uint8
-{
-	Normal,
-	Filled,
-	Emptied,
-};
-
-DECLARE_ENUM_TO_STRING(EMeterFillStatus);
-
-
 /**
  * 
  */
@@ -71,9 +59,6 @@ public:
 	UFUNCTION(BlueprintPure, Category="Meter")
 	bool IsEmptied() const;
 
-	UPROPERTY(Transient)
-	EMeterFillStatus FillStatus;
-
 protected:
 	//~begin UAttributeSet interface
 
@@ -86,6 +71,9 @@ protected:
 	
 	//~end UAttributeSet interface
 
+	UFUNCTION(BlueprintPure, Category="Meter")
+	float GetPercent() const;
+	
 	UFUNCTION(BlueprintNativeEvent, Category="Meter")
 	void OnEmptied();
 	virtual void OnEmptied_Implementation();
@@ -97,7 +85,6 @@ protected:
 	virtual void OnMaximumChanged(float OldValue, float NewValue);
 
 	virtual void OnCurrentChanged(float OldValue, float NewValue);
-
 	
 	//~begin ITickableAttributeSetInterface interface
 

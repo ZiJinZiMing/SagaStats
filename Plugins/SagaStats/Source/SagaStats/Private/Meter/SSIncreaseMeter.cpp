@@ -17,6 +17,11 @@ USSIncreaseMeter::USSIncreaseMeter(const FObjectInitializer& ObjectInitializer):
 	InitDegenerationCooldown(0.f);
 }
 
+void USSIncreaseMeter::InitFromMetaDataTable(const UDataTable* DataTable)
+{
+	Super::InitFromMetaDataTable(DataTable);
+}
+
 void USSIncreaseMeter::OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data)
 {
 	float OldCurrent = GetCurrent();
@@ -26,7 +31,7 @@ void USSIncreaseMeter::OnAccumulate_Implementation(const FSSAttributeSetExecutio
 	if (GetImpactedAccumulate() > 0 && GetDegenerationCooldown() > 0.f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(DegenerationCooldownTimer);
-		GetWorld()->GetTimerManager().SetTimer(DegenerationCooldownTimer, FTimerDelegate::CreateUObject(this, &ThisClass::OnDegenerationCooldownTimerFinish), GetDegeneration(), false);
+		GetWorld()->GetTimerManager().SetTimer(DegenerationCooldownTimer, FTimerDelegate::CreateUObject(this, &ThisClass::OnDegenerationCooldownTimerFinish), GetDegenerationCooldown(), false);
 	}
 }
 
@@ -46,9 +51,9 @@ void USSIncreaseMeter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (CanRegen())
+	if (CanDegeneration())
 	{
-		if (FillStatus != EMeterFillStatus::Emptied)
+		if (!IsEmptied())
 		{
 			float NewValue = GetCurrent() - GetDegeneration() * DeltaTime;
 			SetAttributeValue(GetCurrentAttribute(), NewValue);
@@ -65,7 +70,7 @@ void USSIncreaseMeter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 	DOREPLIFETIME_CONDITION_NOTIFY(USSIncreaseMeter, DegenerationCooldown, COND_None, REPNOTIFY_Always);
 }
 
-bool USSIncreaseMeter::CanRegen() const
+bool USSIncreaseMeter::CanDegeneration() const
 {
 	return GetDegeneration() > 0 && !DegenerationCooldownTimer.IsValid();
 }

@@ -13,7 +13,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Abstract)
 class SAGASTATS_API USSIncreaseMeter : public USSMeterBase
 {
 	GENERATED_BODY()
@@ -51,6 +51,8 @@ public:
 	
 protected:
 
+	virtual void InitFromMetaDataTable(const UDataTable* DataTable) override;
+	
 	UFUNCTION(BlueprintNativeEvent)
 	void OnAccumulate(const FSSAttributeSetExecutionData& Data);
 	void OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data);
@@ -62,7 +64,7 @@ protected:
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	bool CanRegen() const;
+	bool CanDegeneration() const;
 
 	UPROPERTY(transient,VisibleInstanceOnly,BlueprintReadOnly, Category="Runtime")
 	FTimerHandle DegenerationCooldownTimer;
