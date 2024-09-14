@@ -1950,9 +1950,15 @@ private:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_SpawnedAttributes, Transient)
 	TArray<TObjectPtr<UAttributeSet>>	SpawnedAttributes;
 
+	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+	//Change OnRep_SpawnedAttributes Authority
+protected:
 	UFUNCTION()
-	void OnRep_SpawnedAttributes(const TArray<UAttributeSet*>& PreviousSpawnedAttributes);
-
+	// void OnRep_SpawnedAttributes(const TArray<UAttributeSet*>& PreviousSpawnedAttributes);
+	virtual void OnRep_SpawnedAttributes(const TArray<UAttributeSet*>& PreviousSpawnedAttributes);
+private:
+	//ZhangJinming EndChange 
+	
 	FDelegateHandle MonitoredTagChangedDelegateHandle;
 	FTimerHandle    OnRep_ActivateAbilitiesTimerHandle;
 
