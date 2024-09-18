@@ -39,6 +39,19 @@ void USSDecreaseMeter::OnRep_MeterState(const EMeterState& OldValue)
 {
 }
 
+
+void USSDecreaseMeter::CalcGuardReduce_Implementation(USSDecreaseMeter* ProtectedMeter,float InReduce, float& OutGuardReduce, float& OutRemainReduce) const
+{
+	OutGuardReduce = FMath::Min(InReduce, GetCurrent());
+	OutRemainReduce = InReduce - OutGuardReduce;
+}
+
+void USSDecreaseMeter::SetDynamicGuardMeter(TSubclassOf<USSDecreaseMeter> GuardMeter)
+{
+	DynamicGuardMeter = GuardMeter;
+	OnDynamicGuardMeterSet.Broadcast(GuardMeter);
+}
+
 void USSDecreaseMeter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -54,9 +67,7 @@ void USSDecreaseMeter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty
 
 void USSDecreaseMeter::OnReduce_Implementation(const FSSAttributeSetExecutionData& Data)
 {
-	float OldCurrent = GetCurrent();
-	SetAttributeValue(GetCurrentAttribute(), OldCurrent - GetReduce());
-	SetImpactedReduce(OldCurrent - GetCurrent());
+	Super::OnReduce_Implementation(Data);
 
 	if (GetImpactedReduce() > 0 && GetRegenerationCooldown() > 0.f)
 	{
@@ -71,18 +82,6 @@ bool USSDecreaseMeter::PreGameplayEffectExecute(struct FGameplayEffectModCallbac
 	if (IsInResetImmune())return false;
 
 	return true;
-}
-
-void USSDecreaseMeter::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
-{
-	Super::PostGameplayEffectExecute(Data);
-
-	if (Data.EvaluatedData.Attribute == GetReduceAttribute())
-	{
-		const FSSAttributeSetExecutionData ExecutionData(Data);
-		OnReduce(ExecutionData);
-		SetReduce(0);
-	}
 }
 
 void USSDecreaseMeter::Tick(float DeltaTime)

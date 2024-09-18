@@ -2,12 +2,11 @@
 
 
 #include "SSPlayerState.h"
-
-#include "AbilitySystemComponent.h"
+#include "SSAbilitySystemComponent.h"
 
 ASSPlayerState::ASSPlayerState(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
 {
-	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
+	AbilitySystemComponent = CreateDefaultSubobject<USSAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 

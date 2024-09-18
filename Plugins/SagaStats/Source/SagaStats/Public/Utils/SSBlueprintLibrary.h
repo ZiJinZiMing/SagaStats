@@ -54,5 +54,4 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Attributes")
 	static bool GetAttributeByPropertyName(const TSubclassOf<UAttributeSet>& AttributeSetClass, const FName& PropertyName, FGameplayAttribute& OutAttribute);
-	
 };

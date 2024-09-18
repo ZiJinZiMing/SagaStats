@@ -23,14 +23,6 @@ public:
 	explicit USSIncreaseMeter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	
-	SS_ATTRIBUTE_ACCESSORS(Accumulate);
-	UPROPERTY(EditDefaultsOnly, Category="Meter")
-	FGameplayAttributeData Accumulate;
-
-	SS_ATTRIBUTE_ACCESSORS(ImpactedAccumulate);
-	UPROPERTY(EditDefaultsOnly, Category="Meter", meta=(HideFromMOdifiers))
-	FGameplayAttributeData ImpactedAccumulate;
-	
 	SS_ATTRIBUTE_ACCESSORS(Degeneration);
 	UPROPERTY(EditDefaultsOnly, Category="Meter", ReplicatedUsing=OnRep_Degeneration)
 	FGameplayAttributeData Degeneration;
@@ -53,12 +45,8 @@ protected:
 
 	virtual void InitFromMetaDataTable(const UDataTable* DataTable) override;
 	
-	UFUNCTION(BlueprintNativeEvent)
-	void OnAccumulate(const FSSAttributeSetExecutionData& Data);
-	void OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data);
+	virtual void OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data) override;
 	
-	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
-
 	
 	virtual void Tick(float DeltaTime) override;
 

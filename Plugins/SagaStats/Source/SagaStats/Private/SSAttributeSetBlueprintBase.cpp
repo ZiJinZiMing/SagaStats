@@ -1036,21 +1036,29 @@ bool USSAttributeSetBlueprintBase::IsValidAttributeMetadata(const FAttributeMeta
 
 bool USSAttributeSetBlueprintBase::IsValidAttributeMetadata(const TSharedPtr<FAttributeMetaData>& InAttributeMetadata)
 {
+	
+	/* todo：不使用MetaTable中的Clamp功能
 	if (!InAttributeMetadata.IsValid())
 	{
 		return false;
 	}
 	
 	return IsValidAttributeMetadata(*InAttributeMetadata.Get());
+	*/
+
+	return false;
 }
 
 bool USSAttributeSetBlueprintBase::HasClampedMetaData(const FGameplayAttribute& Attribute) const
 {
+	
+	/* todo：不使用MetaTable中的Clamp功能
 	const FString AttributeName = Attribute.GetName();
 	if (AttributesMetaData.Contains(AttributeName))
 	{
 		return IsValidAttributeMetadata(AttributesMetaData.FindChecked(AttributeName));
 	}
+	*/
 	
 	return false;
 }

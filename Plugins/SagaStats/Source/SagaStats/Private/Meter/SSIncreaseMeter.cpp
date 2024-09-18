@@ -12,7 +12,6 @@
 
 USSIncreaseMeter::USSIncreaseMeter(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
 {
-	InitAccumulate(0.f);
 	InitDegeneration(0.f);
 	InitDegenerationCooldown(0.f);
 }
@@ -24,10 +23,8 @@ void USSIncreaseMeter::InitFromMetaDataTable(const UDataTable* DataTable)
 
 void USSIncreaseMeter::OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data)
 {
-	float OldCurrent = GetCurrent();
-	SetAttributeValue(GetCurrentAttribute(), GetAccumulate() + OldCurrent);
-	SetImpactedAccumulate(GetCurrent() - OldCurrent);
-
+	Super::OnAccumulate_Implementation(Data);
+	
 	if (GetImpactedAccumulate() > 0 && GetDegenerationCooldown() > 0.f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(DegenerationCooldownTimer);
@@ -35,17 +32,6 @@ void USSIncreaseMeter::OnAccumulate_Implementation(const FSSAttributeSetExecutio
 	}
 }
 
-void USSIncreaseMeter::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
-{
-	Super::PostGameplayEffectExecute(Data);
-
-	if (Data.EvaluatedData.Attribute == GetAccumulateAttribute())
-	{
-		const FSSAttributeSetExecutionData ExecutionData(Data);
-		OnAccumulate(ExecutionData);
-		SetAccumulate(0);
-	}
-}
 
 void USSIncreaseMeter::Tick(float DeltaTime)
 {
@@ -64,7 +50,6 @@ void USSIncreaseMeter::Tick(float DeltaTime)
 void USSIncreaseMeter::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
 
 	DOREPLIFETIME_CONDITION_NOTIFY(USSIncreaseMeter, Degeneration, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(USSIncreaseMeter, DegenerationCooldown, COND_None, REPNOTIFY_Always);

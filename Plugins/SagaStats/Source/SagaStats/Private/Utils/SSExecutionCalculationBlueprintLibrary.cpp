@@ -96,3 +96,14 @@ const FGameplayEffectCustomExecutionOutput& USSExecutionCalculationBlueprintLibr
 	InExecutionOutput.AddOutputModifier(FGameplayModifierEvaluatedData(InAttribute, InModOp, InMagnitude));
 	return MoveTemp(InExecutionOutput);
 }
+
+bool USSExecutionCalculationBlueprintLibrary::AttemptCalculateTransientAggregatorMagnitude(const FGameplayEffectCustomExecutionParameters& ExecutionParameters, FGameplayTag InAggregatorIdentifier, float& OutMagnitude)
+{
+	const FGameplayEffectSpec& Spec = ExecutionParameters.GetOwningSpec();
+	auto SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
+	auto TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
+	FAggregatorEvaluateParameters EvaluateParameters;
+	EvaluateParameters.SourceTags = SourceTags;
+	EvaluateParameters.TargetTags = TargetTags;
+	return ExecutionParameters.AttemptCalculateTransientAggregatorMagnitude(InAggregatorIdentifier, EvaluateParameters, OutMagnitude);
+}

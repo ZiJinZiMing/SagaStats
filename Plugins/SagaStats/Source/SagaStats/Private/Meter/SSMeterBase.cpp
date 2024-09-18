@@ -6,6 +6,9 @@
 
 
 #include "Meter/SSMeterBase.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -18,6 +21,8 @@ USSMeterBase::USSMeterBase(const FObjectInitializer& ObjectInitializer): Super(O
 	Current.MaxValue.Attribute = MaximumAttribute;
 
 	InitMaximum(1.f);
+	InitAccumulate(0.f);
+
 }
 
 
@@ -30,6 +35,7 @@ bool USSMeterBase::IsEmptied() const
 {
 	return LessOrNearlyEqual(GetCurrent(),METER_MINIMUM);
 }
+
 
 void USSMeterBase::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
 {
@@ -45,9 +51,47 @@ void USSMeterBase::PostAttributeChange(const FGameplayAttribute& Attribute, floa
 	}
 }
 
+bool USSMeterBase::PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data)
+{
+	bool Success = Super::PreGameplayEffectExecute(Data);
+	if (Success)
+	{
+		//todo:Reset
+	}
+	return Success;
+}
+
 void USSMeterBase::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
+
+	if (Data.EvaluatedData.Attribute == GetAccumulateAttribute())
+	{
+		const FSSAttributeSetExecutionData ExecutionData(Data);
+		OnAccumulate(ExecutionData);
+		SetAccumulate(0);
+	}
+	else if (Data.EvaluatedData.Attribute == GetReduceAttribute())
+	{
+		const FSSAttributeSetExecutionData ExecutionData(Data);
+		OnReduce(ExecutionData);
+		SetReduce(0);
+	}
+}
+
+
+void USSMeterBase::OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data)
+{
+	float OldCurrent = GetCurrent();
+	SetAttributeValue(GetCurrentAttribute(), GetAccumulate() + OldCurrent);
+	SetImpactedAccumulate(GetCurrent() - OldCurrent);
+}
+
+void USSMeterBase::OnReduce_Implementation(const FSSAttributeSetExecutionData& Data)
+{
+	float OldCurrent = GetCurrent();
+	SetAttributeValue(GetCurrentAttribute(), OldCurrent - GetReduce());
+	SetImpactedReduce(OldCurrent - GetCurrent());
 }
 
 void USSMeterBase::PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const
@@ -132,4 +176,13 @@ bool USSMeterBase::GreaterOrNearlyEqual(float A, float B)
 bool USSMeterBase::LessOrNearlyEqual(float A, float B)
 {
 	return A <= B || FMath::IsNearlyEqual(A, B, KINDA_SMALL_NUMBER);
+}
+
+const USSMeterBase* USSMeterBase::GetMeter(AActor* Actor, TSubclassOf<USSMeterBase> MeterClass)
+{
+	if(UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor))
+	{
+		return Cast<USSMeterBase>(ASC->GetAttributeSet(MeterClass));
+	}
+	return nullptr;
 }

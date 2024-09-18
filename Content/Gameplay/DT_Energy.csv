@@ -1,4 +1,0 @@
-,BaseValue,MinValue,MaxValue
-Meter_Energy.Maximum,100,0,10000
-Meter_Energy.Degeneration,5,0,10000
-Meter_Energy.DegenerationCooldown,3,0,10000

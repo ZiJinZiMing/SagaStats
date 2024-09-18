@@ -11,6 +11,7 @@
 #include "SSDecreaseMeter.generated.h"
 
 
+class USSDecreaseMeter;
 /*State of Meter*/
 UENUM(BlueprintType)
 enum class EMeterState : uint8
@@ -21,6 +22,8 @@ enum class EMeterState : uint8
 };
 
 DECLARE_ENUM_TO_STRING(EMeterState);
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnDynamicGuardMeterSet, TSubclassOf<USSDecreaseMeter> /*GuardMeterClass*/);
 
 
 /**
@@ -33,15 +36,6 @@ class SAGASTATS_API USSDecreaseMeter : public USSMeterBase
 
 public:
 	explicit USSDecreaseMeter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-
-
-	SS_ATTRIBUTE_ACCESSORS(Reduce);
-	UPROPERTY(EditDefaultsOnly, Category="Meter")
-	FGameplayAttributeData Reduce;
-
-	SS_ATTRIBUTE_ACCESSORS(ImpactedReduce);
-	UPROPERTY(EditDefaultsOnly, Category="Meter", meta=(HideFromMOdifiers))
-	FGameplayAttributeData ImpactedReduce;
 
 
 	SS_ATTRIBUTE_ACCESSORS(MinimumClamp)
@@ -120,7 +114,16 @@ public:
 	UPROPERTY(ReplicatedUsing=OnRep_MeterState, Transient, VisibleInstanceOnly, BlueprintReadOnly, Category="Runtime")
 	EMeterState MeterState;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Meter|Guard")
+	TSubclassOf<USSDecreaseMeter> GuardMeterClass;
 
+	UPROPERTY(Transient, BlueprintReadOnly, Category="Meter|Guard")
+	TSubclassOf<USSDecreaseMeter> DynamicGuardMeter;
+
+	FOnDynamicGuardMeterSet OnDynamicGuardMeterSet;
+	
+public:
+	
 	UFUNCTION(BlueprintCallable, Category="Meter")
 	void StopLockState();
 
@@ -128,19 +131,23 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Meter")
 	void StopResetState();
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, BlueprintPure = false, Category="Meter|Guard")
+	void CalcGuardReduce(USSDecreaseMeter* ProtectedMeter, float InReduce, float& OutGuardReduce, float& OutRemainReduce) const;
+	virtual void CalcGuardReduce_Implementation(USSDecreaseMeter* ProtectedMeter, float InReduce, float& OutGuardReduce, float& OutRemainReduce) const;
+
+	UFUNCTION(BlueprintCallable, Category="Meter|Guard")
+	void SetDynamicGuardMeter(TSubclassOf<USSDecreaseMeter> GuardMeter);
+	
 protected:
 	UFUNCTION()
 	void OnRep_MeterState(const EMeterState& OldValue);
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
-	UFUNCTION(BlueprintNativeEvent)
-	void OnReduce(const FSSAttributeSetExecutionData& Data);
-	void OnReduce_Implementation(const FSSAttributeSetExecutionData& Data);
+	virtual void OnReduce_Implementation(const FSSAttributeSetExecutionData& Data) override;
 
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 
-	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -151,7 +158,6 @@ protected:
 
 	UFUNCTION()
 	void OnRegenerationCooldownTimerFinish();
-
 
 	UPROPERTY(transient, VisibleInstanceOnly, BlueprintReadOnly, Category="Runtime")
 	FTimerHandle LockStateTimer;

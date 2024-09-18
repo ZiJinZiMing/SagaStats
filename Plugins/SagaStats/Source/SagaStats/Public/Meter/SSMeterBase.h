@@ -13,9 +13,8 @@
 #include "TickableAttributeSetInterface.h"
 #include "SSMeterBase.generated.h"
 
-class USSMeterBase;
-
 #define METER_MINIMUM 0
+
 
 /**
  * 
@@ -30,7 +29,7 @@ public:
 
 	SS_ATTRIBUTE_ACCESSORS(Current);
 	/*Current value of meter*/
-	UPROPERTY(EditDefaultsOnly, Category="Meter", ReplicatedUsing=OnRep_Current, meta=(HideFromMOdifiers))
+	UPROPERTY(EditDefaultsOnly, Category="Meter", ReplicatedUsing=OnRep_Current, meta=(HideFromModifiers))
 	FSSGameplayClampedAttributeData Current;
 	UFUNCTION()
 	void OnRep_Current(const FSSGameplayClampedAttributeData& OldValue)
@@ -48,11 +47,31 @@ public:
 		SS_GAMEPLAYATTRIBUTE_REPNOTIFY(Maximum, OldValue);
 	}
 
+	SS_ATTRIBUTE_ACCESSORS(Accumulate);
+	UPROPERTY(EditDefaultsOnly, Category="Meter")
+	FGameplayAttributeData Accumulate;
+
+	SS_ATTRIBUTE_ACCESSORS(ImpactedAccumulate);
+	UPROPERTY(EditDefaultsOnly, Category="Meter", meta=(HideFromModifiers))
+	FGameplayAttributeData ImpactedAccumulate;
+
+	SS_ATTRIBUTE_ACCESSORS(Reduce);
+	UPROPERTY(EditDefaultsOnly, Category="Meter")
+	FGameplayAttributeData Reduce;
+
+	SS_ATTRIBUTE_ACCESSORS(ImpactedReduce);
+	UPROPERTY(EditDefaultsOnly, Category="Meter", meta=(HideFromModifiers))
+	FGameplayAttributeData ImpactedReduce;
+
+
 public:
 	static bool GreaterOrNearlyEqual(float A, float B);
 
 	static bool LessOrNearlyEqual(float A, float B);
-	
+
+	UFUNCTION(BlueprintCallable, Category="Meter")
+	static const USSMeterBase* GetMeter(AActor* Actor, TSubclassOf<USSMeterBase> MeterClass);
+
 	UFUNCTION(BlueprintPure, Category="Meter")
 	bool IsFilled() const;
 
@@ -65,15 +84,17 @@ protected:
 	/** Called just after any modification happens to an attribute. */
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 
+	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
+
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data) override;
 
 	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& NewValue) const override;
-	
+
 	//~end UAttributeSet interface
 
 	UFUNCTION(BlueprintPure, Category="Meter")
 	float GetPercent() const;
-	
+
 	UFUNCTION(BlueprintNativeEvent, Category="Meter")
 	void OnEmptied();
 	virtual void OnEmptied_Implementation();
@@ -85,7 +106,15 @@ protected:
 	virtual void OnMaximumChanged(float OldValue, float NewValue);
 
 	virtual void OnCurrentChanged(float OldValue, float NewValue);
-	
+
+	UFUNCTION(BlueprintNativeEvent)
+	void OnAccumulate(const FSSAttributeSetExecutionData& Data);
+	virtual void OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data);
+
+	UFUNCTION(BlueprintNativeEvent)
+	void OnReduce(const FSSAttributeSetExecutionData& Data);
+	virtual void OnReduce_Implementation(const FSSAttributeSetExecutionData& Data);
+
 	//~begin ITickableAttributeSetInterface interface
 
 	/**
