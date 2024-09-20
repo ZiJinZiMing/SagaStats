@@ -1,7 +1,7 @@
 ,BaseValue,MinValue,MaxValue
 Meter_Health.Maximum,100,0,10000
-Meter_Health.Regeneration,0,0,10000
-Meter_Health.RegenerationCooldown,0,0,10000
+Meter_Health.Regeneration,20,0,10000
+Meter_Health.RegenerationCooldown,2,0,10000
 Meter_Health.MinimumClamp,0,0,10000
 Meter_Health.Current,100,0,10000
 Meter_Health.LockDuration,2,0,10000

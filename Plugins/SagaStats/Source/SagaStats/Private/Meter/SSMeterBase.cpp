@@ -9,6 +9,7 @@
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
+#include "SSAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 
 
@@ -111,10 +112,12 @@ float USSMeterBase::GetPercent() const
 
 void USSMeterBase::OnEmptied_Implementation()
 {
+	Cast<USSAbilitySystemComponent>(GetOwningAbilitySystemComponent())->GetMeterEmptiedDelegate(GetClass()).Broadcast(this);
 }
 
 void USSMeterBase::OnFilled_Implementation()
 {
+	Cast<USSAbilitySystemComponent>(GetOwningAbilitySystemComponent())->GetMeterFilledDelegate(GetClass()).Broadcast(this);
 }
 
 void USSMeterBase::OnMaximumChanged(float OldValue, float NewValue)

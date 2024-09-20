@@ -6,6 +6,8 @@
 
 
 #include "SSAbilitySystemComponent.h"
+#include "Meter/SSMeterBase.h"
+
 
 void USSAbilitySystemComponent::RemoveAttributeSet(UAttributeSet* AttributeSet)
 {
@@ -20,6 +22,21 @@ void USSAbilitySystemComponent::RemoveAttributeSetByClass(TSubclassOf<UAttribute
 	}
 }
 
+FOnAttributeSetAddOrRemoveEvent& USSAbilitySystemComponent::GetAttributeSetAddOrRemoveDelegate(TSubclassOf<UAttributeSet> SetClass)
+{
+	return AttributeSetAddOrRemoveDelegates.FindOrAdd(SetClass);
+}
+
+FOnMeterEmptiedEvent& USSAbilitySystemComponent::GetMeterEmptiedDelegate(TSubclassOf<USSMeterBase> MeterClass)
+{
+	return MeterEmptiedDelegates.FindOrAdd(MeterClass);
+}
+
+FOnMeterFilledEvent& USSAbilitySystemComponent::GetMeterFilledDelegate(TSubclassOf<USSMeterBase> MeterClass)
+{
+	return MeterFilledDelegates.FindOrAdd(MeterClass);
+}
+
 void USSAbilitySystemComponent::AddSpawnedAttribute(UAttributeSet* AttributeSet)
 {
 	if (!IsValid(AttributeSet))
@@ -29,7 +46,7 @@ void USSAbilitySystemComponent::AddSpawnedAttribute(UAttributeSet* AttributeSet)
 
 	if (GetSpawnedAttributes().Find(AttributeSet) == INDEX_NONE)
 	{
-		OnAttributeSetAddOrRemove.Broadcast(AttributeSet, true);
+		GetAttributeSetAddOrRemoveDelegate(AttributeSet->GetClass()).Broadcast(AttributeSet, true);
 	}
 
 	Super::AddSpawnedAttribute(AttributeSet);
@@ -39,7 +56,8 @@ void USSAbilitySystemComponent::RemoveSpawnedAttribute(UAttributeSet* AttributeS
 {
 	if(GetSpawnedAttributes().Contains(AttributeSet))
 	{
-		OnAttributeSetAddOrRemove.Broadcast(AttributeSet, false);
+		GetAttributeSetAddOrRemoveDelegate(AttributeSet->GetClass()).Broadcast(AttributeSet, false);
+
 	}
 	Super::RemoveSpawnedAttribute(AttributeSet);
 }
@@ -48,7 +66,8 @@ void USSAbilitySystemComponent::RemoveAllSpawnedAttributes()
 {
 	for (UAttributeSet* AttributeSet : GetSpawnedAttributes())
 	{
-		OnAttributeSetAddOrRemove.Broadcast(AttributeSet, false);
+		GetAttributeSetAddOrRemoveDelegate(AttributeSet->GetClass()).Broadcast(AttributeSet, false);
+
 	}
 	Super::RemoveAllSpawnedAttributes();
 }
@@ -65,7 +84,7 @@ void USSAbilitySystemComponent::OnRep_SpawnedAttributes(const TArray<UAttributeS
 				const bool bWasRemoved = GetSpawnedAttributes().Find(PreviousAttributeSet) == INDEX_NONE;
 				if (bWasRemoved)
 				{
-					OnAttributeSetAddOrRemove.Broadcast(PreviousAttributeSet, false);
+					GetAttributeSetAddOrRemoveDelegate(PreviousAttributeSet->GetClass()).Broadcast(PreviousAttributeSet, false);
 				}
 			}
 		}
@@ -78,7 +97,7 @@ void USSAbilitySystemComponent::OnRep_SpawnedAttributes(const TArray<UAttributeS
 				const bool bIsAdded = PreviousSpawnedAttributes.Find(NewAttributeSet) == INDEX_NONE;
 				if (bIsAdded)
 				{
-					OnAttributeSetAddOrRemove.Broadcast(NewAttributeSet, true);
+					GetAttributeSetAddOrRemoveDelegate(NewAttributeSet->GetClass()).Broadcast(NewAttributeSet, true);
 				}
 			}
 		}
