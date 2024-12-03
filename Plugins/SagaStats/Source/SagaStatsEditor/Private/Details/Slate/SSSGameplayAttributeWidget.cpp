@@ -34,7 +34,7 @@ BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 struct FSSGameplayAttributeViewerNode
 {
 	//Feature Begin Attribute In subclass of AttributeSet
-	FSSGameplayAttributeViewerNode(const FProperty* InAttribute, const FString& InAttributeName, UClass* InAttributeOwnerClass)
+	FSSGameplayAttributeViewerNode(FProperty* InAttribute, const FString& InAttributeName, UClass* InAttributeOwnerClass)
 	{
 		Attribute = InAttribute;
 		AttributeName = MakeShareable(new FString(InAttributeName));

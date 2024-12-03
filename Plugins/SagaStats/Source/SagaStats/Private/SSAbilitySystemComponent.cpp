@@ -50,6 +50,8 @@ void USSAbilitySystemComponent::AddSpawnedAttribute(UAttributeSet* AttributeSet)
 	}
 
 	Super::AddSpawnedAttribute(AttributeSet);
+
+	UpdateShouldTick();
 }
 
 void USSAbilitySystemComponent::RemoveSpawnedAttribute(UAttributeSet* AttributeSet)
@@ -57,9 +59,10 @@ void USSAbilitySystemComponent::RemoveSpawnedAttribute(UAttributeSet* AttributeS
 	if(GetSpawnedAttributes().Contains(AttributeSet))
 	{
 		GetAttributeSetAddOrRemoveDelegate(AttributeSet->GetClass()).Broadcast(AttributeSet, false);
-
 	}
 	Super::RemoveSpawnedAttribute(AttributeSet);
+	
+	UpdateShouldTick();
 }
 
 void USSAbilitySystemComponent::RemoveAllSpawnedAttributes()
@@ -70,6 +73,8 @@ void USSAbilitySystemComponent::RemoveAllSpawnedAttributes()
 
 	}
 	Super::RemoveAllSpawnedAttributes();
+
+	UpdateShouldTick();
 }
 
 void USSAbilitySystemComponent::OnRep_SpawnedAttributes(const TArray<UAttributeSet*>& PreviousSpawnedAttributes)
@@ -85,6 +90,7 @@ void USSAbilitySystemComponent::OnRep_SpawnedAttributes(const TArray<UAttributeS
 				if (bWasRemoved)
 				{
 					GetAttributeSetAddOrRemoveDelegate(PreviousAttributeSet->GetClass()).Broadcast(PreviousAttributeSet, false);
+					UpdateShouldTick();
 				}
 			}
 		}
@@ -98,6 +104,7 @@ void USSAbilitySystemComponent::OnRep_SpawnedAttributes(const TArray<UAttributeS
 				if (bIsAdded)
 				{
 					GetAttributeSetAddOrRemoveDelegate(NewAttributeSet->GetClass()).Broadcast(NewAttributeSet, true);
+					UpdateShouldTick();
 				}
 			}
 		}

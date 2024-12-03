@@ -1,4 +1,8 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿/******************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
+******************************************************************************************/
 
 
 #include "Meter/Async/AbilityAsync_WaitMeterFilled.h"

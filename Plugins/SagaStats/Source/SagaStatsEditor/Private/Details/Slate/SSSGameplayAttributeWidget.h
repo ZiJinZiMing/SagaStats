@@ -41,7 +41,7 @@ public:
 	void Construct(const FArguments& InArgs);
 
 	FProperty* GetSelectedProperty() const { return SelectedPropertyPtr.Get(); }
-	void SetSelectedProperty(const FProperty* InSelectedProperty) { SelectedPropertyPtr = InSelectedProperty; }
+	void SetSelectedProperty(FProperty* InSelectedProperty) { SelectedPropertyPtr = InSelectedProperty; }
 
 private:
 
