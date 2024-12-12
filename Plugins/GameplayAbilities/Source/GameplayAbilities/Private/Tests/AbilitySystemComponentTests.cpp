@@ -166,6 +166,9 @@ public: // the tests
 			SourceComponent->CancelAbilityHandle(GivenAbilitySpecHandle);
 			Test->TestTrue(TEXT(" AbilityEnded (after CancelAbilityHandle)"), TestCallbacks.bReceiveAbilityEnded);
 			Test->TestFalse(TEXT(" AbilitySpec.IsActive() (after CancelAbilityHandle)"), AbilitySpec->IsActive());
+
+			// We're the authority
+			Test->TestEqual(TEXT(" ActivationInfo.ActivationMode"), AbilitySpec->ActivationInfo.ActivationMode, EGameplayAbilityActivationMode::Authority);
 		}
 	}
 
@@ -204,6 +207,9 @@ public: // the tests
 			Test->TestFalse(TEXT(" AbilityCommitted after TryActivateAbility (using FGameplayAbilitySpecHandle)"), TestCallbacks.bReceivedAbilityCommitted);
 			Test->TestFalse(TEXT(" AbilityEnded (prematurely) after TryActivateAbility (using FGameplayAbilitySpecHandle)"), TestCallbacks.bReceiveAbilityEnded);
 			Test->TestTrue(TEXT(" AbilityFailed after TryActivateAbility (with an Ability that should fail)"), TestCallbacks.bReceiveAbilityFailed);
+
+			// Even though we've been rejected, the ActivationMode should still say we're the authority
+			Test->TestEqual(TEXT(" ActivationInfo.ActivationMode"), AbilitySpec->ActivationInfo.ActivationMode, EGameplayAbilityActivationMode::Authority);
 		}
 	}
 
@@ -259,7 +265,7 @@ public:
 		AddTest(&AbilitySystemComponentTestSuite::Test_FailedAbilityFlow, TEXT("FailedAbilityFlow"));
 	}
 
-	virtual EAutomationTestFlags GetTestFlags() const override { return EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter; }
+	virtual uint32 GetTestFlags() const override { return EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter; }
 	virtual bool IsStressTest() const { return false; }
 	virtual uint32 GetRequiredDeviceNum() const override { return 1; }
 
@@ -311,7 +317,6 @@ protected:
 		}
 		GFrameCounter = InitialFrameCounter;
 
-		World->EndPlay(EEndPlayReason::Quit);
 		GEngine->DestroyWorldContext(World);
 		World->DestroyWorld(false);
 

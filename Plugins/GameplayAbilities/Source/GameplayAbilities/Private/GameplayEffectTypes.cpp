@@ -11,7 +11,6 @@
 #include "AbilitySystemComponent.h"
 #include "Engine/NetConnection.h"
 #include "Engine/PackageMapClient.h"
-#include "GameplayAbilitiesDeveloperSettings.h"
 
 #if WITH_EDITOR
 #include "Misc/DataValidation.h"
@@ -104,7 +103,7 @@ bool FGameplayModEvaluationChannelSettings::operator!=(const FGameplayModEvaluat
 
 float GameplayEffectUtilities::GetModifierBiasByModifierOp(EGameplayModOp::Type ModOp)
 {
-	static const float ModifierOpBiases[EGameplayModOp::Max] = {0.f, 1.f, 1.f, 0.f, 0.f, 0.f};
+	static const float ModifierOpBiases[EGameplayModOp::Max] = {0.f, 1.f, 1.f, 0.f};
 	check(ModOp >= 0 && ModOp < EGameplayModOp::Max);
 
 	return ModifierOpBiases[ModOp];
@@ -236,10 +235,6 @@ void FGameplayEffectContext::AddHitResult(const FHitResult& InHitResult, bool bR
 
 bool FGameplayEffectContext::NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
 {
-	//!!!!!!!!!!!!!!!! Warning !!!!!!!!!!!!!!!
-	// Any changes to this function also need to be done to FGameplayEffectContextNetSerializer to support Iris replication
-	//!!!!!!!!!!!!!!!! Warning !!!!!!!!!!!!!!!
-
 	uint8 RepBits = 0;
 	if (Ar.IsSaving())
 	{
@@ -747,7 +742,7 @@ void FGameplayTagBlueprintPropertyMap::Initialize(UObject* Owner, UAbilitySystem
 		ABILITY_LOG(Error, TEXT("FGameplayTagBlueprintPropertyMap: Removing invalid GameplayTagBlueprintPropertyMapping [Index: %d, Tag:%s, Property:%s] for [%s]."),
 			MappingIndex, *Mapping.TagToMap.ToString(), *Mapping.PropertyName.ToString(), *GetNameSafe(Owner));
 
-		PropertyMappings.RemoveAtSwap(MappingIndex, EAllowShrinking::No);
+		PropertyMappings.RemoveAtSwap(MappingIndex, 1, EAllowShrinking::No);
 	}
 }
 
@@ -1325,8 +1320,7 @@ void FMinimalReplicationTagCountMap::RemoveTag(const FGameplayTag& Tag)
 // WARNING: Changes to this implementation REQUIRES making sure FMinimalReplicationTagCountMapNetSerializer and FMinimalReplicationTagCountMapReplicationFragment remains compatible.
 bool FMinimalReplicationTagCountMap::NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
 {
-	const UGameplayAbilitiesDeveloperSettings* DeveloperSettings = GetDefault<UGameplayAbilitiesDeveloperSettings>();
-	const int32 CountBits = DeveloperSettings->MinimalReplicationTagCountBits;
+	const int32 CountBits = UAbilitySystemGlobals::Get().MinimalReplicationTagCountBits;
 	const int32 MaxCount = ((1 << CountBits)-1);
 
 	if (Ar.IsSaving())

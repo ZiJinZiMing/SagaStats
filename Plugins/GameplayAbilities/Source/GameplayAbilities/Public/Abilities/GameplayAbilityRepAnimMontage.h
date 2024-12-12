@@ -22,6 +22,12 @@ struct GAMEPLAYABILITIES_API FGameplayAbilityRepAnimMontage
 {
 	GENERATED_USTRUCT_BODY()
 
+#if WITH_EDITORONLY_DATA
+	/** AnimMontage ref */
+	UPROPERTY(meta = (DeprecatedProperty, DeprecationMessage = "Use the GetAnimMontage function instead"))
+	TObjectPtr<UAnimMontage> AnimMontage_DEPRECATED;
+#endif
+
 	/** Animation ref. When playing a dynamic montage this points to the AnimSequence the montage was created from */
 	UPROPERTY()
 	TObjectPtr<UAnimSequenceBase> Animation;

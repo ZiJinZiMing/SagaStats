@@ -9,10 +9,8 @@
 #include "AbilitySystemStats.h"
 #include "AbilitySystemGlobals.h"
 #include "AbilitySystemComponent.h"
-#include "AbilitySystemPrivate.h"
 #include "Abilities/Tasks/AbilityTask.h"
 #include "Components/SkeletalMeshComponent.h"
-#include "GameplayAbilitiesDeveloperSettings.h"
 #include "GameplayCue_Types.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Character.h"
@@ -27,18 +25,13 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(GameplayAbility)
 
-namespace UE::AbilitySystem::Private
-{
-	int32 CVarAllowNonInstancedGAsValue = 0;
-	FAutoConsoleVariableRef CVarAllowNonInstancedGAs(TEXT("AbilitySystem.Fix.AllowNonInstancedAbilities"), CVarAllowNonInstancedGAsValue, TEXT("Whether to allow the deprecated EGameplayAbilityInstancingPolicy::NonInstanced type (removed in UE5.5)"), ECVF_Default);
-
-	int32 AbilitySystemShowMakeOutgoingGameplayEffectSpecs = 0;
-	static FAutoConsoleVariableRef CVarAbilitySystemShowMakeOutgoingGameplayEffectSpecs(TEXT("AbilitySystem.ShowClientMakeOutgoingSpecs"), AbilitySystemShowMakeOutgoingGameplayEffectSpecs, TEXT("Displays all GameplayEffect specs created on non authority clients"), ECVF_Default );
-
-	/** We want to deprecate the usage of Replicated Properties due to replication order issues (see the GameplayAbilities/README.md for more information).  Default to 2 to not invalidate existing data during unattended runs (e.g. automated tests). */
-	int32 CVarDeprecateReplicatedPropertiesValue = 2;
-	static FAutoConsoleVariableRef CVarDeprecateReplicatedProperties(TEXT("AbilitySystem.DeprecateReplicatedProperties"), CVarDeprecateReplicatedPropertiesValue,
-		TEXT("Deprecate the use of Replicated Properties. ") TEXT("0: No. 1: Yes. 2: Yes, Except During Automation"), ECVF_Default );
+#define ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(FunctionName, ReturnValue)																				\
+{																																						\
+	if (!ensure(IsInstantiated()))																														\
+	{																																					\
+		ABILITY_LOG(Error, TEXT("%s: " #FunctionName " cannot be called on a non-instanced ability. Check the instancing policy."), *GetPathName());	\
+		return ReturnValue;																																\
+	}																																					\
 }
 
 namespace FAbilitySystemTweaks
@@ -99,17 +92,6 @@ UGameplayAbility::UGameplayAbility(const FObjectInitializer& ObjectInitializer)
 	PRAGMA_ENABLE_DEPRECATION_WARNINGS
 }
 
-EGameplayAbilityInstancingPolicy::Type UGameplayAbility::GetInstancingPolicy() const
-{
-	if (UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue)
-	{
-		return InstancingPolicy;
-	}
-
-	return (InstancingPolicy != EGameplayAbilityInstancingPolicy::Type::NonInstanced) ?
-		InstancingPolicy.GetValue() : EGameplayAbilityInstancingPolicy::Type::InstancedPerActor;
-}
-
 UWorld* UGameplayAbility::GetWorld() const
 {
 	if (!IsInstantiated())
@@ -133,13 +115,6 @@ int32 UGameplayAbility::GetFunctionCallspace(UFunction* Function, FFrame* Stack)
 
 bool UGameplayAbility::CallRemoteFunction(UFunction* Function, void* Parameters, FOutParmRec* OutParms, FFrame* Stack)
 {
-	// Make sure we are not invalid when being called
-	if (!IsValid(this))
-	{
-		ABILITY_LOG(Warning, TEXT("%s:CallRemoteFunction called while 'this' was invalid. Skipping the rest of the code."), *GetPathName());
-		return false;
-	}
-
 	check(!HasAnyFlags(RF_ClassDefaultObject));
 	check(GetOuter() != nullptr);
 
@@ -165,18 +140,11 @@ bool UGameplayAbility::CallRemoteFunction(UFunction* Function, void* Parameters,
 
 void UGameplayAbility::SendGameplayEvent(FGameplayTag EventTag, FGameplayEventData Payload)
 {
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured();
+	if (AbilitySystemComponent)
 	{
-		using namespace UE::AbilitySystem::Private;
-		if (EnumHasAnyFlags(static_cast<EAllowPredictiveGEFlags>(CVarAllowPredictiveGEFlagsValue), EAllowPredictiveGEFlags::AllowGameplayEventToApplyGE))
-		{
-			FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
-			AbilitySystemComponent->HandleGameplayEvent(EventTag, &Payload);
-		}
-		else
-		{
-			AbilitySystemComponent->HandleGameplayEvent(EventTag, &Payload);
-		}
+		FScopedPredictionWindow NewScopedWindow(AbilitySystemComponent, true);
+		AbilitySystemComponent->HandleGameplayEvent(EventTag, &Payload);
 	}
 }
 
@@ -237,51 +205,22 @@ bool UGameplayAbility::IsSupportedForNetworking() const
 EDataValidationResult UGameplayAbility::IsDataValid(FDataValidationContext& Context) const
 {
 	EDataValidationResult Result = EDataValidationResult::Valid;
-	const bool bIsLikelyRunningAutomation = IsRunningCommandlet() || FApp::IsUnattended();
 
-	if (!UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue)
+	if (GetReplicationPolicy() == EGameplayAbilityReplicationPolicy::ReplicateNo)
 	{
-		if (InstancingPolicy == EGameplayAbilityInstancingPolicy::Type::NonInstanced)
+		UBlueprintGeneratedClass* BPClass = Cast<UBlueprintGeneratedClass>(GetClass());
+		if (BPClass && BPClass->NumReplicatedProperties > 0)
 		{
-			Context.AddError(LOCTEXT("NonInstancedIsDeprecated", "Gameplay Ability Instancing Policy is NonInstanced which is deprecated. Use InstancedPerActor. Use CVar AbilitySystem.Fix.AllowNonInstancedAbilities to temporarily allow this during fixup."));
+			Context.AddError(LOCTEXT("ReplicatedVariablesNeedReplicationYes", "Gameplay Ability Blueprint has replicated variables but Replication Policy is set to not replicate"));
 			Result = EDataValidationResult::Invalid;
 		}
 	}
-
-	const bool bIsReplicated = GetReplicationPolicy() == EGameplayAbilityReplicationPolicy::ReplicateYes;
-	if (bIsReplicated)
+	else
 	{
 		if (GetInstancingPolicy() != EGameplayAbilityInstancingPolicy::InstancedPerActor)
 		{
 			Context.AddError(FText::Format(LOCTEXT("ReplicatedInstancePolicyNotSupported", "Instancing Policy '{0}' is not supported for Replication.  Either change the Replication Policy or the Instancing Policy"), UEnum::GetDisplayValueAsText(GetInstancingPolicy())));
 			Result = EDataValidationResult::Invalid;
-		}
-	}
-
-	// Find out which properties are replicated
-	if (UE::AbilitySystem::Private::CVarDeprecateReplicatedPropertiesValue > 0)
-	{
-		const UClass* Class = GetClass();
-		for (const FProperty* Property = Class->PropertyLink; Property; Property = Property->PropertyLinkNext)
-		{
-			if (Property->RepIndex > 0 || Property->HasAnyPropertyFlags(CPF_RepNotify | CPF_Net))
-			{
-				Context.AddWarning(FText::Format(LOCTEXT("ReplicatedPropertiesAreDeprecated", "{0}: Replicated properties are deprecated in Gameplay Abilities (see GameplayAbilities/README.md). Use Reliable RPCs for variable replication."), Property->GetDisplayNameText()));
-				const bool bAllowSuppressErrorsSoAutomationCanPass = (UE::AbilitySystem::Private::CVarDeprecateReplicatedPropertiesValue > 1);
-				Result = (bAllowSuppressErrorsSoAutomationCanPass && bIsLikelyRunningAutomation) ? CombineDataValidationResults(Result, EDataValidationResult::Valid) : EDataValidationResult::Invalid;
-			}
-		}
-	}
-	else
-	{
-		if (GetReplicationPolicy() == EGameplayAbilityReplicationPolicy::ReplicateNo)
-		{
-			UBlueprintGeneratedClass* BPClass = Cast<UBlueprintGeneratedClass>(GetClass());
-			if (BPClass && BPClass->NumReplicatedProperties > 0)
-			{
-				Context.AddError(LOCTEXT("ReplicatedVariablesNeedReplicationYes", "Gameplay Ability Blueprint has replicated variables but Replication Policy is set to not replicate"));
-				Result = EDataValidationResult::Invalid;
-			}
 		}
 	}
 
@@ -293,20 +232,6 @@ EDataValidationResult UGameplayAbility::IsDataValid(FDataValidationContext& Cont
 			Context.AddError(ErrorText);
 			Result = EDataValidationResult::Invalid;
 		}
-		else if (FuncIter->HasAnyFunctionFlags(EFunctionFlags::FUNC_Net) && !bIsReplicated)
-		{
-			FText ErrorText = FText::Format(LOCTEXT("RpcRequiresReplicationYes", "{0}: RPC Functions require ReplicationPolicy to be ReplicateYes in order to actually work."), FuncIter->GetDisplayNameText());
-			if (bIsLikelyRunningAutomation)
-			{
-				Context.AddWarning(ErrorText);
-				Result = CombineDataValidationResults(Result, EDataValidationResult::Valid);
-			}
-			else
-			{
-				Context.AddError(ErrorText);
-				Result = EDataValidationResult::Invalid;
-			}
-		}
 	}
 
 	return Result;
@@ -315,86 +240,88 @@ EDataValidationResult UGameplayAbility::IsDataValid(FDataValidationContext& Cont
 
 bool UGameplayAbility::DoesAbilitySatisfyTagRequirements(const UAbilitySystemComponent& AbilitySystemComponent, const FGameplayTagContainer* SourceTags, const FGameplayTagContainer* TargetTags, OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
-	// Define a common lambda to check for blocked tags
 	bool bBlocked = false;
-	auto CheckForBlocked = [&](const FGameplayTagContainer& ContainerA, const FGameplayTagContainer& ContainerB)
-	{
-		// Do we not have any tags in common?  Then we're not blocked
-		if (ContainerA.IsEmpty() || ContainerB.IsEmpty() || !ContainerA.HasAny(ContainerB))
-		{
-			return;
-		}
-
-		if (OptionalRelevantTags)
-		{
-			// Ensure the global blocking tag is only added once
-			if (!bBlocked)
-			{
-				UAbilitySystemGlobals& AbilitySystemGlobals = UAbilitySystemGlobals::Get();
-				const FGameplayTag& BlockedTag = AbilitySystemGlobals.ActivateFailTagsBlockedTag;
-				OptionalRelevantTags->AddTag(BlockedTag);
-			}
-
-			// Now append all the blocking tags
-			OptionalRelevantTags->AppendMatchingTags(ContainerA, ContainerB);
-		}
-
-		bBlocked = true;
-	};
-
-	// Define a common lambda to check for missing required tags
 	bool bMissing = false;
-	auto CheckForRequired = [&](const FGameplayTagContainer& TagsToCheck, const FGameplayTagContainer& RequiredTags)
+
+	UAbilitySystemGlobals& AbilitySystemGlobals = UAbilitySystemGlobals::Get();
+	const FGameplayTag& BlockedTag = AbilitySystemGlobals.ActivateFailTagsBlockedTag;
+	const FGameplayTag& MissingTag = AbilitySystemGlobals.ActivateFailTagsMissingTag;
+
+	// Check if any of this ability's tags are currently blocked
+	if (AbilitySystemComponent.AreAbilityTagsBlocked(AbilityTags))
 	{
-		// Do we have no requirements, or have met all requirements?  Then nothing's missing
-		if (RequiredTags.IsEmpty() || TagsToCheck.HasAll(RequiredTags))
+		bBlocked = true;
+	}
+
+	// Check to see the required/blocked tags for this ability
+	if (ActivationBlockedTags.Num() || ActivationRequiredTags.Num())
+	{
+		static FGameplayTagContainer AbilitySystemComponentTags;
+		AbilitySystemComponentTags.Reset();
+
+		AbilitySystemComponent.GetOwnedGameplayTags(AbilitySystemComponentTags);
+
+		if (AbilitySystemComponentTags.HasAny(ActivationBlockedTags))
 		{
-			return;
+			bBlocked = true;
 		}
 
-		if (OptionalRelevantTags)
+		if (!AbilitySystemComponentTags.HasAll(ActivationRequiredTags))
 		{
-			// Ensure the global missing tag is only added once
-			if (!bMissing)
+			bMissing = true;
+		}
+	}
+
+	if (SourceTags != nullptr)
+	{
+		if (SourceBlockedTags.Num() || SourceRequiredTags.Num())
+		{
+			if (SourceTags->HasAny(SourceBlockedTags))
 			{
-				UAbilitySystemGlobals& AbilitySystemGlobals = UAbilitySystemGlobals::Get();
-				const FGameplayTag& MissingTag = AbilitySystemGlobals.ActivateFailTagsMissingTag;
-				OptionalRelevantTags->AddTag(MissingTag);
+				bBlocked = true;
 			}
 
-			FGameplayTagContainer MissingTags = RequiredTags; 
-			MissingTags.RemoveTags(TagsToCheck.GetGameplayTagParents());
-			OptionalRelevantTags->AppendTags(MissingTags);
+			if (!SourceTags->HasAll(SourceRequiredTags))
+			{
+				bMissing = true;
+			}
 		}
-
-		bMissing = true;
-	};
-
-	// Start by checking all of the blocked tags first (so OptionalRelevantTags will contain blocked tags first)
-	CheckForBlocked(AbilitySystemComponent.GetBlockedAbilityTags(), GetAssetTags());
-	CheckForBlocked(AbilitySystemComponent.GetOwnedGameplayTags(), ActivationBlockedTags);
-	if (SourceTags != nullptr)
-	{
-		CheckForBlocked(*SourceTags, SourceBlockedTags);
 	}
+
 	if (TargetTags != nullptr)
 	{
-		CheckForBlocked(*TargetTags, TargetBlockedTags);
+		if (TargetBlockedTags.Num() || TargetRequiredTags.Num())
+		{
+			if (TargetTags->HasAny(TargetBlockedTags))
+			{
+				bBlocked = true;
+			}
+
+			if (!TargetTags->HasAll(TargetRequiredTags))
+			{
+				bMissing = true;
+			}
+		}
 	}
 
-	// Now check all required tags
-	CheckForRequired(AbilitySystemComponent.GetOwnedGameplayTags(), ActivationRequiredTags);
-	if (SourceTags != nullptr)
+	if (bBlocked)
 	{
-		CheckForRequired(*SourceTags, SourceRequiredTags);
+		if (OptionalRelevantTags && BlockedTag.IsValid())
+		{
+			OptionalRelevantTags->AddTag(BlockedTag);
+		}
+		return false;
 	}
-	if (TargetTags != nullptr)
+	if (bMissing)
 	{
-		CheckForRequired(*TargetTags, TargetRequiredTags);
+		if (OptionalRelevantTags && MissingTag.IsValid())
+		{
+			OptionalRelevantTags->AddTag(MissingTag);
+		}
+		return false;
 	}
-
-	// We succeeded if there were no blocked tags and no missing required tags	
-	return !bBlocked && !bMissing;
+	
+	return true;
 }
 
 bool UGameplayAbility::ShouldActivateAbility(ENetRole Role) const
@@ -405,7 +332,8 @@ bool UGameplayAbility::ShouldActivateAbility(ENetRole Role) const
 
 void UGameplayAbility::K2_CancelAbility()
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
+
 	CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
 }
 
@@ -423,6 +351,8 @@ bool UGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 	//make into a reference for simplicity
 	static FGameplayTagContainer DummyContainer;
 	DummyContainer.Reset();
+
+	FGameplayTagContainer& OutTags = OptionalRelevantTags ? *OptionalRelevantTags : DummyContainer;
 
 	// make sure the ability system component is valid, if not bail out.
 	UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
@@ -503,24 +433,12 @@ bool UGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handl
 
 	if (bHasBlueprintCanUse)
 	{
-		FGameplayTagContainer K2FailTags;
-		if (K2_CanActivateAbility(*ActorInfo, Handle, K2FailTags) == false)
+		if (K2_CanActivateAbility(*ActorInfo, Handle, OutTags) == false)
 		{
 			if (FScopedCanActivateAbilityLogEnabler::IsLoggingEnabled())
 			{
 				UE_LOG(LogAbilitySystem, Verbose, TEXT("%s: CanActivateAbility on %s failed, Blueprint override returned false"), *GetNameSafe(ActorInfo->OwnerActor.Get()), *GetNameSafe(Spec->Ability));
 				UE_VLOG(ActorInfo->OwnerActor.Get(), VLogAbilitySystem, Verbose, TEXT("CanActivateAbility on %s failed, Blueprint override returned false"), *GetNameSafe(Spec->Ability));
-			}
-
-			if (OptionalRelevantTags)
-			{
-				const FGameplayTag& FailTag = GetDefault<UGameplayAbilitiesDeveloperSettings>()->ActivateFailCanActivateAbilityTag;
-				if (FailTag.IsValid())
-				{
-					OptionalRelevantTags->AddTag(FailTag);
-				}
-
-				OptionalRelevantTags->AppendTags(K2FailTags);
 			}
 
 			return false;
@@ -663,7 +581,7 @@ void UGameplayAbility::SetCanBeCanceled(bool bCanBeCanceled)
 		UAbilitySystemComponent* Comp = CurrentActorInfo->AbilitySystemComponent.Get();
 		if (Comp)
 		{
-			Comp->HandleChangeAbilityCanBeCanceled(GetAssetTags(), this, bCanBeCanceled);
+			Comp->HandleChangeAbilityCanBeCanceled(AbilityTags, this, bCanBeCanceled);
 		}
 	}
 }
@@ -688,7 +606,7 @@ void UGameplayAbility::SetShouldBlockOtherAbilities(bool bShouldBlockAbilities)
 		UAbilitySystemComponent* Comp = CurrentActorInfo->AbilitySystemComponent.Get();
 		if (Comp)
 		{
-			Comp->ApplyAbilityBlockAndCancelTags(GetAssetTags(), this, bIsBlockingOtherAbilities, BlockAbilitiesWithTag, false, CancelAbilitiesWithTag);
+			Comp->ApplyAbilityBlockAndCancelTags(AbilityTags, this, bIsBlockingOtherAbilities, BlockAbilitiesWithTag, false, CancelAbilitiesWithTag);
 		}
 	}
 }
@@ -826,15 +744,7 @@ void UGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 
 			if (UAbilitySystemGlobals::Get().ShouldReplicateActivationOwnedTags())
 			{
-				if (GetNetExecutionPolicy() == EGameplayAbilityNetExecutionPolicy::LocalPredicted || GetNetExecutionPolicy() == EGameplayAbilityNetExecutionPolicy::ServerInitiated)
-				{
-					// If this ability also executes on the client, then don't communicate the tags to the client (it already used RemoveLooseGameplayTags above)
-					AbilitySystemComponent->RemoveMinimalReplicationGameplayTags(ActivationOwnedTags);
-				}
-				else
-				{
-					AbilitySystemComponent->RemoveReplicatedLooseGameplayTags(ActivationOwnedTags);
-				}
+				AbilitySystemComponent->RemoveReplicatedLooseGameplayTags(ActivationOwnedTags);
 			}
 
 			// Remove tracked GameplayCues that we added
@@ -847,13 +757,13 @@ void UGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const
 			if (CanBeCanceled())
 			{
 				// If we're still cancelable, cancel it now
-				AbilitySystemComponent->HandleChangeAbilityCanBeCanceled(GetAssetTags(), this, false);
+				AbilitySystemComponent->HandleChangeAbilityCanBeCanceled(AbilityTags, this, false);
 			}
 			
 			if (IsBlockingOtherAbilities())
 			{
 				// If we're still blocking other abilities, cancel now
-				AbilitySystemComponent->ApplyAbilityBlockAndCancelTags(GetAssetTags(), this, false, BlockAbilitiesWithTag, false, CancelAbilitiesWithTag);
+				AbilitySystemComponent->ApplyAbilityBlockAndCancelTags(AbilityTags, this, false, BlockAbilitiesWithTag, false, CancelAbilitiesWithTag);
 			}
 
 			AbilitySystemComponent->ClearAbilityReplicatedDataCache(Handle, CurrentActivationInfo);
@@ -946,21 +856,13 @@ void UGameplayAbility::PreActivate(const FGameplayAbilitySpecHandle Handle, cons
 		CurrentEventData = *TriggerEventData;
 	}
 
-	Comp->HandleChangeAbilityCanBeCanceled(GetAssetTags(), this, true);
+	Comp->HandleChangeAbilityCanBeCanceled(AbilityTags, this, true);
 
 	Comp->AddLooseGameplayTags(ActivationOwnedTags);
 
 	if (UAbilitySystemGlobals::Get().ShouldReplicateActivationOwnedTags())
 	{
-		if (GetNetExecutionPolicy() == EGameplayAbilityNetExecutionPolicy::LocalPredicted || GetNetExecutionPolicy() == EGameplayAbilityNetExecutionPolicy::ServerInitiated)
-		{
-			// If this ability also executes on the client, then don't communicate the tags to the client (it already used AddLooseGameplayTags above)
-			Comp->AddMinimalReplicationGameplayTags(ActivationOwnedTags);
-		}
-		else
-		{
-			Comp->AddReplicatedLooseGameplayTags(ActivationOwnedTags);
-		}
+		Comp->AddReplicatedLooseGameplayTags(ActivationOwnedTags);
 	}
 
 	if (OnGameplayAbilityEndedDelegate)
@@ -970,7 +872,7 @@ void UGameplayAbility::PreActivate(const FGameplayAbilitySpecHandle Handle, cons
 
 	Comp->NotifyAbilityActivated(Handle, this);
 
-	Comp->ApplyAbilityBlockAndCancelTags(GetAssetTags(), this, true, BlockAbilitiesWithTag, true, CancelAbilitiesWithTag);
+	Comp->ApplyAbilityBlockAndCancelTags(AbilityTags, this, true, BlockAbilitiesWithTag, true, CancelAbilitiesWithTag);
 
 	// Spec's active count must be incremented after applying blockor cancel tags, otherwise the ability runs the risk of cancelling itself inadvertantly before it completely activates.
 	FGameplayAbilitySpec* Spec = Comp->FindAbilitySpecFromHandle(Handle);
@@ -1003,7 +905,7 @@ void UGameplayAbility::ConfirmActivateSucceed()
 	if (HasAnyFlags(RF_ClassDefaultObject) == false)
 	{
 		PostNetInit();
-		ensure(CurrentActorInfo);
+		check(CurrentActorInfo);
 		CurrentActivationInfo.SetActivationConfirmed();
 
 		OnConfirmDelegate.Broadcast(this);
@@ -1037,28 +939,20 @@ UGameplayEffect* UGameplayAbility::GetCostGameplayEffect() const
 
 bool UGameplayAbility::CheckCooldown(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, OUT FGameplayTagContainer* OptionalRelevantTags) const
 {
-	if (!ensure(ActorInfo))
-	{
-		return true;
-	}
-
 	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
-	if (CooldownTags && !CooldownTags->IsEmpty())
+	if (CooldownTags)
 	{
-		if (UAbilitySystemComponent* AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get())
+		if (CooldownTags->Num() > 0)
 		{
+			UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
+			check(AbilitySystemComponent != nullptr);
 			if (AbilitySystemComponent->HasAnyMatchingGameplayTags(*CooldownTags))
 			{
-				if (OptionalRelevantTags)
-				{
-					const FGameplayTag& FailCooldownTag = UAbilitySystemGlobals::Get().ActivateFailCooldownTag;
-					if (FailCooldownTag.IsValid())
-					{
-						OptionalRelevantTags->AddTag(FailCooldownTag);
-					}
+				const FGameplayTag& CooldownTag = UAbilitySystemGlobals::Get().ActivateFailCooldownTag;
 
-					// Let the caller know which tags were blocking
-					OptionalRelevantTags->AppendMatchingTags(AbilitySystemComponent->GetOwnedGameplayTags(), *CooldownTags);
+				if (OptionalRelevantTags && CooldownTag.IsValid())
+				{
+					OptionalRelevantTags->AddTag(CooldownTag);
 				}
 
 				return false;
@@ -1082,19 +976,17 @@ bool UGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const 
 	UGameplayEffect* CostGE = GetCostGameplayEffect();
 	if (CostGE)
 	{
-		UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-		if (ensure(AbilitySystemComponent))
+		UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
+		check(AbilitySystemComponent != nullptr);
+		if (!AbilitySystemComponent->CanApplyAttributeModifiers(CostGE, GetAbilityLevel(Handle, ActorInfo), MakeEffectContext(Handle, ActorInfo)))
 		{
-			if (!AbilitySystemComponent->CanApplyAttributeModifiers(CostGE, GetAbilityLevel(Handle, ActorInfo), MakeEffectContext(Handle, ActorInfo)))
-			{
-				const FGameplayTag& CostTag = UAbilitySystemGlobals::Get().ActivateFailCostTag;
+			const FGameplayTag& CostTag = UAbilitySystemGlobals::Get().ActivateFailCostTag;
 
-				if (OptionalRelevantTags && CostTag.IsValid())
-				{
-					OptionalRelevantTags->AddTag(CostTag);
-				}
-				return false;
+			if (OptionalRelevantTags && CostTag.IsValid())
+			{
+				OptionalRelevantTags->AddTag(CostTag);
 			}
+			return false;
 		}
 	}
 	return true;
@@ -1157,27 +1049,26 @@ void UGameplayAbility::GetCooldownTimeRemainingAndDuration(FGameplayAbilitySpecH
 	const FGameplayTagContainer* CooldownTags = GetCooldownTags();
 	if (CooldownTags && CooldownTags->Num() > 0)
 	{
-		UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-		if (ensure(AbilitySystemComponent))
-		{
-			FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(*CooldownTags);
-			TArray<TPair<float, float>> DurationAndTimeRemaining = AbilitySystemComponent->GetActiveEffectsTimeRemainingAndDuration(Query);
-			if (DurationAndTimeRemaining.Num() > 0)
-			{
-				int32 BestIdx = 0;
-				float LongestTime = DurationAndTimeRemaining[0].Key;
-				for (int32 Idx = 1; Idx < DurationAndTimeRemaining.Num(); ++Idx)
-				{
-					if (DurationAndTimeRemaining[Idx].Key > LongestTime)
-					{
-						LongestTime = DurationAndTimeRemaining[Idx].Key;
-						BestIdx = Idx;
-					}
-				}
+		UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
+		check(AbilitySystemComponent != nullptr);
 
-				TimeRemaining = DurationAndTimeRemaining[BestIdx].Key;
-				CooldownDuration = DurationAndTimeRemaining[BestIdx].Value;
+		FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(*CooldownTags);
+		TArray< TPair<float,float> > DurationAndTimeRemaining = AbilitySystemComponent->GetActiveEffectsTimeRemainingAndDuration(Query);
+		if (DurationAndTimeRemaining.Num() > 0)
+		{
+			int32 BestIdx = 0;
+			float LongestTime = DurationAndTimeRemaining[0].Key;
+			for (int32 Idx = 1; Idx < DurationAndTimeRemaining.Num(); ++Idx)
+			{
+				if (DurationAndTimeRemaining[Idx].Key > LongestTime)
+				{
+					LongestTime = DurationAndTimeRemaining[Idx].Key;
+					BestIdx = Idx;
+				}
 			}
+
+			TimeRemaining = DurationAndTimeRemaining[BestIdx].Key;
+			CooldownDuration = DurationAndTimeRemaining[BestIdx].Value;
 		}
 	}
 }
@@ -1199,11 +1090,7 @@ FGameplayAbilityActorInfo UGameplayAbility::GetActorInfo() const
 
 AActor* UGameplayAbility::GetOwningActorFromActorInfo() const
 {
-	if (!ensureMsgf(UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue || IsInstantiated(),
-		TEXT("%hs called on the CDO.  NonInstanced abilities are deprecated, thus we always expect this to be called on an instanced object."), __func__))
-	{
-		return nullptr;
-	}
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(GetOwningActorFromActorInfo, nullptr);
 
 	if (!ensure(CurrentActorInfo))
 	{
@@ -1214,9 +1101,6 @@ AActor* UGameplayAbility::GetOwningActorFromActorInfo() const
 
 AActor* UGameplayAbility::GetAvatarActorFromActorInfo() const
 {
-	ensureMsgf(UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue || IsInstantiated(),
-		TEXT("%hs called on the CDO.  NonInstanced abilities are deprecated, thus we always expect this to be called on an instanced object."), __func__);
-
 	if (!ensure(CurrentActorInfo))
 	{
 		return nullptr;
@@ -1226,9 +1110,6 @@ AActor* UGameplayAbility::GetAvatarActorFromActorInfo() const
 
 USkeletalMeshComponent* UGameplayAbility::GetOwningComponentFromActorInfo() const
 {
-	ensureMsgf(UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue || IsInstantiated(),
-		TEXT("%hs called on the CDO.  NonInstanced abilities are deprecated, thus we always expect this to be called on an instanced object."), __func__);
-
 	if (!ensure(CurrentActorInfo))
 	{
 		return nullptr;
@@ -1239,9 +1120,6 @@ USkeletalMeshComponent* UGameplayAbility::GetOwningComponentFromActorInfo() cons
 
 UAbilitySystemComponent* UGameplayAbility::GetAbilitySystemComponentFromActorInfo() const
 {
-	ensureMsgf(UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue || IsInstantiated(),
-		TEXT("%hs called on the CDO.  NonInstanced abilities are deprecated, thus we always expect this to be called on an instanced object."), __func__);
-
 	if (!ensure(CurrentActorInfo))
 	{
 		return nullptr;
@@ -1259,73 +1137,46 @@ UAbilitySystemComponent* UGameplayAbility::GetAbilitySystemComponentFromActorInf
 
 UAbilitySystemComponent* UGameplayAbility::GetAbilitySystemComponentFromActorInfo_Ensured() const
 {
-	UAbilitySystemComponent* AbilitySystemComponent = ensure(CurrentActorInfo) ? CurrentActorInfo->AbilitySystemComponent.Get() : nullptr;
+	UAbilitySystemComponent* AbilitySystemComponent = CurrentActorInfo ? CurrentActorInfo->AbilitySystemComponent.Get() : nullptr;
 	ensure(AbilitySystemComponent);
 
 	return AbilitySystemComponent;
 }
 
-const FGameplayTagContainer& UGameplayAbility::GetAssetTags() const
-{
-	return AbilityTags;
-}
-
-void UGameplayAbility::SetAssetTags(const FGameplayTagContainer& InAssetTags)
-{
-	ensureMsgf(HasAnyFlags(RF_NeedInitialization), TEXT("%hs should only be used during construction as GetAbilityTags() are primarily read from the CDO"), __func__);
-	AbilityTags = InAssetTags;
-}
-
 const FGameplayAbilityActorInfo* UGameplayAbility::GetCurrentActorInfo() const
 {
-	if (!ensureMsgf(UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue || IsInstantiated(),
-		TEXT("%hs called on the CDO.  NonInstanced abilities are deprecated, thus we always expect this to be called on an instanced object."), __func__))
-	{
-		return nullptr;
-	}
-
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(GetCurrentActorInfo, nullptr);
 	return CurrentActorInfo;
 }
 
 FGameplayAbilityActivationInfo UGameplayAbility::GetCurrentActivationInfo() const
 {
-	if (!ensureMsgf(UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue || IsInstantiated(),
-		TEXT("%hs called on the CDO.  NonInstanced abilities are deprecated, thus we always expect this to be called on an instanced object."), __func__))
-	{
-		return FGameplayAbilityActivationInfo{};
-	}
-
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(GetCurrentActivationInfo, FGameplayAbilityActivationInfo());
 	return CurrentActivationInfo;
 }
 
 FGameplayAbilitySpecHandle UGameplayAbility::GetCurrentAbilitySpecHandle() const
 {
-	if (!ensureMsgf(UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue || IsInstantiated(),
-		TEXT("%hs called on the CDO.  NonInstanced abilities are deprecated, thus we always expect this to be called on an instanced object."), __func__))
-	{
-		return FGameplayAbilitySpecHandle{};
-	}
-
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(GetCurrentAbilitySpecHandle, FGameplayAbilitySpecHandle());
 	return CurrentSpecHandle;
 }
 
 FGameplayEffectSpecHandle UGameplayAbility::MakeOutgoingGameplayEffectSpec(TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const
 {
-	ensure(CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid());
+	check(CurrentActorInfo && CurrentActorInfo->AbilitySystemComponent.IsValid());
 	return MakeOutgoingGameplayEffectSpec(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, GameplayEffectClass, Level);
 }
 
+int32 AbilitySystemShowMakeOutgoingGameplayEffectSpecs = 0;
+static FAutoConsoleVariableRef CVarAbilitySystemShowMakeOutgoingGameplayEffectSpecs(TEXT("AbilitySystem.ShowClientMakeOutgoingSpecs"), AbilitySystemShowMakeOutgoingGameplayEffectSpecs, TEXT("Displays all GameplayEffect specs created on non authority clients"), ECVF_Default );
+
 FGameplayEffectSpecHandle UGameplayAbility::MakeOutgoingGameplayEffectSpec(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, TSubclassOf<UGameplayEffect> GameplayEffectClass, float Level) const
 {
-	if (!ensure(ActorInfo))
-	{
-		return FGameplayEffectSpecHandle{};
-	}
-
+	check(ActorInfo);
 	UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
 	
 #if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
-	if (UE::AbilitySystem::Private::AbilitySystemShowMakeOutgoingGameplayEffectSpecs && HasAuthority(&ActivationInfo) == false)
+	if (AbilitySystemShowMakeOutgoingGameplayEffectSpecs && HasAuthority(&ActivationInfo) == false)
 	{
 		ABILITY_LOG(Warning, TEXT("%s, MakeOutgoingGameplayEffectSpec: %s"), *AbilitySystemComponent->GetFullName(),  *GameplayEffectClass->GetName()); 
 	}
@@ -1351,12 +1202,12 @@ void UGameplayAbility::ApplyAbilityTagsToGameplayEffectSpec(FGameplayEffectSpec&
 {
 	FGameplayTagContainer& CapturedSourceTags = Spec.CapturedSourceTags.GetSpecTags();
 
-	CapturedSourceTags.AppendTags(GetAssetTags());
+	CapturedSourceTags.AppendTags(AbilityTags);
 
 	// Allow the source object of the ability to propagate tags along as well
 	if (AbilitySpec)
 	{
-		CapturedSourceTags.AppendTags(AbilitySpec->GetDynamicSpecSourceTags());
+		CapturedSourceTags.AppendTags(AbilitySpec->DynamicAbilityTags);
 
 		const IGameplayTagAssetInterface* SourceObjAsTagInterface = Cast<IGameplayTagAssetInterface>(AbilitySpec->SourceObject);
 		if (SourceObjAsTagInterface)
@@ -1376,51 +1227,47 @@ void UGameplayAbility::ApplyAbilityTagsToGameplayEffectSpec(FGameplayEffectSpec&
 
 bool UGameplayAbility::K2_CommitAbility()
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 	return CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
 }
 
 bool UGameplayAbility::K2_CommitAbilityCooldown(bool BroadcastCommitEvent, bool ForceCooldown)
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 	if (BroadcastCommitEvent)
 	{
-		if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
-		{
-			AbilitySystemComponent->NotifyAbilityCommit(this);
-		}
+		UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+		AbilitySystemComponent->NotifyAbilityCommit(this);
 	}
 	return CommitAbilityCooldown(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, ForceCooldown);
 }
 
 bool UGameplayAbility::K2_CommitAbilityCost(bool BroadcastCommitEvent)
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 	if (BroadcastCommitEvent)
 	{
-		if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
-		{
-			AbilitySystemComponent->NotifyAbilityCommit(this);
-		}
+		UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+		AbilitySystemComponent->NotifyAbilityCommit(this);
 	}
 	return CommitAbilityCost(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
 }
 
 bool UGameplayAbility::K2_CheckAbilityCooldown()
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 	return UAbilitySystemGlobals::Get().ShouldIgnoreCooldowns() || CheckCooldown(CurrentSpecHandle, CurrentActorInfo);
 }
 
 bool UGameplayAbility::K2_CheckAbilityCost()
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 	return UAbilitySystemGlobals::Get().ShouldIgnoreCosts() || CheckCost(CurrentSpecHandle, CurrentActorInfo);
 }
 
 void UGameplayAbility::K2_EndAbility()
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 
 	bool bReplicateEndAbility = true;
 	bool bWasCancelled = false;
@@ -1429,7 +1276,7 @@ void UGameplayAbility::K2_EndAbility()
 
 void UGameplayAbility::K2_EndAbilityLocally()
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 
 	bool bReplicateEndAbility = false;
 	bool bWasCancelled = false;
@@ -1438,31 +1285,32 @@ void UGameplayAbility::K2_EndAbilityLocally()
 
 void UGameplayAbility::MontageJumpToSection(FName SectionName)
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+	if (AbilitySystemComponent->IsAnimatingAbility(this))
 	{
-		if (AbilitySystemComponent->IsAnimatingAbility(this))
-		{
-			AbilitySystemComponent->CurrentMontageJumpToSection(SectionName);
-		}
+		AbilitySystemComponent->CurrentMontageJumpToSection(SectionName);
 	}
 }
 
 void UGameplayAbility::MontageSetNextSectionName(FName FromSectionName, FName ToSectionName)
 {
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
+	check(CurrentActorInfo);
+
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+	if (AbilitySystemComponent->IsAnimatingAbility(this))
 	{
-		if (AbilitySystemComponent->IsAnimatingAbility(this))
-		{
-			AbilitySystemComponent->CurrentMontageSetNextSectionName(FromSectionName, ToSectionName);
-		}
+		AbilitySystemComponent->CurrentMontageSetNextSectionName(FromSectionName, ToSectionName);
 	}
 }
 
 void UGameplayAbility::MontageStop(float OverrideBlendOutTime)
 {
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
+	check(CurrentActorInfo);
+
+	UAbilitySystemComponent* const AbilitySystemComponent = CurrentActorInfo->AbilitySystemComponent.Get();
+	if (AbilitySystemComponent != nullptr)
 	{
 		// We should only stop the current montage if we are the animating ability
 		if (AbilitySystemComponent->IsAnimatingAbility(this))
@@ -1474,17 +1322,12 @@ void UGameplayAbility::MontageStop(float OverrideBlendOutTime)
 
 void UGameplayAbility::SetCurrentMontage(class UAnimMontage* InCurrentMontage)
 {
-	if (ensureMsgf(UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue || IsInstantiated(),
-		TEXT("%hs called on the CDO.  NonInstanced abilities are deprecated, thus we always expect this to be called on an instanced object."), __func__))
-	{
-		CurrentMontage = InCurrentMontage;
-	}
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(SetCurrentMontage, );
+	CurrentMontage = InCurrentMontage;
 }
 
 UAnimMontage* UGameplayAbility::GetCurrentMontage() const
 {
-	ensureMsgf(UE::AbilitySystem::Private::CVarAllowNonInstancedGAsValue || IsInstantiated(),
-		TEXT("%hs called on the CDO.  NonInstanced abilities are deprecated, thus we always expect this to be called on an instanced object."), __func__);
 	return CurrentMontage;
 }
 
@@ -1656,7 +1499,7 @@ void UGameplayAbility::CancelTaskByInstanceName(FName InstanceName)
 
 void UGameplayAbility::EndAbilityState(FName OptionalStateNameToEnd)
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 
 	if (OnGameplayAbilityStateEnded.IsBound())
 	{
@@ -1680,28 +1523,24 @@ void UGameplayAbility::AddAbilityTaskDebugMessage(UGameplayTask* AbilityTask, FS
 
 void UGameplayAbility::K2_ExecuteGameplayCue(FGameplayTag GameplayCueTag, FGameplayEffectContextHandle Context)
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
-	{
-		AbilitySystemComponent->ExecuteGameplayCue(GameplayCueTag, Context);
-	}
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+	AbilitySystemComponent->ExecuteGameplayCue(GameplayCueTag, Context);
 }
 
 void UGameplayAbility::K2_ExecuteGameplayCueWithParams(FGameplayTag GameplayCueTag, const FGameplayCueParameters& GameplayCueParameters)
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 	const_cast<FGameplayCueParameters&>(GameplayCueParameters).AbilityLevel = GetAbilityLevel();
 
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
-	{
-		AbilitySystemComponent->ExecuteGameplayCue(GameplayCueTag, GameplayCueParameters);
-	}
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+	AbilitySystemComponent->ExecuteGameplayCue(GameplayCueTag, GameplayCueParameters);
 }
 
 void UGameplayAbility::K2_AddGameplayCue(FGameplayTag GameplayCueTag, FGameplayEffectContextHandle Context, bool bRemoveOnAbilityEnd)
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 
 	// Make default context if nothing is passed in
 	if (Context.IsValid() == false)
@@ -1711,10 +1550,8 @@ void UGameplayAbility::K2_AddGameplayCue(FGameplayTag GameplayCueTag, FGameplayE
 
 	Context.SetAbility(this);
 
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
-	{
-		AbilitySystemComponent->AddGameplayCue(GameplayCueTag, Context);
-	}
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+	AbilitySystemComponent->AddGameplayCue(GameplayCueTag, Context);
 
 	if (bRemoveOnAbilityEnd)
 	{
@@ -1724,12 +1561,10 @@ void UGameplayAbility::K2_AddGameplayCue(FGameplayTag GameplayCueTag, FGameplayE
 
 void UGameplayAbility::K2_AddGameplayCueWithParams(FGameplayTag GameplayCueTag, const FGameplayCueParameters& GameplayCueParameter, bool bRemoveOnAbilityEnd)
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
-	{
-		AbilitySystemComponent->AddGameplayCue(GameplayCueTag, GameplayCueParameter);
-	}
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+	AbilitySystemComponent->AddGameplayCue(GameplayCueTag, GameplayCueParameter);
 
 	if (bRemoveOnAbilityEnd)
 	{
@@ -1740,17 +1575,17 @@ void UGameplayAbility::K2_AddGameplayCueWithParams(FGameplayTag GameplayCueTag, 
 
 void UGameplayAbility::K2_RemoveGameplayCue(FGameplayTag GameplayCueTag)
 {
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
-	{
-		AbilitySystemComponent->RemoveGameplayCue(GameplayCueTag);
-	}
+	check(CurrentActorInfo);
+
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+	AbilitySystemComponent->RemoveGameplayCue(GameplayCueTag);
 
 	TrackedGameplayCues.Remove(GameplayCueTag);
 }
 
 FGameplayEffectContextHandle UGameplayAbility::GetContextFromOwner(FGameplayAbilityTargetDataHandle OptionalTargetData) const
 {
-	ensure(CurrentActorInfo);
+	check(CurrentActorInfo);
 	FGameplayEffectContextHandle Context = MakeEffectContext(CurrentSpecHandle, CurrentActorInfo);
 	
 	for (auto Data : OptionalTargetData.Data)
@@ -1777,9 +1612,10 @@ int32 UGameplayAbility::GetAbilityLevel() const
 /** Returns current ability level for non instanced abilities. You must call this version in these contexts! */
 int32 UGameplayAbility::GetAbilityLevel(FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo) const
 {
-	ensure(ActorInfo);
-	const UAbilitySystemComponent* AbilitySystemComponent = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
-	const FGameplayAbilitySpec* Spec = AbilitySystemComponent ? AbilitySystemComponent->FindAbilitySpecFromHandle(Handle) : nullptr;
+	check(ActorInfo);
+	UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
+
+	FGameplayAbilitySpec* Spec = AbilitySystemComponent ? AbilitySystemComponent->FindAbilitySpecFromHandle(Handle) : nullptr;
 	
 	if (Spec)
 	{
@@ -1798,20 +1634,20 @@ int32 UGameplayAbility::GetAbilityLevel_BP(FGameplayAbilitySpecHandle Handle, co
 
 FGameplayAbilitySpec* UGameplayAbility::GetCurrentAbilitySpec() const
 {
-	ensureMsgf(IsInstantiated(), TEXT("%hs called on the CDO.  This function uses instance variables and therefore is invalid on the CDO."), __func__);
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(GetCurrentAbilitySpec, nullptr);
+	check(CurrentActorInfo);
 
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
-	{
-		return AbilitySystemComponent->FindAbilitySpecFromHandle(CurrentSpecHandle);
-	}
-
-	return nullptr;
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+	return AbilitySystemComponent->FindAbilitySpecFromHandle(CurrentSpecHandle);
 }
 
 FGameplayEffectContextHandle UGameplayAbility::GetGrantedByEffectContext() const
 {
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(GetGrantedByEffectContext, FGameplayEffectContextHandle());
+	check(CurrentActorInfo);
+	if (CurrentActorInfo)
 	{
+		UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
 		FActiveGameplayEffectHandle ActiveHandle = AbilitySystemComponent->FindActiveGameplayEffectHandle(GetCurrentAbilitySpecHandle());
 		if (ActiveHandle.IsValid())
 		{
@@ -1824,8 +1660,11 @@ FGameplayEffectContextHandle UGameplayAbility::GetGrantedByEffectContext() const
 
 void UGameplayAbility::RemoveGrantedByEffect()
 {
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
+	ENSURE_ABILITY_IS_INSTANTIATED_OR_RETURN(RemoveGrantedByEffect, );
+	check(CurrentActorInfo);
+	if (CurrentActorInfo)
 	{
+		UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
 		FActiveGameplayEffectHandle ActiveHandle = AbilitySystemComponent->FindActiveGameplayEffectHandle(GetCurrentAbilitySpecHandle());
 		if (ActiveHandle.IsValid())
 		{
@@ -1841,7 +1680,7 @@ UObject* UGameplayAbility::GetSourceObject(FGameplayAbilitySpecHandle Handle, co
 		UAbilitySystemComponent* const AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get();
 		if (AbilitySystemComponent != nullptr)
 		{
-			FGameplayAbilitySpec* AbilitySpec = AbilitySystemComponent->FindAbilitySpecFromHandle(Handle, EConsiderPending::All);
+			FGameplayAbilitySpec* AbilitySpec = AbilitySystemComponent->FindAbilitySpecFromHandle(Handle);
 			if (AbilitySpec)
 			{
 				return AbilitySpec->SourceObject.Get();
@@ -1868,22 +1707,18 @@ UObject* UGameplayAbility::GetCurrentSourceObject() const
 
 FGameplayEffectContextHandle UGameplayAbility::MakeEffectContext(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo *ActorInfo) const
 {
+	check(ActorInfo);
 	FGameplayEffectContextHandle Context = FGameplayEffectContextHandle(UAbilitySystemGlobals::Get().AllocGameplayEffectContext());
+	// By default use the owner and avatar as the instigator and causer
+	Context.AddInstigator(ActorInfo->OwnerActor.Get(), ActorInfo->AvatarActor.Get());
+
+	// add in the ability tracking here.
 	Context.SetAbility(this);
 
-	if (ensure(ActorInfo))
+	// Pass along the source object to the effect
+	if (FGameplayAbilitySpec* AbilitySpec = ActorInfo->AbilitySystemComponent->FindAbilitySpecFromHandle(Handle))
 	{
-		// By default use the owner and avatar as the instigator and causer
-		Context.AddInstigator(ActorInfo->OwnerActor.Get(), ActorInfo->AvatarActor.Get());
-
-		// Pass along the source object to the effect
-		if (UAbilitySystemComponent* AbilitySystemComponent = ActorInfo->AbilitySystemComponent.Get())
-		{
-			if (FGameplayAbilitySpec* AbilitySpec = AbilitySystemComponent->FindAbilitySpecFromHandle(Handle))
-			{
-				Context.AddSourceObject(AbilitySpec->SourceObject.Get());
-			}
-		}
+		Context.AddSourceObject(AbilitySpec->SourceObject.Get());
 	}
 
 	return Context;
@@ -1980,8 +1815,8 @@ void UGameplayAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, c
 
 FActiveGameplayEffectHandle UGameplayAbility::BP_ApplyGameplayEffectToOwner(TSubclassOf<UGameplayEffect> GameplayEffectClass, int32 GameplayEffectLevel, int32 Stacks)
 {
-	ensureMsgf(CurrentActorInfo, TEXT("ability %s called BP_ApplyGameplayEffectToOwner but current actor info is null"), *GetNameSafe(this));
-	ensureMsgf(CurrentSpecHandle.IsValid(), TEXT("ability %s called BP_ApplyGameplayEffectToOwner but current spec handle is invalid"), *GetNameSafe(this));
+	checkf(CurrentActorInfo, TEXT("ability %s called BP_ApplyGameplayEffectToOwner but current actor info is null"), *GetNameSafe(this));
+	checkf(CurrentSpecHandle.IsValid(), TEXT("ability %s called BP_ApplyGameplayEffectToOwner but current spec handle is invalid"), *GetNameSafe(this));
 
 	if ( GameplayEffectClass )
 	{
@@ -2149,7 +1984,8 @@ void UGameplayAbility::BP_RemoveGameplayEffectFromOwnerWithAssetTags(FGameplayTa
 		return;
 	}
 
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured();
+	if (AbilitySystemComponent)
 	{
 		FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyEffectTags(WithTags);
 		AbilitySystemComponent->RemoveActiveEffects(Query, StacksToRemove);
@@ -2163,7 +1999,8 @@ void UGameplayAbility::BP_RemoveGameplayEffectFromOwnerWithGrantedTags(FGameplay
 		return;
 	}
 
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured();
+	if (AbilitySystemComponent)
 	{
 		FGameplayEffectQuery const Query = FGameplayEffectQuery::MakeQuery_MatchAnyOwningTags(WithGrantedTags);
 		AbilitySystemComponent->RemoveActiveEffects(Query, StacksToRemove);
@@ -2177,7 +2014,8 @@ void UGameplayAbility::BP_RemoveGameplayEffectFromOwnerWithHandle(FActiveGamepla
 		return;
 	}
 
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured();
+	if (AbilitySystemComponent)
 	{
 		AbilitySystemComponent->RemoveActiveGameplayEffect(Handle, StacksToRemove);
 	}
@@ -2247,14 +2085,14 @@ void UGameplayAbility::NotifyAvatarDestroyed()
 
 void UGameplayAbility::NotifyAbilityTaskWaitingOnPlayerData(class UAbilityTask* AbilityTask)
 {
-	// This should only be called from actively running ability tasks
-	if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
+	// This should never happen since it will only be called from actively running ability tasks
+	check(CurrentActorInfo);
+	UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+
+	if (RemoteInstanceEnded)
 	{
-		if (RemoteInstanceEnded)
-		{
-			ABILITY_LOG(Log, TEXT("Ability %s is force cancelling because Task %s has started after the remote player has ended the ability."), *GetName(), *AbilityTask->GetDebugString());
-			AbilitySystemComponent->ForceCancelAbilityDueToReplication(this);
-		}
+		ABILITY_LOG(Log, TEXT("Ability %s is force cancelling because Task %s has started after the remote player has ended the ability."), *GetName(), *AbilityTask->GetDebugString());
+		AbilitySystemComponent->ForceCancelAbilityDueToReplication(this);
 	}
 }
 
@@ -2264,10 +2102,8 @@ void UGameplayAbility::NotifyAbilityTaskWaitingOnAvatar(class UAbilityTask* Abil
 	{
 		ABILITY_LOG(Log, TEXT("Ability %s is force cancelling because Task %s has started while there is no valid AvatarActor"), *GetName(), *AbilityTask->GetDebugString());
 
-		if (UAbilitySystemComponent* AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Ensured())
-		{
-			AbilitySystemComponent->ForceCancelAbilityDueToReplication(this);
-		}
+		UAbilitySystemComponent* const AbilitySystemComponent = GetAbilitySystemComponentFromActorInfo_Checked();
+		AbilitySystemComponent->ForceCancelAbilityDueToReplication(this);
 	}
 }
 

@@ -57,12 +57,10 @@ void UAbilityTask_WaitAbilityActivate::OnAbilityActivate(UGameplayAbility* Activ
 		return;
 	}
 
-	const FGameplayTagContainer& AbilityTags = ActivatedAbility->GetAssetTags();
-
 	if (TagRequirements.IsEmpty())
 	{
-		if ((WithTag.IsValid() && !AbilityTags.HasTag(WithTag)) ||
-			(WithoutTag.IsValid() && AbilityTags.HasTag(WithoutTag)))
+		if ((WithTag.IsValid() && !ActivatedAbility->AbilityTags.HasTag(WithTag)) ||
+			(WithoutTag.IsValid() && ActivatedAbility->AbilityTags.HasTag(WithoutTag)))
 		{
 			// Failed tag check
 			return;
@@ -70,7 +68,7 @@ void UAbilityTask_WaitAbilityActivate::OnAbilityActivate(UGameplayAbility* Activ
 	}
 	else
 	{
-		if (!TagRequirements.RequirementsMet(AbilityTags))
+		if (!TagRequirements.RequirementsMet(ActivatedAbility->AbilityTags))
 		{
 			// Failed tag check
 			return;
@@ -79,7 +77,7 @@ void UAbilityTask_WaitAbilityActivate::OnAbilityActivate(UGameplayAbility* Activ
 
 	if (Query.IsEmpty() == false)
 	{
-		if (Query.Matches(AbilityTags) == false)
+		if (Query.Matches(ActivatedAbility->AbilityTags) == false)
 		{
 			// Failed query
 			return;

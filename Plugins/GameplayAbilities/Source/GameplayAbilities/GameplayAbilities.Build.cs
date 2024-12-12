@@ -19,7 +19,6 @@ namespace UnrealBuildTool.Rules
 					"GameplayTasks",
 					"MovieScene",
 					"PhysicsCore",
-					"DeveloperSettings",
 					"DataRegistry"
 				}
 				);
@@ -40,6 +39,8 @@ namespace UnrealBuildTool.Rules
 			SetupGameplayDebuggerSupport(Target);
 
 			SetupIrisSupport(Target);
+
+			bAllowAutoRTFMInstrumentation = true;
 		}
 	}
 }

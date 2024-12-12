@@ -20,9 +20,6 @@ public:
 	FMontageWaitSimpleDelegate	OnCompleted;
 
 	UPROPERTY(BlueprintAssignable)
-	FMontageWaitSimpleDelegate	OnBlendedIn;
-
-	UPROPERTY(BlueprintAssignable)
 	FMontageWaitSimpleDelegate	OnBlendOut;
 
 	UPROPERTY(BlueprintAssignable)
@@ -30,9 +27,6 @@ public:
 
 	UPROPERTY(BlueprintAssignable)
 	FMontageWaitSimpleDelegate	OnCancelled;
-
-	UFUNCTION()
-	void OnMontageBlendedIn(UAnimMontage* Montage);
 
 	UFUNCTION()
 	void OnMontageBlendingOut(UAnimMontage* Montage, bool bInterrupted);
@@ -82,7 +76,6 @@ protected:
 	/** Checks if the ability is playing a montage and stops that montage, returns true if a montage was stopped, false if not. */
 	bool StopPlayingMontage();
 
-	FOnMontageBlendedInEnded BlendedInDelegate;
 	FOnMontageBlendingOutStarted BlendingOutDelegate;
 	FOnMontageEnded MontageEndedDelegate;
 	FDelegateHandle InterruptedHandle;

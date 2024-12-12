@@ -51,10 +51,8 @@ void UAbilityTask_WaitAbilityCommit::OnDestroy(bool AbilityEnded)
 
 void UAbilityTask_WaitAbilityCommit::OnAbilityCommit(UGameplayAbility *ActivatedAbility)
 {
-	const FGameplayTagContainer& AbilityTags = ActivatedAbility->GetAssetTags();
-
-	if ( (WithTag.IsValid() && !AbilityTags.HasTag(WithTag)) ||
-		 (WithoutTag.IsValid() && AbilityTags.HasTag(WithoutTag)))
+	if ( (WithTag.IsValid() && !ActivatedAbility->AbilityTags.HasTag(WithTag)) ||
+		 (WithoutTag.IsValid() && ActivatedAbility->AbilityTags.HasTag(WithoutTag)))
 	{
 		// Failed tag check
 		return;
@@ -62,7 +60,7 @@ void UAbilityTask_WaitAbilityCommit::OnAbilityCommit(UGameplayAbility *Activated
 
 	if (Query.IsEmpty() == false)
 	{
-		if (Query.Matches(AbilityTags) == false)
+		if (Query.Matches(ActivatedAbility->AbilityTags) == false)
 		{
 			// Failed query
 			return;

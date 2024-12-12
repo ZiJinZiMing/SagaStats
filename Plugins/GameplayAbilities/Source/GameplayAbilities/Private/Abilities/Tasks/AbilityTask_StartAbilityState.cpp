@@ -4,16 +4,6 @@
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(AbilityTask_StartAbilityState)
 
-namespace UE::AbilitySystem::AbilityTask_StartAbilityState
-{
-	// The default implementation of ShouldBroadcastAbilityTaskDelegates returns false if the Ability is not 'active'.
-	// However, we want to execute anyway because we expect to be able to execute during EndAbility.
-	bool CustomShouldBroadcastAbilityTaskDelegates(const UGameplayAbility* Ability)
-	{
-		return IsValid(Ability);
-	}
-}
-
 UAbilityTask_StartAbilityState::UAbilityTask_StartAbilityState(const FObjectInitializer& ObjectInitializer)
 : Super(ObjectInitializer)
 {
@@ -45,8 +35,6 @@ void UAbilityTask_StartAbilityState::Activate()
 
 void UAbilityTask_StartAbilityState::OnDestroy(bool AbilityEnded)
 {
-	using namespace UE::AbilitySystem::AbilityTask_StartAbilityState;
-
 	// Unbind delegates so this doesn't get recursively called
 	if (Ability)
 	{
@@ -56,14 +44,14 @@ void UAbilityTask_StartAbilityState::OnDestroy(bool AbilityEnded)
 
 	if (bWasInterrupted && OnStateInterrupted.IsBound())
 	{
-		if (CustomShouldBroadcastAbilityTaskDelegates(Ability))
+		if (ShouldBroadcastAbilityTaskDelegates())
 		{
 			OnStateInterrupted.Broadcast();
 		}
 	}
 	else if ((bWasEnded || AbilityEnded) && OnStateEnded.IsBound())
 	{
-		if (CustomShouldBroadcastAbilityTaskDelegates(Ability))
+		if (ShouldBroadcastAbilityTaskDelegates())
 		{
 			OnStateEnded.Broadcast();
 		}

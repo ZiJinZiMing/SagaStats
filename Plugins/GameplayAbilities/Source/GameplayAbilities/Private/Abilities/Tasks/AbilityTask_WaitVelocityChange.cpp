@@ -14,9 +14,9 @@ UAbilityTask_WaitVelocityChange::UAbilityTask_WaitVelocityChange(const FObjectIn
 
 void UAbilityTask_WaitVelocityChange::TickTask(float DeltaTime)
 {
-	if (UMovementComponent* LocalMoveComp = CachedMovementComponent.Get())
+	if (CachedMovementComponent)
 	{
-		float dot = FVector::DotProduct(Direction, LocalMoveComp->Velocity);
+		float dot = FVector::DotProduct(Direction, CachedMovementComponent->Velocity);
 
 		if (dot > MinimumMagnitude)
 		{
@@ -48,7 +48,7 @@ UAbilityTask_WaitVelocityChange* UAbilityTask_WaitVelocityChange::CreateWaitVelo
 void UAbilityTask_WaitVelocityChange::Activate()
 {
 	const FGameplayAbilityActorInfo* ActorInfo = Ability->GetCurrentActorInfo();
-	CachedMovementComponent = ActorInfo->MovementComponent;
+	CachedMovementComponent = ActorInfo->MovementComponent.Get();
 	SetWaitingOnAvatar();
 }
 

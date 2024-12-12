@@ -1,14 +1,13 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Sequencer/MovieSceneGameplayCueSections.h"
-
-#include "AbilitySystemGlobals.h"
+#include "Sequencer/MovieSceneGameplayCueTrack.h"
+#include "EntitySystem/MovieSceneEvaluationHookSystem.h"
 #include "Channels/MovieSceneChannelProxy.h"
 #include "EntitySystem/BuiltInComponentTypes.h"
-#include "EntitySystem/MovieSceneEvaluationHookSystem.h"
-#include "Evaluation/MovieSceneEvaluationState.h"
+#include "IMovieScenePlayer.h"
+#include "AbilitySystemGlobals.h"
 #include "GameplayCueManager.h"
-#include "Sequencer/MovieSceneGameplayCueTrack.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(MovieSceneGameplayCueSections)
 
@@ -34,7 +33,7 @@ AActor* ActorFromResolvedObject(UObject* BoundObject)
 }
 
 
-void ExecuteGameplayCueEvent(TSharedRef<FSharedPlaybackState> SharedPlaybackState, const UE::MovieScene::FEvaluationHookParams& Params, const FMovieSceneGameplayCueKey& GameplayCueKey, EGameplayCueEvent::Type Event)
+void ExecuteGameplayCueEvent(IMovieScenePlayer* Player, const UE::MovieScene::FEvaluationHookParams& Params, const FMovieSceneGameplayCueKey& GameplayCueKey, EGameplayCueEvent::Type Event)
 {
 	auto OverrideHandler = [](AActor* InActor, FGameplayTag InTag, const FGameplayCueParameters& InParams, EGameplayCueEvent::Type InEvent)
 	{
@@ -68,7 +67,7 @@ void ExecuteGameplayCueEvent(TSharedRef<FSharedPlaybackState> SharedPlaybackStat
 
 	if (GameplayCueKey.Instigator.IsValid())
 	{
-		for (TWeakObjectPtr<> WeakObject : GameplayCueKey.Instigator.ResolveBoundObjects(Params.SequenceID, SharedPlaybackState))
+		for (TWeakObjectPtr<> WeakObject : GameplayCueKey.Instigator.ResolveBoundObjects(Params.SequenceID, *Player))
 		{
 			if (AActor* Actor = ActorFromResolvedObject(WeakObject.Get()))
 			{
@@ -80,7 +79,7 @@ void ExecuteGameplayCueEvent(TSharedRef<FSharedPlaybackState> SharedPlaybackStat
 
 	if (GameplayCueKey.EffectCauser.IsValid())
 	{
-		for (TWeakObjectPtr<> WeakObject : GameplayCueKey.EffectCauser.ResolveBoundObjects(Params.SequenceID, SharedPlaybackState))
+		for (TWeakObjectPtr<> WeakObject : GameplayCueKey.EffectCauser.ResolveBoundObjects(Params.SequenceID, *Player))
 		{
 			if (AActor* Actor = ActorFromResolvedObject(WeakObject.Get()))
 			{
@@ -93,8 +92,7 @@ void ExecuteGameplayCueEvent(TSharedRef<FSharedPlaybackState> SharedPlaybackStat
 
 	if (Params.ObjectBindingID.IsValid())
 	{
-		TArrayView<TWeakObjectPtr<>> BoundObjects = SharedPlaybackState->FindBoundObjects(Params.ObjectBindingID, Params.SequenceID);
-		for (TWeakObjectPtr<> WeakObject : BoundObjects)
+		for (TWeakObjectPtr<> WeakObject : Player->FindBoundObjects(Params.ObjectBindingID, Params.SequenceID))
 		{
 			UObject* Object = WeakObject.Get();
 			if (!Object)
@@ -257,7 +255,7 @@ EMovieSceneChannelProxyType UMovieSceneGameplayCueTriggerSection::CacheChannelPr
 	return EMovieSceneChannelProxyType::Static;
 }
 
-void UMovieSceneGameplayCueTriggerSection::Trigger(TSharedRef<FSharedPlaybackState> SharedPlaybackState, const UE::MovieScene::FEvaluationHookParams& Params) const
+void UMovieSceneGameplayCueTriggerSection::Trigger(IMovieScenePlayer* Player, const UE::MovieScene::FEvaluationHookParams& Params) const
 {
 	TMovieSceneChannelData<const FMovieSceneGameplayCueKey> ChannelData = Channel.GetData();
 	if (!ensureMsgf(ChannelData.GetValues().IsValidIndex(Params.TriggerIndex), TEXT("Invalid trigger index specified: %d (Num triggers in channel = %d)"), Params.TriggerIndex, ChannelData.GetValues().Num()))
@@ -267,7 +265,7 @@ void UMovieSceneGameplayCueTriggerSection::Trigger(TSharedRef<FSharedPlaybackSta
 
 	if (Params.Context.GetStatus() == EMovieScenePlayerStatus::Playing && Params.Context.GetDirection() == EPlayDirection::Forwards && !Params.Context.IsSilent())
 	{
-		UE::MovieScene::ExecuteGameplayCueEvent(SharedPlaybackState, Params, ChannelData.GetValues()[Params.TriggerIndex], EGameplayCueEvent::Executed);
+		UE::MovieScene::ExecuteGameplayCueEvent(Player, Params, ChannelData.GetValues()[Params.TriggerIndex], EGameplayCueEvent::Executed);
 	}
 }
 
@@ -278,26 +276,26 @@ UMovieSceneGameplayCueSection::UMovieSceneGameplayCueSection(const FObjectInitia
 	bRequiresRangedHook = true;
 }
 
-void UMovieSceneGameplayCueSection::Begin(TSharedRef<FSharedPlaybackState> SharedPlaybackState, const UE::MovieScene::FEvaluationHookParams& Params) const
+void UMovieSceneGameplayCueSection::Begin(IMovieScenePlayer* Player, const UE::MovieScene::FEvaluationHookParams& Params) const
 {
 	if (Params.Context.GetStatus() == EMovieScenePlayerStatus::Playing && Params.Context.GetDirection() == EPlayDirection::Forwards && !Params.Context.IsSilent())
 	{
-		UE::MovieScene::ExecuteGameplayCueEvent(SharedPlaybackState, Params, Cue, EGameplayCueEvent::OnActive);
+		UE::MovieScene::ExecuteGameplayCueEvent(Player, Params, Cue, EGameplayCueEvent::OnActive);
 	}
 }
 
-void UMovieSceneGameplayCueSection::Update(TSharedRef<FSharedPlaybackState> SharedPlaybackState, const UE::MovieScene::FEvaluationHookParams& Params) const
+void UMovieSceneGameplayCueSection::Update(IMovieScenePlayer* Player, const UE::MovieScene::FEvaluationHookParams& Params) const
 {
 	if (Params.Context.GetStatus() == EMovieScenePlayerStatus::Playing && Params.Context.GetDirection() == EPlayDirection::Forwards && !Params.Context.IsSilent())
 	{
-		UE::MovieScene::ExecuteGameplayCueEvent(SharedPlaybackState, Params, Cue, EGameplayCueEvent::WhileActive);
+		UE::MovieScene::ExecuteGameplayCueEvent(Player, Params, Cue, EGameplayCueEvent::WhileActive);
 	}
 }
 
-void UMovieSceneGameplayCueSection::End(TSharedRef<FSharedPlaybackState> SharedPlaybackState, const UE::MovieScene::FEvaluationHookParams& Params) const
+void UMovieSceneGameplayCueSection::End(IMovieScenePlayer* Player, const UE::MovieScene::FEvaluationHookParams& Params) const
 {
 	if (Params.Context.GetStatus() == EMovieScenePlayerStatus::Playing && Params.Context.GetDirection() == EPlayDirection::Forwards && !Params.Context.IsSilent())
 	{
-		UE::MovieScene::ExecuteGameplayCueEvent(SharedPlaybackState, Params, Cue, EGameplayCueEvent::Removed);
+		UE::MovieScene::ExecuteGameplayCueEvent(Player, Params, Cue, EGameplayCueEvent::Removed);
 	}
 }

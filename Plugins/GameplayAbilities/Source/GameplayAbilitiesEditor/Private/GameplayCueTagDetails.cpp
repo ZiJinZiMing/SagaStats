@@ -89,6 +89,7 @@ void FGameplayCueTagDetails::CustomizeChildren( TSharedRef<IPropertyHandle> Stru
 			.AutoWidth()
 			[
 				SAssignNew(ListView, SListView < TSharedRef<FSoftObjectPath> >)
+				.ItemHeight(48)
 				.SelectionMode(ESelectionMode::None)
 				.ListItemsSource(&NotifyList)
 				.OnGenerateRow(this, &FGameplayCueTagDetails::GenerateListRow)

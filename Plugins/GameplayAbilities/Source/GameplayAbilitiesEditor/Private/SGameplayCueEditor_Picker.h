@@ -140,6 +140,7 @@ void SGameplayCuePickerDialog::Construct(const FArguments& InArgs)
 							.AutoHeight( )
 							[
 								SNew(SListView < UClass*  >)
+								.ItemHeight(48)
 								.SelectionMode(ESelectionMode::None)
 								.ListItemsSource(&DefaultClasses)
 								.OnGenerateRow(this, &SGameplayCuePickerDialog::GenerateListRow)

@@ -142,7 +142,10 @@ public:
 	// --------------------------------------
 
 	/** Returns how the ability is instanced when executed. This limits what an ability can do in its implementation. */
-	EGameplayAbilityInstancingPolicy::Type GetInstancingPolicy() const;
+	EGameplayAbilityInstancingPolicy::Type GetInstancingPolicy() const
+	{
+		return InstancingPolicy;
+	}
 
 	/** How an ability replicates state/events to everyone on the network */
 	EGameplayAbilityReplicationPolicy::Type GetReplicationPolicy() const
@@ -181,13 +184,8 @@ public:
 	/** Returns the AbilitySystemComponent that is activating this ability */
 	UFUNCTION(BlueprintCallable, Category = Ability)
 	UAbilitySystemComponent* GetAbilitySystemComponentFromActorInfo() const;
-
-	UE_DEPRECATED(5.5, "Use GetAbilitySystemComponentFromActorInfo_Ensured")
 	UAbilitySystemComponent* GetAbilitySystemComponentFromActorInfo_Checked() const;
 	UAbilitySystemComponent* GetAbilitySystemComponentFromActorInfo_Ensured() const;
-
-	/** The ability is considered to have these tags. */
-	const FGameplayTagContainer& GetAssetTags() const;
 
 	/** Gets the current actor info bound to this ability - can only be called on instanced abilities. */
 	const FGameplayAbilityActorInfo* GetCurrentActorInfo() const;
@@ -487,8 +485,7 @@ public:
 	// --------------------------------------
 
 	/** This ability has these tags */
-	UE_DEPRECATED_FORGAME(5.5, "Use GetAssetTags(). This is being made non-mutable, private and renamed to AssetTags in the future. Use SetAssetTags to set defaults (in constructor only).")
-	UPROPERTY(EditDefaultsOnly, Category = Tags, DisplayName="AssetTags (Default AbilityTags)", meta=(Categories="AbilityTagCategory"))
+	UPROPERTY(EditDefaultsOnly, Category = Tags, meta=(Categories="AbilityTagCategory"))
 	FGameplayTagContainer AbilityTags;
 
 	/** If true, this ability will always replicate input press/release events to the server. */
@@ -531,14 +528,6 @@ public:
 
 protected:
 
-	/**
- 	 * Allows a derived class to set the default GameplayTags that this Ability is considered to have (formerly AbilityTags).
-	 * This can only be called during construction.
-	 * At runtime, the AbilitySpec is queried through a Gameplay Ability's CDO for its AbilityTags which can be a combination of these
-	 * Asset Tags and specifically granted DynamicAbilityTags (all instances generated from an AbilitySpec are expected to share the same AbilityTags).
-	 */
-	void SetAssetTags(const FGameplayTagContainer& InAbilityTags);
-
 	// --------------------------------------
 	//	ShouldAbilityRespondToEvent
 	// --------------------------------------
@@ -551,7 +540,7 @@ protected:
 
 	/** Sends a gameplay event, also creates a prediction window */
 	UFUNCTION(BlueprintCallable, Category = Ability)
-	virtual void SendGameplayEvent(UPARAM(meta=(GameplayTagFilter="GameplayEventTagsCategory")) FGameplayTag EventTag, FGameplayEventData Payload);
+	virtual void SendGameplayEvent(FGameplayTag EventTag, FGameplayEventData Payload);
 
 	// --------------------------------------
 	//	CanActivate
