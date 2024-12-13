@@ -174,7 +174,7 @@ bool FSSUtils::IsValidCPPType(const FString& InCPPType)
 		return true;
 	}
 
-	if (InCPPType == TEXT("FSSGameplayClampedAttributeData"))
+	if (InCPPType == TEXT("FSagaClampedAttributeData"))
 	{
 		return true;
 	}

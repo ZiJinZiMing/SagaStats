@@ -7,7 +7,7 @@
 #include "SSEditorSubsystem.h"
 
 #include "Editor.h"
-#include "SSDelegates.h"
+#include "SagaStatsDelegates.h"
 #include "SSEditorLog.h"
 #include "GameplayEffect.h"
 #include "K2Node.h"
@@ -38,12 +38,12 @@ void USSEditorSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	InitOptions.bShowPages = true;
 	MessageLogModule.RegisterLogListing(LogName, LOCTEXT("SagaStatsLog", "SagaStats Log"), InitOptions);
 
-	FSSDelegates::OnVariableRenamed.AddUObject(this, &USSEditorSubsystem::HandleAttributeRename);
-	FSSDelegates::OnPreCompile.AddUObject(this, &USSEditorSubsystem::HandlePreCompile);
+	FSagaStatsDelegates::OnVariableRenamed.AddUObject(this, &USSEditorSubsystem::HandleAttributeRename);
+	FSagaStatsDelegates::OnPreCompile.AddUObject(this, &USSEditorSubsystem::HandlePreCompile);
 
 	// Seems like a ForceRefresh() on FGameplayAttribute Details avoids the need to re-open the GE BP to update the Attribute picker
 	// but still getting occasional crash on Array export text
-	FSSDelegates::OnPostCompile.AddUObject(this, &USSEditorSubsystem::HandlePostCompile);
+	FSagaStatsDelegates::OnPostCompile.AddUObject(this, &USSEditorSubsystem::HandlePostCompile);
 
 	// Register handlers
 	RegisterReferencerHandler(TEXT("GameplayEffect"), FSSGameplayEffectReferencerHandler::Create());
@@ -58,9 +58,9 @@ void USSEditorSubsystem::Deinitialize()
 	FMessageLogModule& MessageLogModule = FModuleManager::LoadModuleChecked<FMessageLogModule>("MessageLog");
 	MessageLogModule.UnregisterLogListing(LogName);
 
-	FSSDelegates::OnPreCompile.RemoveAll(this);
-	FSSDelegates::OnPostCompile.RemoveAll(this);
-	FSSDelegates::OnVariableRenamed.RemoveAll(this);
+	FSagaStatsDelegates::OnPreCompile.RemoveAll(this);
+	FSagaStatsDelegates::OnPostCompile.RemoveAll(this);
+	FSagaStatsDelegates::OnVariableRenamed.RemoveAll(this);
 }
 
 USSEditorSubsystem& USSEditorSubsystem::Get()
@@ -719,7 +719,7 @@ void USSEditorSubsystem::UpdateReferencers(TArray<FAssetData> InReferencers, con
 				Payload.DefaultObject->PostEditChange();
 				Payload.DefaultObject->MarkPackageDirty();
 
-				FSSDelegates::OnRequestDetailsRefresh.Broadcast();
+				FSagaStatsDelegates::OnRequestDetailsRefresh.Broadcast();
 			}
 		}
 	}

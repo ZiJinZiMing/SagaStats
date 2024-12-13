@@ -12,7 +12,7 @@
 #include "SSEditorLog.h"
 #include "Details/Slate/SSSNewAttributeVariableWidget.h"
 #include "Details/Slate/SSSPositiveActionButton.h"
-#include "Editor/SSBlueprintEditor.h"
+#include "Editor/SagaAttributeSetBlueprintEditor.h"
 #include "Engine/Blueprint.h"
 #include "Slate/SSNewAttributeViewModel.h"
 #include "Styling/SSAppStyle.h"
@@ -78,7 +78,7 @@ TSharedRef<SWidget> FSSAttributeSetDetails::CreateNewAttributeVariableWidget()
 	PinType.PinSubCategoryObject = FGameplayAttributeData::StaticStruct();
 
 	// Init from last saved variable states
-	if (const TSharedPtr<FSSBlueprintEditor> BlueprintEditor = BlueprintEditorPtr.Pin()) 
+	if (const TSharedPtr<FSagaAttributeSetBlueprintEditor> BlueprintEditor = BlueprintEditorPtr.Pin()) 
 	{
 		ViewModel->SetVariableName(BlueprintEditor->GetLastUsedVariableName());
 		ViewModel->SetbIsReplicated(BlueprintEditor->GetLastReplicatedState());
@@ -111,7 +111,7 @@ void FSSAttributeSetDetails::HandleAttributeWindowFinish(const TSharedPtr<FSSNew
 		return;
 	}
 
-	if (const TSharedPtr<FSSBlueprintEditor> BlueprintEditor = BlueprintEditorPtr.Pin()) 
+	if (const TSharedPtr<FSagaAttributeSetBlueprintEditor> BlueprintEditor = BlueprintEditorPtr.Pin()) 
 	{
 		BlueprintEditor->SetLastPinSubCategoryObject(InViewModel->GetPinType().PinSubCategoryObject);
 		BlueprintEditor->SetLastReplicatedState(InViewModel->GetbIsReplicated());

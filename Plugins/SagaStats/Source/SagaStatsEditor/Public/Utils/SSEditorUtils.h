@@ -7,7 +7,7 @@
 
 #include "CoreMinimal.h"
 
-class FSSBlueprintEditor;
+class FSagaAttributeSetBlueprintEditor;
 class IDetailLayoutBuilder;
 class UAttributeSet;
 class UBlueprint;
@@ -16,5 +16,5 @@ namespace UE::SS::EditorUtils
 {
 	UAttributeSet* GetAttributeBeingCustomized(const IDetailLayoutBuilder& InDetailLayout);
 	UBlueprint* GetBlueprintFromClass(const UClass* InClass);
-	TWeakPtr<FSSBlueprintEditor> FindBlueprintEditorForAsset(UObject* InObject);
+	TWeakPtr<FSagaAttributeSetBlueprintEditor> FindBlueprintEditorForAsset(UObject* InObject);
 }

@@ -10,7 +10,7 @@
 #include "PropertyEditorModule.h"
 #include "SSEditorSubsystem.h"
 #include "AssetRegistry/AssetRegistryModule.h"
-#include "AssetTypes/SSAssetTypeActions_AttributeSet.h"
+#include "AssetTypes/SagaAssetTypeActions_AttributeSet.h"
 #include "Details/SSAttributeSetDetails.h"
 #include "Details/SSGameplayAttributeDataClampedDetails.h"
 #include "Details/SSGameplayAttributeDataDetails.h"
@@ -57,7 +57,7 @@ void FSagaStatsEditorModule::ShutdownModule()
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("GameplayAttribute"));
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"));
-		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("SSGameplayClampedAttributeData"));
+		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("SagaClampedAttributeData"));
 
 		PropertyModule.UnregisterCustomClassLayout(TEXT("SSAttributeSetBlueprintBase"));
 	}
@@ -130,7 +130,7 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		// And register our own customizations
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttribute"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributePropertyDetails::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributeDataDetails::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SSGameplayClampedAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributeDataClampedDetails::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SagaClampedAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributeDataClampedDetails::MakeInstance));
 		
 		PropertyModule.RegisterCustomClassLayout(TEXT("SSAttributeSetBlueprintBase"), FOnGetDetailCustomizationInstance::CreateStatic(&FSSAttributeSetDetails::MakeInstance));
 
@@ -139,8 +139,8 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 			IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
 
 			constexpr EAssetTypeCategories::Type AssetCategory = EAssetTypeCategories::Gameplay;
-			SS_EDITOR_LOG(Verbose, TEXT("FSagaStatsEditorModule::RegisterAssetTypeAction FSSAssetTypeActions_AttributeSet"))
-			RegisterAssetTypeAction(AssetTools, MakeShared<FSSAssetTypeActions_AttributeSet>(AssetCategory));
+			SS_EDITOR_LOG(Verbose, TEXT("FSagaStatsEditorModule::RegisterAssetTypeAction FSagaAssetTypeActions_AttributeSet"))
+			RegisterAssetTypeAction(AssetTools, MakeShared<FSagaAssetTypeActions_AttributeSet>(AssetCategory));
 		}
 	}
 

@@ -9,16 +9,16 @@
 #include "IPropertyTypeCustomization.h"
 #include "UObject/WeakFieldPtr.h"
 
-class FSSBlueprintEditor;
+class FSagaAttributeSetBlueprintEditor;
 class UAttributeSet;
 struct FGameplayAttributeData;
 
 /**
- * Details customization for FGameplayAttributeData / FSSGameplayClampedAttributeData (Base Class).
+ * Details customization for FGameplayAttributeData / FSagaClampedAttributeData (Base Class).
  *
  * And ability to view / set BaseValue and CurrentValue (as DefaultValue)
  *
- * This is the default Base class shared by both FGameplayAttributeData and FSSGameplayClampedAttributeData details customization classes.
+ * This is the default Base class shared by both FGameplayAttributeData and FSagaClampedAttributeData details customization classes.
  */
 class ISSGameplayAttributeDataDetailsBase : public IPropertyTypeCustomization
 {

@@ -9,7 +9,7 @@
 #include "IDetailCustomization.h"
 #include "UObject/WeakObjectPtr.h"
 
-class FSSBlueprintEditor;
+class FSagaAttributeSetBlueprintEditor;
 class FSSNewAttributeViewModel;
 class SSSPositiveActionButton;
 class SWidget;
@@ -39,7 +39,7 @@ private:
 	TWeakObjectPtr<UBlueprint> BlueprintBeingCustomized;
 	
 	/** Weak reference to the Blueprint editor */
-	TWeakPtr<FSSBlueprintEditor> BlueprintEditorPtr;
+	TWeakPtr<FSagaAttributeSetBlueprintEditor> BlueprintEditorPtr;
 
 	/** Constructs a DetailsView widget for the new attribute window */
 	TSharedRef<SWidget> CreateNewAttributeVariableWidget();

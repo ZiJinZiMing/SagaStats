@@ -15,9 +15,9 @@ DEFINE_ENUM_TO_STRING(EMeterState, "/Script/SagaStats")
 
 USagaDecreaseMeter::USagaDecreaseMeter(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
 {
-	Current.MinValue.ClampType = ESSClampingType::AttributeBased;
+	Current.MinValue.ClampType = ESagaClampingType::AttributeBased;
 	Current.MinValue.Attribute = GetMinimumClampAttribute();
-	Current.MaxValue.ClampType = ESSClampingType::AttributeBased;
+	Current.MaxValue.ClampType = ESagaClampingType::AttributeBased;
 	Current.MaxValue.Attribute = GetMaximumAttribute();
 
 	MeterState = EMeterState::Normal;

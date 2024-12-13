@@ -33,7 +33,7 @@
 
 TMap<FString, FString> USagaAttributeSet::RepNotifierHandlerNames = {
 	{ TEXT("FGameplayAttributeData"), TEXT("HandleRepNotifyForGameplayAttributeData") },
-	{ TEXT("FSSGameplayClampedAttributeData"), TEXT("HandleRepNotifyForGameplayClampedAttributeData") }
+	{ TEXT("FSagaClampedAttributeData"), TEXT("HandleRepNotifyForGameplayClampedAttributeData") }
 };
 
 FSSAttributeSetExecutionData::FSSAttributeSetExecutionData(const FGameplayEffectModCallbackData& InModCallbackData)
@@ -97,7 +97,7 @@ FString FSSAttributeSetExecutionData::ToString(const FString& InSeparator) const
 	return FString::Join(Results, *InSeparator);
 }
 
-float FSSClampDefinition::GetValueForClamping(const UAttributeSet* InOwnerSet) const
+float FSagaClampDefinition::GetValueForClamping(const UAttributeSet* InOwnerSet) const
 {
 	check(InOwnerSet);
 
@@ -107,23 +107,23 @@ float FSSClampDefinition::GetValueForClamping(const UAttributeSet* InOwnerSet) c
 	return ResultValue;
 }
 
-bool FSSClampDefinition::GetValueForClamping(const UAttributeSet* InOwnerSet, float& OutValue) const
+bool FSagaClampDefinition::GetValueForClamping(const UAttributeSet* InOwnerSet, float& OutValue) const
 {
 	check(InOwnerSet);
 
-	if (ClampType == ESSClampingType::None)
+	if (ClampType == ESagaClampingType::None)
 	{
 		OutValue = 0.f;
 		return false;
 	}
 	
-	if (ClampType == ESSClampingType::Float)
+	if (ClampType == ESagaClampingType::Float)
 	{
 		OutValue = Value;
 		return true;
 	}
 
-	if (ClampType == ESSClampingType::AttributeBased && Attribute.IsValid())
+	if (ClampType == ESagaClampingType::AttributeBased && Attribute.IsValid())
 	{
 		// Check if valid class (eg. attribute is part of InOwnerSet and not from another set)
 		if (const FProperty* Property = Attribute.GetUProperty())
@@ -399,7 +399,7 @@ bool USagaAttributeSet::IsGameplayAttributeDataClampedProperty(const FProperty* 
 	if (const FStructProperty* StructProp = CastField<FStructProperty>(Property))
 	{
 		const UStruct* Struct = StructProp->Struct;
-		if (Struct && Struct->IsChildOf(FSSGameplayClampedAttributeData::StaticStruct()))
+		if (Struct && Struct->IsChildOf(FSagaClampedAttributeData::StaticStruct()))
 		{
 			return true;
 		}
@@ -493,7 +493,7 @@ void USagaAttributeSet::HandleRepNotifyForGameplayAttributeData(const FGameplayA
 	HandleRepNotifyForGameplayAttribute(FName(*AttributeName));
 }
 
-void USagaAttributeSet::HandleRepNotifyForGameplayClampedAttributeData(const FSSGameplayClampedAttributeData& InAttribute)
+void USagaAttributeSet::HandleRepNotifyForGameplayClampedAttributeData(const FSagaClampedAttributeData& InAttribute)
 {
 	HandleRepNotifyForGameplayAttributeData(InAttribute);
 }
@@ -969,9 +969,9 @@ bool USagaAttributeSet::IsValidClampedProperty(const FGameplayAttribute& Attribu
 {
 	if (IsGameplayAttributeDataClampedProperty(Attribute.GetUProperty()))
 	{
-		// const FSSGameplayClampedAttributeData* Clamped = static_cast<FSSGameplayClampedAttributeData*>(Attribute.GetGameplayAttributeData(this));
-		const FSSGameplayClampedAttributeData* Clamped = static_cast<const FSSGameplayClampedAttributeData*>(Attribute.GetGameplayAttributeData(this));
-		// Valid whenever we are sure it is a FSSGameplayClampedAttributeData
+		// const FSagaClampedAttributeData* Clamped = static_cast<FSagaClampedAttributeData*>(Attribute.GetGameplayAttributeData(this));
+		const FSagaClampedAttributeData* Clamped = static_cast<const FSagaClampedAttributeData*>(Attribute.GetGameplayAttributeData(this));
+		// Valid whenever we are sure it is a FSagaClampedAttributeData
 		// We'll handle invalidity of lower / max bounds in GetClampedValueForClampedProperty
 		return Clamped != nullptr;
 	}
@@ -985,7 +985,7 @@ float USagaAttributeSet::GetClampedValueForClampedProperty(const FGameplayAttrib
 
 	if (IsGameplayAttributeDataClampedProperty(Attribute.GetUProperty()))
 	{
-		if (const FSSGameplayClampedAttributeData* Clamped = static_cast<const FSSGameplayClampedAttributeData*>(Attribute.GetGameplayAttributeData(this)))
+		if (const FSagaClampedAttributeData* Clamped = static_cast<const FSagaClampedAttributeData*>(Attribute.GetGameplayAttributeData(this)))
 		{
 			float MinValue;
 			const bool bIsMinValid = Clamped->MinValue.GetValueForClamping(this, MinValue);

@@ -110,7 +110,7 @@ public:
 	void HandleAttributeRename(const FName& InPackageName, const FName& InOldPropertyName, const FName& InNewPropertyName);
 
 	/**
-	 * Triggered by FSSBlueprintEditor just before FBlueprintEditor::Compile()
+	 * Triggered by FSagaBlueprintEditor just before FBlueprintEditor::Compile()
 	 *
 	 * Used to gather the list of references and build a "cache" of Attribute referencer, so that when a rename happens, we can compare the old and new value
 	 * to see if an update is needed for the referencer CDO.

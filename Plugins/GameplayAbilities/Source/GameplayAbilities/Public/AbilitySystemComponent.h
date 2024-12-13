@@ -209,6 +209,8 @@ class GAMEPLAYABILITIES_API UAbilitySystemComponent : public UGameplayTasksCompo
 	/** Access the spawned attributes list when you don't intend to modify the list. */
 	const TArray<UAttributeSet*>& GetSpawnedAttributes() const;
 
+	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+	
 	/** Add a new attribute set */
 	// void AddSpawnedAttribute(UAttributeSet* Attribute);
 	virtual void AddSpawnedAttribute(UAttributeSet* Attribute);

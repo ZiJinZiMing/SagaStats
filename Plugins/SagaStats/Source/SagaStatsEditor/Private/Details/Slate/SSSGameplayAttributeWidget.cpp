@@ -313,7 +313,7 @@ TSharedPtr<FSSGameplayAttributeViewerNode> SSSGameplayAttributeListWidget::Updat
 	*/
 
 	// Use IncludeSuper for iteration here only if bShowOnlyOwnedAttributed is used. To handle the use case of
-	// FSSGameplayClampedAttributeData defined in a native class (for instance after wizard generation), whose value
+	// FSagaClampedAttributeData defined in a native class (for instance after wizard generation), whose value
 	// are tweaked in the details panel of a child Blueprint
 	
 	//Feature Begin Attribute In subclass of AttributeSet

@@ -329,7 +329,7 @@ bool SSSNewAttributeVariableWidget::AddMemberVariable(UBlueprint* InBlueprint, c
 
 				// Figure out the property type, so that we know which member reference to build
 				FName MemberName = TEXT("HandleRepNotifyForGameplayAttributeData");
-				if (InPinType.PinSubCategoryObject.IsValid() && InPinType.PinSubCategoryObject->GetName() == TEXT("SSGameplayClampedAttributeData"))
+				if (InPinType.PinSubCategoryObject.IsValid() && InPinType.PinSubCategoryObject->GetName() == TEXT("SagaClampedAttributeData"))
 				{
 					MemberName = TEXT("HandleRepNotifyForGameplayClampedAttributeData");
 				}

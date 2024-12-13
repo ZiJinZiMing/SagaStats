@@ -60,12 +60,12 @@ void FSSGameplayAttributeDataClampedDetails::InitializeFromStructHandle(const TS
 	if (FGameplayAttributeData* DataPtr = StructProperty->ContainerPtrToValuePtr<FGameplayAttributeData>(AttributeSetBeingCustomized.Get()))
 	{
 		const UStruct* Struct = StructProperty->Struct;
-		if (Struct && Struct->IsChildOf(FSSGameplayClampedAttributeData::StaticStruct()))
+		if (Struct && Struct->IsChildOf(FSagaClampedAttributeData::StaticStruct()))
 		{
-			AttributeDataBeingCustomized = MakeShared<FSSGameplayClampedAttributeData*>(static_cast<FSSGameplayClampedAttributeData*>(DataPtr));
+			AttributeDataBeingCustomized = MakeShared<FSagaClampedAttributeData*>(static_cast<FSagaClampedAttributeData*>(DataPtr));
 			if (AttributeDataBeingCustomized.IsValid())
 			{
-				const FSSGameplayClampedAttributeData* Clamped = *AttributeDataBeingCustomized.Get();
+				const FSagaClampedAttributeData* Clamped = *AttributeDataBeingCustomized.Get();
 				check(Clamped);
 				SS_EDITOR_LOG(VeryVerbose, TEXT("\t Clamped DataPtr -> %s: MinValue: %s, MaxValue: %s"), *GetNameSafe(PropertyBeingCustomized.Get()), *Clamped->MinValue.ToString(), *Clamped->MaxValue.ToString())
 			}
@@ -110,7 +110,7 @@ void FSSGameplayAttributeDataClampedDetails::CustomizeChildren(const TSharedRef<
 {
 	SS_EDITOR_LOG(VeryVerbose, TEXT("FSSGameplayAttributeDataClampedDetails::CustomizeChildren ..."))
 
-	const FSSGameplayClampedAttributeData* AttributeData = GetGameplayClampedAttributeData();
+	const FSagaClampedAttributeData* AttributeData = GetGameplayClampedAttributeData();
 	if (!AttributeData)
 	{
 		return;
@@ -122,14 +122,14 @@ void FSSGameplayAttributeDataClampedDetails::CustomizeChildren(const TSharedRef<
 	BaseValueRow->OnValueChanged().AddSP(this, &FSSGameplayAttributeDataClampedDetails::HandleBaseValueChanged);
 	BaseValueRow->CustomizeChildren(InStructPropertyHandle, InStructBuilder, InStructCustomizationUtils);
 
-	const TSharedPtr<IPropertyHandle> MinValueHandle = InStructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FSSGameplayClampedAttributeData, MinValue));
+	const TSharedPtr<IPropertyHandle> MinValueHandle = InStructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FSagaClampedAttributeData, MinValue));
 	if (MinValueHandle.IsValid())
 	{
 		IDetailPropertyRow& Row = InStructBuilder.AddProperty(MinValueHandle.ToSharedRef());
 		Row.ShouldAutoExpand(true);
 	}
 	
-	const TSharedPtr<IPropertyHandle> MaxValueHandle = InStructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FSSGameplayClampedAttributeData, MaxValue));
+	const TSharedPtr<IPropertyHandle> MaxValueHandle = InStructPropertyHandle->GetChildHandle(GET_MEMBER_NAME_CHECKED(FSagaClampedAttributeData, MaxValue));
 	if (MaxValueHandle.IsValid())
 	{
 		IDetailPropertyRow& Row = InStructBuilder.AddProperty(MaxValueHandle.ToSharedRef());
@@ -137,7 +137,7 @@ void FSSGameplayAttributeDataClampedDetails::CustomizeChildren(const TSharedRef<
 	}
 }
 
-FSSGameplayClampedAttributeData* FSSGameplayAttributeDataClampedDetails::GetGameplayClampedAttributeData() const
+FSagaClampedAttributeData* FSSGameplayAttributeDataClampedDetails::GetGameplayClampedAttributeData() const
 {
 	if (!AttributeDataBeingCustomized.IsValid())
 	{
@@ -149,7 +149,7 @@ FSSGameplayClampedAttributeData* FSSGameplayAttributeDataClampedDetails::GetGame
 
 void FSSGameplayAttributeDataClampedDetails::HandleBaseValueChanged(const float InValue) const
 {
-	FSSGameplayClampedAttributeData* ClampedAttributeData = GetGameplayClampedAttributeData();
+	FSagaClampedAttributeData* ClampedAttributeData = GetGameplayClampedAttributeData();
 	check(ClampedAttributeData);
 	
 	// Set the new value.

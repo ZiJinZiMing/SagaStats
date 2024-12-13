@@ -9,7 +9,7 @@
 #include "AttributeSet.h"
 #include "DetailLayoutBuilder.h"
 #include "Editor.h"
-#include "Editor/SSBlueprintEditor.h"
+#include "Editor/SagaAttributeSetBlueprintEditor.h"
 #include "Misc/EngineVersionComparison.h"
 #include "Subsystems/AssetEditorSubsystem.h"
 
@@ -40,7 +40,7 @@ UBlueprint* UE::SS::EditorUtils::GetBlueprintFromClass(const UClass* InClass)
 	return Cast<UBlueprint>(InClass->ClassGeneratedBy);
 }
 
-TWeakPtr<FSSBlueprintEditor> UE::SS::EditorUtils::FindBlueprintEditorForAsset(UObject* InObject)
+TWeakPtr<FSagaAttributeSetBlueprintEditor> UE::SS::EditorUtils::FindBlueprintEditorForAsset(UObject* InObject)
 {
 	if (!GEditor || !IsValid(InObject))
 	{
@@ -59,15 +59,15 @@ TWeakPtr<FSSBlueprintEditor> UE::SS::EditorUtils::FindBlueprintEditorForAsset(UO
 		return nullptr;
 	}
 
-	FSSBlueprintEditor* BlueprintEditor = StaticCast<FSSBlueprintEditor*>(EditorInstance);
+	FSagaAttributeSetBlueprintEditor* BlueprintEditor = StaticCast<FSagaAttributeSetBlueprintEditor*>(EditorInstance);
 	if (!BlueprintEditor)
 	{
 		return nullptr;
 	}
 #if UE_VERSION_NEWER_THAN(5, 1, -1)
-	return StaticCastWeakPtr<FSSBlueprintEditor>(BlueprintEditor->AsWeak());
+	return StaticCastWeakPtr<FSagaAttributeSetBlueprintEditor>(BlueprintEditor->AsWeak());
 #else
-	TWeakPtr<FSSBlueprintEditor> WeakPtr(StaticCastSharedRef<FSSBlueprintEditor>(BlueprintEditor->AsShared()));
+	TWeakPtr<FSagaBlueprintEditor> WeakPtr(StaticCastSharedRef<FSagaBlueprintEditor>(BlueprintEditor->AsShared()));
 	return WeakPtr;
 #endif
 }

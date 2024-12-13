@@ -10,10 +10,10 @@
 #include "ISSGameplayAttributeDataDetailsBase.h"
 
 class FSSGameplayAttributeDataDetailsRow;
-struct FSSGameplayClampedAttributeData;
+struct FSagaClampedAttributeData;
 
 /**
- * Details customization for FSSGameplayClampedAttributeData.
+ * Details customization for FSagaClampedAttributeData.
  *
  * And ability to view / set BaseValue and CurrentValue (as DefaultValue)
  */
@@ -35,11 +35,11 @@ public:
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> InStructPropertyHandle, IDetailChildrenBuilder& InStructBuilder, IPropertyTypeCustomizationUtils& InStructCustomizationUtils) override;
 	//~ End IPropertyTypeCustomization interface
 
-	FSSGameplayClampedAttributeData* GetGameplayClampedAttributeData() const;
+	FSagaClampedAttributeData* GetGameplayClampedAttributeData() const;
 
 private:
-	/** Keep track of the FSSGameplayClampedAttributeData struct we are editing */
-	TSharedPtr<FSSGameplayClampedAttributeData*> AttributeDataBeingCustomized;
+	/** Keep track of the FSagaClampedAttributeData struct we are editing */
+	TSharedPtr<FSagaClampedAttributeData*> AttributeDataBeingCustomized;
 
 	TSharedPtr<FSSGameplayAttributeDataDetailsRow> BaseValueRow;
 

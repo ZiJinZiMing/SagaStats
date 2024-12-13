@@ -157,7 +157,7 @@ struct SAGASTATS_API FSSAttributeSetExecutionData
 
 /** Enumeration outlining the possible gameplay effect magnitude calculation policies. */
 UENUM()
-enum class ESSClampingType : uint8
+enum class ESagaClampingType : uint8
 {
 	/** Clamping is disabled for this definition */
 	None,
@@ -170,13 +170,13 @@ enum class ESSClampingType : uint8
 };
 
 USTRUCT()
-struct SAGASTATS_API FSSClampDefinition
+struct SAGASTATS_API FSagaClampDefinition
 {
 	GENERATED_BODY()
 	
 	/** Type of clamping to perform (either static float or attribute based) */
 	UPROPERTY(EditDefaultsOnly, Category = "Clamp")
-	ESSClampingType ClampType = ESSClampingType::Float;
+	ESagaClampingType ClampType = ESagaClampingType::Float;
 
 	/** Float value to base the clamping on */
 	UPROPERTY(EditDefaultsOnly, Category = "Clamp", meta=(EditConditionHides, EditCondition="ClampType == ESSClampingType::Float"))
@@ -191,8 +191,8 @@ struct SAGASTATS_API FSSClampDefinition
 	FGameplayAttribute Attribute;
 
 	/** default constructor */
-	FSSClampDefinition() = default;
-	virtual ~FSSClampDefinition() = default;
+	FSagaClampDefinition() = default;
+	virtual ~FSagaClampDefinition() = default;
 
 	/** Returns string representation of all member variables of this struct */
 	FString ToString() const
@@ -221,20 +221,20 @@ struct SAGASTATS_API FSSClampDefinition
  *
  * This one has clamping functionality built-in (compared to FGameplayAttributeData)
  */
-USTRUCT(DisplayName="Gameplay Clamped Attribute Data")
-struct SAGASTATS_API FSSGameplayClampedAttributeData : public FGameplayAttributeData
+USTRUCT()
+struct SAGASTATS_API FSagaClampedAttributeData : public FGameplayAttributeData
 {
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, Category = "Min")
-	FSSClampDefinition MinValue;
+	FSagaClampDefinition MinValue;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Max")
-	FSSClampDefinition MaxValue;
+	FSagaClampDefinition MaxValue;
 
-	FSSGameplayClampedAttributeData() = default;
+	FSagaClampedAttributeData() = default;
 
-	FSSGameplayClampedAttributeData(const float DefaultValue)
+	FSagaClampedAttributeData(const float DefaultValue)
 		: FGameplayAttributeData(DefaultValue)
 	{
 	}
@@ -439,7 +439,7 @@ public:
 	void K2_SetAttributeValue(FGameplayAttribute Attribute, float NewValue);
 	void SetAttributeValue(const FGameplayAttribute& Attribute, float NewValue) const;
 
-	/** Returns true if the variable associated with Property is of type FSSGameplayClampedAttributeData or one of its subclasses */
+	/** Returns true if the variable associated with Property is of type FSagaClampedAttributeData or one of its subclasses */
 	static bool IsGameplayAttributeDataClampedProperty(const FProperty* Property);
 
 	/** Gets information about owning actor */
@@ -482,7 +482,7 @@ public:
 	 * Blueprint member Attribute variable for the rep notify you're implementing.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Blueprint Attributes")
-	void HandleRepNotifyForGameplayClampedAttributeData(const FSSGameplayClampedAttributeData& InAttribute);
+	void HandleRepNotifyForGameplayClampedAttributeData(const FSagaClampedAttributeData& InAttribute);
 
 	//~ Begin UObject interface
 	virtual void BeginDestroy() override;
@@ -536,7 +536,7 @@ protected:
 	static TMap<FString, FString> RepNotifierHandlerNames;
 	
 	/**
-	 * Called during construction from InitFromMetaDataTable(), this ensures FSSGameplayClampedAttributeData clamps
+	 * Called during construction from InitFromMetaDataTable(), this ensures FSagaClampedAttributeData clamps
 	 * their BaseValue within the defined bounds, as doing so from InitFromMetaDataTable can be skipped (if InitStats
 	 * not called, if called with a nullptr DataTable, etc.)
 	 */
@@ -545,10 +545,10 @@ protected:
 	/** Called during construction from InitFromMetaDataTable() */
 	void InitDataTableProperties(const UDataTable* DataTable);
 	
-	/** Returns whether given Attribute is defined using a FSSGameplayClampedAttributeData property, and if it has valid clamping values */
+	/** Returns whether given Attribute is defined using a FSagaClampedAttributeData property, and if it has valid clamping values */
 	bool IsValidClampedProperty(const FGameplayAttribute& Attribute) const;
 
-	/** Returns the new value for an attribute after clamping via FSSGameplayClampedAttributeData defaults Min / Max values */
+	/** Returns the new value for an attribute after clamping via FSagaClampedAttributeData defaults Min / Max values */
 	float GetClampedValueForClampedProperty(const FGameplayAttribute& Attribute, float InValue) const;
 	
 	/** Returns whether given Attribute metadata has valid clamping values */

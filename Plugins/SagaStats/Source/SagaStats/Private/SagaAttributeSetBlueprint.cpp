@@ -7,7 +7,7 @@
 
 #include "SagaAttributeSetBlueprint.h"
 
-#include "SSDelegates.h"
+#include "SagaStatsDelegates.h"
 #include "SagaStatsLog.h"
 #include "Misc/EngineVersionComparison.h"
 #include "UObject/UObjectGlobals.h"
@@ -149,20 +149,20 @@ void USagaAttributeSetBlueprint::OnPostCompiled(UBlueprint* InBlueprint)
 
 	if (const UPackage* Package = GetPackage())
 	{
-		FSSDelegates::OnPostCompile.Broadcast(Package->GetFName());
+		FSagaStatsDelegates::OnPostCompile.Broadcast(Package->GetFName());
 	}
 }
 
 void USagaAttributeSetBlueprint::OnVariableAdded(const FName& Name)
 {
 	SS_LOG(Verbose, TEXT("USagaAttributeSetBlueprint::OnVariableAdded Name: %s"), *Name.ToString())
-	FSSDelegates::OnVariableAdded.Broadcast(Name);
+	FSagaStatsDelegates::OnVariableAdded.Broadcast(Name);
 }
 
 void USagaAttributeSetBlueprint::OnVariableRemoved(const FName& Name)
 {
 	SS_LOG(Verbose, TEXT("USagaAttributeSetBlueprint::OnVariableRemoved Name: %s"), *Name.ToString())
-	FSSDelegates::OnVariableRemoved.Broadcast(Name);
+	FSagaStatsDelegates::OnVariableRemoved.Broadcast(Name);
 }
 
 void USagaAttributeSetBlueprint::OnVariableRenamed(const FName& InOldVarName, const FName& InNewVarName) const
@@ -177,7 +177,7 @@ void USagaAttributeSetBlueprint::OnVariableRenamed(const FName& InOldVarName, co
 	}
 
 	// Broadcast renamed event, the subsystem will handle the rest
-	FSSDelegates::OnVariableRenamed.Broadcast(Package->GetFName(), InOldVarName, InNewVarName);
+	FSagaStatsDelegates::OnVariableRenamed.Broadcast(Package->GetFName(), InOldVarName, InNewVarName);
 }
 
 void USagaAttributeSetBlueprint::OnVariableTypeChanged(const FName& InVarName, const FEdGraphPinType& InOldPinType, const FEdGraphPinType& InNewPinType) const
@@ -192,7 +192,7 @@ void USagaAttributeSetBlueprint::OnVariableTypeChanged(const FName& InVarName, c
 	SS_LOG(Verbose, TEXT("USagaAttributeSetBlueprint::OnVariableTypeChanged InVarName: %s || InOldPinType: %s || InNewPinType: %s"), *InVarName.ToString(), *OldVarTypeStr, *NewVarTypeStr)
 	SS_LOG(Verbose, TEXT("USagaAttributeSetBlueprint::OnVariableTypeChanged ==> CPPType: %s || CPPTypeObject: %s"), *CPPType, *GetNameSafe(CPPTypeObject))
 
-	FSSDelegates::OnVariableTypeChanged.Broadcast(InVarName, CPPType, CPPTypeObject);
+	FSagaStatsDelegates::OnVariableTypeChanged.Broadcast(InVarName, CPPType, CPPTypeObject);
 }
 
 #endif

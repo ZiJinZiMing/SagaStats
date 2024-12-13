@@ -15,9 +15,9 @@
 
 USagaMeterBase::USagaMeterBase(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
 {
-	Current.MinValue.ClampType = ESSClampingType::Float;
+	Current.MinValue.ClampType = ESagaClampingType::Float;
 	Current.MinValue.Value = METER_MINIMUM;
-	Current.MaxValue.ClampType = ESSClampingType::AttributeBased;
+	Current.MaxValue.ClampType = ESagaClampingType::AttributeBased;
 	FGameplayAttribute MaximumAttribute = GetMaximumAttribute();
 	Current.MaxValue.Attribute = MaximumAttribute;
 
