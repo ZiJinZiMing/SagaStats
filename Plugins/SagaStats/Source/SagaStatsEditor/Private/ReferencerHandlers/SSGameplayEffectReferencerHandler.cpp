@@ -10,7 +10,7 @@
 #include "Engine/Blueprint.h"
 #include "Misc/EngineVersionComparison.h"
 #include "Misc/UObjectToken.h"
-#include "SSEditorSubsystem.h"
+#include "SagaEditorSubsystem.h"
 
 #if UE_VERSION_NEWER_THAN(5, 3, -1)
 #include "GameplayEffectComponents/ImmunityGameplayEffectComponent.h"
@@ -219,7 +219,7 @@ bool FSSGameplayEffectReferencerHandler::BuildModifierInfoAttributeReference(con
 	}
 
 	FAttributeReference Reference;
-	if (!USSEditorSubsystem::ParseAttributeFromDefaultValue(FinalValue, Reference.PackageNameOwner, Reference.AttributeName))
+	if (!USagaEditorSubsystem::ParseAttributeFromDefaultValue(FinalValue, Reference.PackageNameOwner, Reference.AttributeName))
 	{
 		return false;
 	}
@@ -255,7 +255,7 @@ bool FSSGameplayEffectReferencerHandler::BuildModifierMagnitudeAttributeReferenc
 		}
 
 		FAttributeReference Reference;
-		if (!USSEditorSubsystem::ParseAttributeFromDefaultValue(FinalValue, Reference.PackageNameOwner, Reference.AttributeName))
+		if (!USagaEditorSubsystem::ParseAttributeFromDefaultValue(FinalValue, Reference.PackageNameOwner, Reference.AttributeName))
 		{
 			return false;
 		}
@@ -280,7 +280,7 @@ bool FSSGameplayEffectReferencerHandler::BuildEffectCueMagnitudeAttributeReferen
 	}
 
 	FAttributeReference AttributeReference;
-	if (!USSEditorSubsystem::ParseAttributeFromDefaultValue(FinalValue, AttributeReference.PackageNameOwner, AttributeReference.AttributeName))
+	if (!USagaEditorSubsystem::ParseAttributeFromDefaultValue(FinalValue, AttributeReference.PackageNameOwner, AttributeReference.AttributeName))
 	{
 		return false;
 	}
@@ -302,7 +302,7 @@ bool FSSGameplayEffectReferencerHandler::BuildEffectQueryAttributeReference(cons
 	}
 
 	FAttributeReference AttributeReference;
-	if (!USSEditorSubsystem::ParseAttributeFromDefaultValue(FinalValue, AttributeReference.PackageNameOwner, AttributeReference.AttributeName))
+	if (!USagaEditorSubsystem::ParseAttributeFromDefaultValue(FinalValue, AttributeReference.PackageNameOwner, AttributeReference.AttributeName))
 	{
 		return false;
 	}
@@ -326,7 +326,7 @@ bool FSSGameplayEffectReferencerHandler::UpdateModifiers(UGameplayEffect* InEffe
 	check(InEffectCDO);
 	check(InBlueprint);
 
-	SS_EDITOR_LOG(VeryVerbose, TEXT("USSEditorSubsystem::UpdateGameplayEffectModifiers Blueprint: %s"), *GetNameSafe(InBlueprint))
+	SS_EDITOR_LOG(VeryVerbose, TEXT("USagaEditorSubsystem::UpdateGameplayEffectModifiers Blueprint: %s"), *GetNameSafe(InBlueprint))
 	int32 CurrentIndex = 0;
 	TArray<FAttributeModifierToReplace> ModifiersToReplace;
 	for (const FGameplayModifierInfo& Modifier : InEffectCDO->Modifiers)
@@ -363,7 +363,7 @@ bool FSSGameplayEffectReferencerHandler::UpdateModifiers(UGameplayEffect* InEffe
 	}
 
 	// Now that we have the list of modifiers that needs an update, update modifiers
-	SS_EDITOR_LOG(Verbose, TEXT("USSEditorSubsystem::UpdateGameplayEffectModifiers Update CDO modifiers now from gathered props to replace: %d"), ModifiersToReplace.Num())
+	SS_EDITOR_LOG(Verbose, TEXT("USagaEditorSubsystem::UpdateGameplayEffectModifiers Update CDO modifiers now from gathered props to replace: %d"), ModifiersToReplace.Num())
 	for (const FAttributeModifierToReplace& ModifierToReplace : ModifiersToReplace)
 	{
 		const int32 Index = ModifierToReplace.Index;
@@ -386,7 +386,7 @@ bool FSSGameplayEffectReferencerHandler::UpdateModifiers(UGameplayEffect* InEffe
 		{
 			Message->AddToken(
 				FUObjectToken::Create(InPayload.ReferencerBlueprint.Get(), FText::FromString(InPayload.ReferencerBlueprint->GetName()))
-				->OnMessageTokenActivated(FOnMessageTokenActivated::CreateStatic(&USSEditorSubsystem::HandleMessageLogLinkActivated))
+				->OnMessageTokenActivated(FOnMessageTokenActivated::CreateStatic(&USagaEditorSubsystem::HandleMessageLogLinkActivated))
 			);
 		}
 		
@@ -491,7 +491,7 @@ bool FSSGameplayEffectReferencerHandler::UpdateModifiersBackingAttribute(UGamepl
 				{
 					Message->AddToken(
 						FUObjectToken::Create(InPayload.ReferencerBlueprint.Get(), FText::FromString(InPayload.ReferencerBlueprint->GetName()))
-						->OnMessageTokenActivated(FOnMessageTokenActivated::CreateStatic(&USSEditorSubsystem::HandleMessageLogLinkActivated))
+						->OnMessageTokenActivated(FOnMessageTokenActivated::CreateStatic(&USagaEditorSubsystem::HandleMessageLogLinkActivated))
 					);
 				}
 				
@@ -594,7 +594,7 @@ bool FSSGameplayEffectReferencerHandler::UpdateDuration(UGameplayEffect* InEffec
 			{
 				Message->AddToken(
 					FUObjectToken::Create(InPayload.ReferencerBlueprint.Get(), FText::FromString(InPayload.ReferencerBlueprint->GetName()))
-					->OnMessageTokenActivated(FOnMessageTokenActivated::CreateStatic(&USSEditorSubsystem::HandleMessageLogLinkActivated))
+					->OnMessageTokenActivated(FOnMessageTokenActivated::CreateStatic(&USagaEditorSubsystem::HandleMessageLogLinkActivated))
 				);
 			}
 			
@@ -668,7 +668,7 @@ bool FSSGameplayEffectReferencerHandler::UpdateCues(UGameplayEffect* InEffectCDO
 				{
 					Message->AddToken(
 						FUObjectToken::Create(InPayload.ReferencerBlueprint.Get(), FText::FromString(InPayload.ReferencerBlueprint->GetName()))
-						->OnMessageTokenActivated(FOnMessageTokenActivated::CreateStatic(&USSEditorSubsystem::HandleMessageLogLinkActivated))
+						->OnMessageTokenActivated(FOnMessageTokenActivated::CreateStatic(&USagaEditorSubsystem::HandleMessageLogLinkActivated))
 					);
 				}
 
@@ -817,7 +817,7 @@ bool FSSGameplayEffectReferencerHandler::UpdateEffectQuery(const UBlueprint* InB
 		{
 			Message->AddToken(
 				FUObjectToken::Create(InPayload.ReferencerBlueprint.Get(), FText::FromString(InPayload.ReferencerBlueprint->GetName()))
-				->OnMessageTokenActivated(FOnMessageTokenActivated::CreateStatic(&USSEditorSubsystem::HandleMessageLogLinkActivated))
+				->OnMessageTokenActivated(FOnMessageTokenActivated::CreateStatic(&USagaEditorSubsystem::HandleMessageLogLinkActivated))
 			);
 		}
 		

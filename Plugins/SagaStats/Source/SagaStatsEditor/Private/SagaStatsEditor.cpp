@@ -8,12 +8,12 @@
 #include "AssetToolsModule.h"
 #include "SSEditorLog.h"
 #include "PropertyEditorModule.h"
-#include "SSEditorSubsystem.h"
+#include "SagaEditorSubsystem.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetTypes/SagaAssetTypeActions_AttributeSet.h"
 #include "Details/SSAttributeSetDetails.h"
-#include "Details/SSGameplayAttributeDataClampedDetails.h"
-#include "Details/SSGameplayAttributeDataDetails.h"
+#include "Details/SagaAttributeDataClampedDetails.h"
+#include "Details/SagaGameplayAttributeDataDetails.h"
 #include "Details/SSGameplayAttributePropertyDetails.h"
 #include "Editor/SSGraphPanelPinFactory.h"
 #include "Framework/Application/SlateApplication.h"
@@ -85,7 +85,7 @@ void FSagaStatsEditorModule::ShutdownModule()
 
 	if (GEditor)
 	{
-		USSEditorSubsystem::Get().UnregisterReferencerHandler(TEXT("SSK2Node_SwitchGameplayAttribute"));
+		USagaEditorSubsystem::Get().UnregisterReferencerHandler(TEXT("SSK2Node_SwitchGameplayAttribute"));
 	}
 }
 
@@ -129,8 +129,8 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 
 		// And register our own customizations
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttribute"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributePropertyDetails::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributeDataDetails::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SagaClampedAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributeDataClampedDetails::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSagaGameplayAttributeDataDetails::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SagaClampedAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSagaAttributeDataClampedDetails::MakeInstance));
 		
 		PropertyModule.RegisterCustomClassLayout(TEXT("SSAttributeSetBlueprintBase"), FOnGetDetailCustomizationInstance::CreateStatic(&FSSAttributeSetDetails::MakeInstance));
 
@@ -146,7 +146,7 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 
 	if (GEditor)
 	{
-		USSEditorSubsystem::Get().RegisterReferencerHandler(TEXT("SSK2Node_SwitchGameplayAttribute"), FSSSwitchNodeReferencerHandler::Create());
+		USagaEditorSubsystem::Get().RegisterReferencerHandler(TEXT("SSK2Node_SwitchGameplayAttribute"), FSSSwitchNodeReferencerHandler::Create());
 	}
 }
 

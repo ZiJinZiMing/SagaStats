@@ -9,7 +9,7 @@
 #include "Editor/SSK2Node_SwitchGameplayAttribute.h"
 #include "EdGraph/EdGraph.h"
 #include "Engine/Blueprint.h"
-#include "SSEditorSubsystem.h"
+#include "SagaEditorSubsystem.h"
 
 
 TSharedPtr<ISSAttributeReferencerHandler> FSSSwitchNodeReferencerHandler::Create()
@@ -64,7 +64,7 @@ bool FSSSwitchNodeReferencerHandler::HandlePreCompile(const FAssetIdentifier& In
 		}
 
 		FAttributeReference Reference;
-		if (USSEditorSubsystem::ParseAttributeFromDefaultValue(FinalValue, Reference.PackageNameOwner, Reference.AttributeName))
+		if (USagaEditorSubsystem::ParseAttributeFromDefaultValue(FinalValue, Reference.PackageNameOwner, Reference.AttributeName))
 		{
 			Reference.Index = CurrentIndex  - 1;
 			AttributesCache.Add(Reference);

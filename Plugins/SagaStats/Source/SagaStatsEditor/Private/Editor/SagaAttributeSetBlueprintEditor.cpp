@@ -69,7 +69,7 @@ void FSagaAttributeSetBlueprintEditor::Compile()
 	FBlueprintEditor::Compile();
 	SS_EDITOR_LOG(VeryVerbose, TEXT("FSagaBlueprintEditor::Compile - PostCompile for %s"), *GetNameSafe(Blueprint))
 
-	// Bring toolkit back to front, cause USSEditorSubsystem will close any GE referencers and re-open
+	// Bring toolkit back to front, cause USagaEditorSubsystem will close any GE referencers and re-open
 	// And the re-open will always focus the last Gameplay Effect BP, this focus window will happen after and make sure we don't loose focus
 	// when we click the Compile button (but won't handle compile "in background" when hitting Play and some BP are automatically compiled by the editor)
 	FocusWindow();

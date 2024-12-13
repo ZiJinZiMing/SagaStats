@@ -9,7 +9,7 @@
 #include "Types/SlateEnums.h"
 
 class IDetailChildrenBuilder;
-class ISSGameplayAttributeDataDetailsBase;
+class ISagaGameplayAttributeDataDetailsBase;
 class IPropertyHandle;
 class IPropertyTypeCustomizationUtils;
 
@@ -23,7 +23,7 @@ class IPropertyTypeCustomizationUtils;
 class FSSGameplayAttributeDataDetailsRow : public TSharedFromThis<FSSGameplayAttributeDataDetailsRow>
 {
 public:
-	explicit FSSGameplayAttributeDataDetailsRow(const TWeakPtr<ISSGameplayAttributeDataDetailsBase>& InDetailsOwner, const FText& InRowNameText, float InInitialValue);
+	explicit FSSGameplayAttributeDataDetailsRow(const TWeakPtr<ISagaGameplayAttributeDataDetailsBase>& InDetailsOwner, const FText& InRowNameText, float InInitialValue);
 	virtual ~FSSGameplayAttributeDataDetailsRow() = default;
 
 	virtual void CustomizeChildren(TSharedRef<IPropertyHandle> InStructPropertyHandle, IDetailChildrenBuilder& InStructBuilder, IPropertyTypeCustomizationUtils& InStructCustomizationUtils);
@@ -38,7 +38,7 @@ private:
 	/** When using the slider, what was the last committed value (min value) */
 	float LastSliderCommittedValue = 0.f;
 
-	TWeakPtr<ISSGameplayAttributeDataDetailsBase> DetailsOwnerPtr;
+	TWeakPtr<ISagaGameplayAttributeDataDetailsBase> DetailsOwnerPtr;
 	FText RowNameText;
 
 	FOnValueChanged OnValueChangedDelegate;

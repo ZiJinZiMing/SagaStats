@@ -10,14 +10,14 @@
 #include "DetailWidgetRow.h"
 #include "SSEditorLog.h"
 #include "IDetailChildrenBuilder.h"
-#include "Details/ISSGameplayAttributeDataDetailsBase.h"
+#include "Details/ISagaGameplayAttributeDataDetailsBase.h"
 #include "ScopedTransaction.h"
 #include "Kismet2/BlueprintEditorUtils.h"
 #include "Widgets/Input/SNumericEntryBox.h"
 
-#define LOCTEXT_NAMESPACE "SSGameplayAttributeDataDetails"
+#define LOCTEXT_NAMESPACE "SagaGameplayAttributeDataDetails"
 
-FSSGameplayAttributeDataDetailsRow::FSSGameplayAttributeDataDetailsRow(const TWeakPtr<ISSGameplayAttributeDataDetailsBase>& InDetailsOwner, const FText& InRowNameText, const float InInitialValue)
+FSSGameplayAttributeDataDetailsRow::FSSGameplayAttributeDataDetailsRow(const TWeakPtr<ISagaGameplayAttributeDataDetailsBase>& InDetailsOwner, const FText& InRowNameText, const float InInitialValue)
 	: LastSliderCommittedValue(InInitialValue)
 	, DetailsOwnerPtr(InDetailsOwner)
 	, RowNameText(InRowNameText)
@@ -84,7 +84,7 @@ void FSSGameplayAttributeDataDetailsRow::OnValueCommitted(const float InNewValue
 
 void FSSGameplayAttributeDataDetailsRow::SetValueWithTransaction(const float InNewValue) const
 {
-	const TSharedPtr<ISSGameplayAttributeDataDetailsBase> DetailsOwner = DetailsOwnerPtr.Pin();
+	const TSharedPtr<ISagaGameplayAttributeDataDetailsBase> DetailsOwner = DetailsOwnerPtr.Pin();
 	check(DetailsOwner.IsValid());
 
 	const FGameplayAttributeData* AttributeData = DetailsOwner->GetGameplayAttributeData();
