@@ -20,11 +20,11 @@ class SComboButton;
  *
  * Forked mainly to allow custom menu placement with a sensible default for our use case (eg. MenuPlacement_ComboBoxRight)
  */
-class SSSPositiveActionButton : public SCompoundWidget
+class SSagaPositiveActionButton : public SCompoundWidget
 {
 public:
 
-	SLATE_BEGIN_ARGS(SSSPositiveActionButton)
+	SLATE_BEGIN_ARGS(SSagaPositiveActionButton)
 		: _Icon(FAppStyle::Get().GetBrush("Icons.Plus"))
 		, _MenuPlacement(MenuPlacement_ComboBoxRight)
 		{}
@@ -45,7 +45,7 @@ public:
 
 	SLATE_END_ARGS()
 
-	SSSPositiveActionButton() {}
+	SSagaPositiveActionButton() {}
 
 	void Construct(const FArguments& InArgs);
 

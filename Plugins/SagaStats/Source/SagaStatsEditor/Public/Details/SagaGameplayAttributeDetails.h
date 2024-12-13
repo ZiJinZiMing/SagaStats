@@ -8,18 +8,18 @@
 #include "CoreMinimal.h"
 #include "IPropertyTypeCustomization.h"
 
-class SSSGameplayAttributeWidget;
+class SSagaGameplayAttributeWidget;
 
 /**
  * This is the main customization class for FGameplayAttribute properties
  *
  * Its almost identical to the engine customization for FGameplayAttribute, its main purpose is to make use of
- * SSSGameplayAttributeWidget to allow the display of FGameplayAttribute FProperties in Attribute picker dropdown.
+ * SSagaGameplayAttributeWidget to allow the display of FGameplayAttribute FProperties in Attribute picker dropdown.
  */
-class FSSGameplayAttributePropertyDetails : public IPropertyTypeCustomization
+class FSagaGameplayAttributeDetails : public IPropertyTypeCustomization
 {
 public:
-	virtual ~FSSGameplayAttributePropertyDetails() override;
+	virtual ~FSagaGameplayAttributeDetails() override;
 
 	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
 
@@ -45,7 +45,7 @@ private:
 
 	
 	/** Slate Attribute Widget */
-	TSharedPtr<SSSGameplayAttributeWidget> AttributeWidget;
+	TSharedPtr<SSagaGameplayAttributeWidget> AttributeWidget;
 
 	//Feature Begin Attribute In subclass of AttributeSet
 	void OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass) const;

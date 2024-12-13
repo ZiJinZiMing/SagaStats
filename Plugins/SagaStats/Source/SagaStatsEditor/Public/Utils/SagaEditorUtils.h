@@ -12,7 +12,7 @@ class IDetailLayoutBuilder;
 class UAttributeSet;
 class UBlueprint;
 
-namespace UE::SS::EditorUtils
+namespace SagaEditorUtils
 {
 	UAttributeSet* GetAttributeBeingCustomized(const IDetailLayoutBuilder& InDetailLayout);
 	UBlueprint* GetBlueprintFromClass(const UClass* InClass);

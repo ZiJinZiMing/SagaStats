@@ -12,7 +12,7 @@
 #include "Widgets/SWidget.h"
 #include "Widgets/Input/SComboButton.h"
 
-class SSSGameplayAttributeWidget : public SCompoundWidget
+class SSagaGameplayAttributeWidget : public SCompoundWidget
 {
 public:
 
@@ -21,7 +21,7 @@ public:
 	DECLARE_DELEGATE_TwoParams(FOnAttributeChanged, FProperty*, UClass*)
 	//Feature End
 
-	SLATE_BEGIN_ARGS(SSSGameplayAttributeWidget)
+	SLATE_BEGIN_ARGS(SSagaGameplayAttributeWidget)
 	: _DefaultProperty(nullptr)
 	//Feature Begin Attribute In subclass of AttributeSet
 	, _DefaultAttributeOwnerClass(nullptr)

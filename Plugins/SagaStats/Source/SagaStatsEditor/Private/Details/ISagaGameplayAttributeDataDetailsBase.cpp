@@ -11,7 +11,7 @@
 #include "PropertyHandle.h"
 #include "ScopedTransaction.h"
 #include "Kismet2/BlueprintEditorUtils.h"
-#include "Utils/SSEditorUtils.h"
+#include "Utils/SagaEditorUtils.h"
 
 #define LOCTEXT_NAMESPACE "SagaGameplayAttributeDataDetails"
 
@@ -48,7 +48,7 @@ void ISagaGameplayAttributeDataDetailsBase::InitializeFromStructHandle(const TSh
 
 	AttributeSetBeingCustomized = Cast<UAttributeSet>(OuterBaseClass->GetDefaultObject());
 	
-	BlueprintBeingCustomized = UE::SS::EditorUtils::GetBlueprintFromClass(OuterBaseClass);
+	BlueprintBeingCustomized = SagaEditorUtils::GetBlueprintFromClass(OuterBaseClass);
 }
 
 TWeakFieldPtr<FProperty> ISagaGameplayAttributeDataDetailsBase::GetPropertyBeingCustomized() const

@@ -11,10 +11,10 @@
 #include "SagaEditorSubsystem.h"
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "AssetTypes/SagaAssetTypeActions_AttributeSet.h"
-#include "Details/SSAttributeSetDetails.h"
+#include "Details/SagaAttributeSetDetails.h"
 #include "Details/SagaAttributeDataClampedDetails.h"
 #include "Details/SagaGameplayAttributeDataDetails.h"
-#include "Details/SSGameplayAttributePropertyDetails.h"
+#include "Details/SagaGameplayAttributeDetails.h"
 #include "Editor/SSGraphPanelPinFactory.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Misc/EngineVersionComparison.h"
@@ -59,7 +59,7 @@ void FSagaStatsEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"));
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("SagaClampedAttributeData"));
 
-		PropertyModule.UnregisterCustomClassLayout(TEXT("SSAttributeSetBlueprintBase"));
+		PropertyModule.UnregisterCustomClassLayout(TEXT("SagaAttributeSet"));
 	}
 
 	// Unregister asset type actions
@@ -128,11 +128,11 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		PropertyModule.UnregisterCustomPropertyTypeLayout("GameplayAttribute");
 
 		// And register our own customizations
-		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttribute"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSSGameplayAttributePropertyDetails::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttribute"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSagaGameplayAttributeDetails::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSagaGameplayAttributeDataDetails::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SagaClampedAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSagaAttributeDataClampedDetails::MakeInstance));
 		
-		PropertyModule.RegisterCustomClassLayout(TEXT("SSAttributeSetBlueprintBase"), FOnGetDetailCustomizationInstance::CreateStatic(&FSSAttributeSetDetails::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(TEXT("SagaAttributeSet"), FOnGetDetailCustomizationInstance::CreateStatic(&FSagaAttributeSetDetails::MakeInstance));
 
 		// Asset Types
 		{

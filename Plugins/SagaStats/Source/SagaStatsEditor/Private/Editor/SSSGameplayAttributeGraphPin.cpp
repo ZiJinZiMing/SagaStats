@@ -8,7 +8,7 @@
 #include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
 #include "ScopedTransaction.h"
-#include "Details/Slate/SSSGameplayAttributeWidget.h"
+#include "Details/Slate/SSagaGameplayAttributeWidget.h"
 #include "UObject/Class.h"
 #include "UObject/CoreRedirects.h"
 #include "UObject/UObjectIterator.h"
@@ -119,7 +119,7 @@ TSharedRef<SWidget>	SSSGameplayAttributeGraphPin::GetDefaultValueWidget()
 		+SVerticalBox::Slot()
 		.AutoHeight()
 		[
-			SNew(SSSGameplayAttributeWidget)
+			SNew(SSagaGameplayAttributeWidget)
 			.OnAttributeChanged(this, &SSSGameplayAttributeGraphPin::OnAttributeChanged)
 			.DefaultProperty(DefaultAttribute.GetUProperty())
 			//Feature Begin Attribute In subclass of AttributeSet

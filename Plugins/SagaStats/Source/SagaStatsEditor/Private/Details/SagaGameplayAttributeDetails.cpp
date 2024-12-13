@@ -4,32 +4,32 @@
 * Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
 ******************************************************************************************/
 
-#include "Details/SSGameplayAttributePropertyDetails.h"
+#include "Details/SagaGameplayAttributeDetails.h"
 
 #include "AttributeSet.h"
 #include "DetailWidgetRow.h"
 #include "SagaStatsDelegates.h"
 #include "SSEditorLog.h"
 #include "IPropertyUtilities.h"
-#include "Details/Slate/SSSGameplayAttributeWidget.h"
+#include "Details/Slate/SSagaGameplayAttributeWidget.h"
 
-FSSGameplayAttributePropertyDetails::~FSSGameplayAttributePropertyDetails()
+FSagaGameplayAttributeDetails::~FSagaGameplayAttributeDetails()
 {
 	FSagaStatsDelegates::OnRequestDetailsRefresh.RemoveAll(this);
 }
 
-TSharedRef<IPropertyTypeCustomization> FSSGameplayAttributePropertyDetails::MakeInstance()
+TSharedRef<IPropertyTypeCustomization> FSagaGameplayAttributeDetails::MakeInstance()
 {
-	return MakeShared<FSSGameplayAttributePropertyDetails>();
+	return MakeShared<FSagaGameplayAttributeDetails>();
 }
 
 // ReSharper disable once CppParameterMayBeConst
-void FSSGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyHandle> StructPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& StructCustomizationUtils)
+void FSagaGameplayAttributeDetails::CustomizeHeader(TSharedRef<IPropertyHandle> StructPropertyHandle, FDetailWidgetRow& HeaderRow, IPropertyTypeCustomizationUtils& StructCustomizationUtils)
 {
-	SS_EDITOR_LOG(Verbose, TEXT("FSSGameplayAttributePropertyDetails::CustomizeHeader ..."))
+	SS_EDITOR_LOG(Verbose, TEXT("FSagaGameplayAttributeDetails::CustomizeHeader ..."))
 
 	const TSharedPtr<IPropertyUtilities> Utilities = StructCustomizationUtils.GetPropertyUtilities();
-	FSagaStatsDelegates::OnRequestDetailsRefresh.AddSP(this, &FSSGameplayAttributePropertyDetails::HandleRequestRefresh, Utilities);
+	FSagaStatsDelegates::OnRequestDetailsRefresh.AddSP(this, &FSagaGameplayAttributeDetails::HandleRequestRefresh, Utilities);
 
 	// Can't use GET_MEMBER_NAME_CHECKED for those two props since they're private and requires adding this class as a friend class to FGameplayAttribute
 	//
@@ -49,7 +49,7 @@ void FSSGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyHa
 	const UClass* OuterBaseClass = StructPropertyHandle->GetOuterBaseClass();
 	SS_EDITOR_LOG(
 		VeryVerbose,
-		TEXT("FSSGameplayAttributePropertyDetails::CustomizeHeader - OuterBaseClass: %s (bShowOnlyOwnedAttributed: %s)"),
+		TEXT("FSagaGameplayAttributeDetails::CustomizeHeader - OuterBaseClass: %s (bShowOnlyOwnedAttributed: %s)"),
 		*GetNameSafe(OuterBaseClass),
 		*LexToString(bShowOnlyOwnedAttributes)
 	)
@@ -72,8 +72,8 @@ void FSSGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyHa
 	}
 	//Feature End
 
-	AttributeWidget = SNew(SSSGameplayAttributeWidget)
-		.OnAttributeChanged(this, &FSSGameplayAttributePropertyDetails::OnAttributeChanged)
+	AttributeWidget = SNew(SSagaGameplayAttributeWidget)
+		.OnAttributeChanged(this, &FSagaGameplayAttributeDetails::OnAttributeChanged)
 		.DefaultProperty(PropertyValue)
 		//Feature Begin Attribute In subclass of AttributeSet
 		.DefaultAttributeOwnerClass(AttributeOwnerValue)
@@ -101,12 +101,12 @@ void FSSGameplayAttributePropertyDetails::CustomizeHeader(TSharedRef<IPropertyHa
 		];
 }
 
-void FSSGameplayAttributePropertyDetails::CustomizeChildren(TSharedRef<IPropertyHandle> StructPropertyHandle, IDetailChildrenBuilder& StructBuilder, IPropertyTypeCustomizationUtils& StructCustomizationUtils)
+void FSagaGameplayAttributeDetails::CustomizeChildren(TSharedRef<IPropertyHandle> StructPropertyHandle, IDetailChildrenBuilder& StructBuilder, IPropertyTypeCustomizationUtils& StructCustomizationUtils)
 {
 }
 
 //Feature Begin Attribute In subclass of AttributeSet
-void FSSGameplayAttributePropertyDetails::OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass) const
+void FSagaGameplayAttributeDetails::OnAttributeChanged(FProperty* SelectedAttribute, UClass* InAttributeOwnerClass) const
 {
 	if (MyProperty.IsValid())
 	{
@@ -137,9 +137,9 @@ void FSSGameplayAttributePropertyDetails::OnAttributeChanged(FProperty* Selected
 
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
-void FSSGameplayAttributePropertyDetails::HandleRequestRefresh(const TSharedPtr<IPropertyUtilities> InPropertyUtilities)
+void FSagaGameplayAttributeDetails::HandleRequestRefresh(const TSharedPtr<IPropertyUtilities> InPropertyUtilities)
 {
-	SS_EDITOR_LOG(VeryVerbose, TEXT("FSSGameplayAttributePropertyDetails::HandleRequestRefresh ..."))
+	SS_EDITOR_LOG(VeryVerbose, TEXT("FSagaGameplayAttributeDetails::HandleRequestRefresh ..."))
 	if (InPropertyUtilities.IsValid())
 	{
 		InPropertyUtilities->ForceRefresh();

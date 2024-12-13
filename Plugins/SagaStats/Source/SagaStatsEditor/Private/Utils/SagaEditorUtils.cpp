@@ -4,7 +4,7 @@
 * Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
 ******************************************************************************************/
 
-#include "Utils/SSEditorUtils.h"
+#include "Utils/SagaEditorUtils.h"
 
 #include "AttributeSet.h"
 #include "DetailLayoutBuilder.h"
@@ -13,7 +13,7 @@
 #include "Misc/EngineVersionComparison.h"
 #include "Subsystems/AssetEditorSubsystem.h"
 
-UAttributeSet* UE::SS::EditorUtils::GetAttributeBeingCustomized(const IDetailLayoutBuilder& InDetailLayout)
+UAttributeSet* SagaEditorUtils::GetAttributeBeingCustomized(const IDetailLayoutBuilder& InDetailLayout)
 {
 	TArray<TWeakObjectPtr<UObject>> ObjectsBeingCustomized;
 	InDetailLayout.GetObjectsBeingCustomized(ObjectsBeingCustomized);
@@ -30,7 +30,7 @@ UAttributeSet* UE::SS::EditorUtils::GetAttributeBeingCustomized(const IDetailLay
 	return AttributeSetsBeingCustomized.IsValidIndex(0) ? AttributeSetsBeingCustomized[0] : nullptr;
 }
 
-UBlueprint* UE::SS::EditorUtils::GetBlueprintFromClass(const UClass* InClass)
+UBlueprint* SagaEditorUtils::GetBlueprintFromClass(const UClass* InClass)
 {
 	if (!InClass)
 	{
@@ -40,7 +40,7 @@ UBlueprint* UE::SS::EditorUtils::GetBlueprintFromClass(const UClass* InClass)
 	return Cast<UBlueprint>(InClass->ClassGeneratedBy);
 }
 
-TWeakPtr<FSagaAttributeSetBlueprintEditor> UE::SS::EditorUtils::FindBlueprintEditorForAsset(UObject* InObject)
+TWeakPtr<FSagaAttributeSetBlueprintEditor> SagaEditorUtils::FindBlueprintEditorForAsset(UObject* InObject)
 {
 	if (!GEditor || !IsValid(InObject))
 	{

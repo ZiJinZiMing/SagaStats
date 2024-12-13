@@ -3,7 +3,7 @@
 * Author:       Jinming Zhang
 * Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
 ******************************************************************************************/
-#include "Details/Slate/SSSGameplayAttributeWidget.h"
+#include "Details/Slate/SSagaGameplayAttributeWidget.h"
 #include "AbilitySystemComponent.h"
 #include "AttributeSet.h"
 #include "Editor.h"
@@ -451,7 +451,7 @@ void SSSGameplayAttributeListWidget::OnAttributeSelectionChanged(const TSharedPt
 	OnAttributePicked.ExecuteIfBound(Item->Attribute.Get(),Item->AttributeOwnerClass.Get());
 }
 
-void SSSGameplayAttributeWidget::Construct(const FArguments& InArgs)
+void SSagaGameplayAttributeWidget::Construct(const FArguments& InArgs)
 {
 	FilterMetaData = InArgs._FilterMetaData;
 	OnAttributeChanged = InArgs._OnAttributeChanged;
@@ -464,13 +464,13 @@ void SSSGameplayAttributeWidget::Construct(const FArguments& InArgs)
 	
 	// set up the combo button
 	SAssignNew(ComboButton, SComboButton)
-		.OnGetMenuContent(this, &SSSGameplayAttributeWidget::GenerateAttributePicker)
+		.OnGetMenuContent(this, &SSagaGameplayAttributeWidget::GenerateAttributePicker)
 		.ContentPadding(FMargin(2.0f, 2.0f))
-		.ToolTipText(this, &SSSGameplayAttributeWidget::GetSelectedValueAsString)
+		.ToolTipText(this, &SSagaGameplayAttributeWidget::GetSelectedValueAsString)
 		.ButtonContent()
 		[
 			SNew(STextBlock)
-			.Text(this, &SSSGameplayAttributeWidget::GetSelectedValueAsString)
+			.Text(this, &SSagaGameplayAttributeWidget::GetSelectedValueAsString)
 		];
 
 	ChildSlot
@@ -480,7 +480,7 @@ void SSSGameplayAttributeWidget::Construct(const FArguments& InArgs)
 }
 
 // ReSharper disable once CppParameterMayBeConstPtrOrRef
-void SSSGameplayAttributeWidget::OnAttributePicked(FProperty* InProperty, UClass* InAttributeOwnerClass)
+void SSagaGameplayAttributeWidget::OnAttributePicked(FProperty* InProperty, UClass* InAttributeOwnerClass)
 {
 	FProperty* Property = InProperty ? PropertyAccessUtil::FindPropertyByName(InProperty->GetFName(), InProperty->GetOwnerStruct()) : nullptr;
 
@@ -502,7 +502,7 @@ void SSSGameplayAttributeWidget::OnAttributePicked(FProperty* InProperty, UClass
 	ComboButton->SetIsOpen(false);
 }
 
-TSharedRef<SWidget> SSSGameplayAttributeWidget::GenerateAttributePicker()
+TSharedRef<SWidget> SSagaGameplayAttributeWidget::GenerateAttributePicker()
 {
 	return SNew(SBox)
 		.WidthOverride(280)
@@ -513,7 +513,7 @@ TSharedRef<SWidget> SSSGameplayAttributeWidget::GenerateAttributePicker()
 			.MaxHeight(500)
 			[
 				SNew(SSSGameplayAttributeListWidget)
-				.OnAttributePickedDelegate(FOnAttributePicked::CreateSP(this, &SSSGameplayAttributeWidget::OnAttributePicked))
+				.OnAttributePickedDelegate(FOnAttributePicked::CreateSP(this, &SSagaGameplayAttributeWidget::OnAttributePicked))
 				.FilterClass(FilterClass.Get())
 				.ShowOnlyOwnedAttributes(bShowOnlyOwnedAttributes)
 				.FilterMetaData(FilterMetaData)
@@ -521,11 +521,11 @@ TSharedRef<SWidget> SSSGameplayAttributeWidget::GenerateAttributePicker()
 		];
 }
 
-FText SSSGameplayAttributeWidget::GetSelectedValueAsString() const
+FText SSagaGameplayAttributeWidget::GetSelectedValueAsString() const
 {
 	FText None = FText::FromString(TEXT("None"));
 	
-	// SS_EDITOR_LOG(VeryVerbose, TEXT("SSSGameplayAttributeWidget::GetSelectedValueAsString - SelectedProperty: %s"), *GetNameSafe(SelectedProperty))
+	// SS_EDITOR_LOG(VeryVerbose, TEXT("SSagaGameplayAttributeWidget::GetSelectedValueAsString - SelectedProperty: %s"), *GetNameSafe(SelectedProperty))
 
 	if (!SelectedPropertyPtr.IsValid())
 	{

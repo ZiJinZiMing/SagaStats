@@ -3,13 +3,13 @@
 * Author:       Jinming Zhang
 * Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
 ******************************************************************************************/
-#include "SSSPositiveActionButton.h"
+#include "SSagaPositiveActionButton.h"
 
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
 #include "Styling/StyleColors.h"
 
-void SSSPositiveActionButton::Construct(const FArguments& InArgs)
+void SSagaPositiveActionButton::Construct(const FArguments& InArgs)
 {
 	check(InArgs._Icon.IsSet());
 

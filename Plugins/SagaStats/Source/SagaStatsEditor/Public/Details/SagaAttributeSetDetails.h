@@ -11,7 +11,7 @@
 
 class FSagaAttributeSetBlueprintEditor;
 class FSSNewAttributeViewModel;
-class SSSPositiveActionButton;
+class SSagaPositiveActionButton;
 class SWidget;
 class UAttributeSet;
 class UBlueprint;
@@ -21,10 +21,10 @@ class UBlueprint;
  *
  * Mainly to add a "+" button to add a new attribute member variable.
  */
-class FSSAttributeSetDetails : public IDetailCustomization
+class FSagaAttributeSetDetails : public IDetailCustomization
 {
 public:
-	FSSAttributeSetDetails() = default;
+	FSagaAttributeSetDetails() = default;
 
 	/** Makes a new instance of this detail layout class for a specific detail view requesting it */
 	static TSharedRef<IDetailCustomization> MakeInstance();

@@ -3,7 +3,7 @@
 * Author:       Jinming Zhang
 * Description:  SagaStats is a status system that supports fully blueprintable attribute definitions and value calculations.
 ******************************************************************************************/
-#include "Details/SSAttributeSetDetails.h"
+#include "Details/SagaAttributeSetDetails.h"
 
 #include "AttributeSet.h"
 #include "DetailCategoryBuilder.h"
@@ -11,35 +11,35 @@
 #include "EdGraphSchema_K2.h"
 #include "SSEditorLog.h"
 #include "Details/Slate/SSSNewAttributeVariableWidget.h"
-#include "Details/Slate/SSSPositiveActionButton.h"
+#include "Details/Slate/SSagaPositiveActionButton.h"
 #include "Editor/SagaAttributeSetBlueprintEditor.h"
 #include "Engine/Blueprint.h"
 #include "Slate/SSNewAttributeViewModel.h"
 #include "Styling/SSAppStyle.h"
-#include "Utils/SSEditorUtils.h"
+#include "Utils/SagaEditorUtils.h"
 
-#define LOCTEXT_NAMESPACE "FSSAttributeSetDetails"
+#define LOCTEXT_NAMESPACE "FSagaAttributeSetDetails"
 
-TSharedRef<IDetailCustomization> FSSAttributeSetDetails::MakeInstance()
+TSharedRef<IDetailCustomization> FSagaAttributeSetDetails::MakeInstance()
 {
-	return MakeShared<FSSAttributeSetDetails>();
+	return MakeShared<FSagaAttributeSetDetails>();
 }
 
-void FSSAttributeSetDetails::CustomizeDetails(IDetailLayoutBuilder& InDetailLayout)
+void FSagaAttributeSetDetails::CustomizeDetails(IDetailLayoutBuilder& InDetailLayout)
 {
-	AttributeBeingCustomized = UE::SS::EditorUtils::GetAttributeBeingCustomized(InDetailLayout);
+	AttributeBeingCustomized = SagaEditorUtils::GetAttributeBeingCustomized(InDetailLayout);
 	if (!AttributeBeingCustomized.IsValid())
 	{
 		return;
 	}
 
-	BlueprintBeingCustomized = UE::SS::EditorUtils::GetBlueprintFromClass(AttributeBeingCustomized->GetClass());
+	BlueprintBeingCustomized = SagaEditorUtils::GetBlueprintFromClass(AttributeBeingCustomized->GetClass());
 	if (!BlueprintBeingCustomized.IsValid())
 	{
 		return;
 	}
 
-	BlueprintEditorPtr = UE::SS::EditorUtils::FindBlueprintEditorForAsset(BlueprintBeingCustomized.Get());
+	BlueprintEditorPtr = SagaEditorUtils::FindBlueprintEditorForAsset(BlueprintBeingCustomized.Get());
 	if (!BlueprintEditorPtr.IsValid())
 	{
 		return;
@@ -58,16 +58,16 @@ void FSSAttributeSetDetails::CustomizeDetails(IDetailLayoutBuilder& InDetailLayo
 	.AutoWidth()
 	.VAlign(VAlign_Center)
 	[
-		SNew(SSSPositiveActionButton)
+		SNew(SSagaPositiveActionButton)
 		.ToolTipText(LOCTEXT("NewInputPoseTooltip", "Create a new Attribute"))
 		.Icon(FSSAppStyle::GetBrush("Icons.Plus"))
 		.Text(LOCTEXT("AddNewLabel", "Add Attribute"))
-		.OnGetMenuContent(this, &FSSAttributeSetDetails::CreateNewAttributeVariableWidget)
+		.OnGetMenuContent(this, &FSagaAttributeSetDetails::CreateNewAttributeVariableWidget)
 	];
 	Category.HeaderContent(HeaderContentWidget);
 }
 
-TSharedRef<SWidget> FSSAttributeSetDetails::CreateNewAttributeVariableWidget()
+TSharedRef<SWidget> FSagaAttributeSetDetails::CreateNewAttributeVariableWidget()
 {
 	TSharedRef<FSSNewAttributeViewModel> ViewModel = MakeShared<FSSNewAttributeViewModel>();
 	ViewModel->SetCustomizedBlueprint(BlueprintBeingCustomized);
@@ -90,17 +90,17 @@ TSharedRef<SWidget> FSSAttributeSetDetails::CreateNewAttributeVariableWidget()
 	ViewModel->SetPinType(PinType);
 
 	return SNew(SSSNewAttributeVariableWidget, ViewModel)
-		.OnCancel_Static(&FSSAttributeSetDetails::HandleAttributeWindowCancel)
-		.OnFinish(this, &FSSAttributeSetDetails::HandleAttributeWindowFinish);
+		.OnCancel_Static(&FSagaAttributeSetDetails::HandleAttributeWindowCancel)
+		.OnFinish(this, &FSagaAttributeSetDetails::HandleAttributeWindowFinish);
 }
 
-void FSSAttributeSetDetails::HandleAttributeWindowCancel(const TSharedPtr<FSSNewAttributeViewModel>& InViewModel)
+void FSagaAttributeSetDetails::HandleAttributeWindowCancel(const TSharedPtr<FSSNewAttributeViewModel>& InViewModel)
 {
 	check(InViewModel.IsValid());
 	SS_EDITOR_LOG(Verbose, TEXT("Cancel -> %s"), *InViewModel->ToString())
 }
 
-void FSSAttributeSetDetails::HandleAttributeWindowFinish(const TSharedPtr<FSSNewAttributeViewModel>& InViewModel) const
+void FSagaAttributeSetDetails::HandleAttributeWindowFinish(const TSharedPtr<FSSNewAttributeViewModel>& InViewModel) const
 {
 	check(InViewModel.IsValid());
 	SS_EDITOR_LOG(Verbose, TEXT("Finish -> %s"), *InViewModel->ToString())
