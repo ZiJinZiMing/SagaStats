@@ -30,9 +30,9 @@ public:
 	SS_ATTRIBUTE_ACCESSORS(Current);
 	/*Current value of meter*/
 	UPROPERTY(EditDefaultsOnly, Category="Meter", ReplicatedUsing=OnRep_Current, meta=(HideFromModifiers))
-	FSagaClampedAttributeData Current;
+	FSagaClampedGameplayAttributeData Current;
 	UFUNCTION()
-	void OnRep_Current(const FSagaClampedAttributeData& OldValue)
+	void OnRep_Current(const FSagaClampedGameplayAttributeData& OldValue)
 	{
 		SS_GAMEPLAYATTRIBUTE_REPNOTIFY(Current, OldValue);
 	}

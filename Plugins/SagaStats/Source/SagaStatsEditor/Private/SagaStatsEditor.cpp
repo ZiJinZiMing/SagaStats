@@ -57,7 +57,7 @@ void FSagaStatsEditorModule::ShutdownModule()
 		FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>(TEXT("PropertyEditor"));
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("GameplayAttribute"));
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"));
-		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("SagaClampedAttributeData"));
+		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("SagaClampedGameplayAttributeData"));
 
 		PropertyModule.UnregisterCustomClassLayout(TEXT("SagaAttributeSet"));
 	}
@@ -130,7 +130,7 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		// And register our own customizations
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttribute"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSagaGameplayAttributeDetails::MakeInstance));
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("GameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSagaGameplayAttributeDataDetails::MakeInstance));
-		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SagaClampedAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSagaAttributeDataClampedDetails::MakeInstance));
+		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SagaClampedGameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSagaAttributeDataClampedDetails::MakeInstance));
 		
 		PropertyModule.RegisterCustomClassLayout(TEXT("SagaAttributeSet"), FOnGetDetailCustomizationInstance::CreateStatic(&FSagaAttributeSetDetails::MakeInstance));
 
