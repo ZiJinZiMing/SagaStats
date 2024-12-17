@@ -42,6 +42,7 @@ public class SagaStats : ModuleRules
 			{
 				"CoreUObject",
 				"Engine",
+				"Projects",
 				// ... add private dependencies that you statically link with here ...	
 			}
 		);

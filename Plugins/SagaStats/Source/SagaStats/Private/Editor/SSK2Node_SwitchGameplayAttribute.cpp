@@ -87,6 +87,7 @@ void USSK2Node_SwitchGameplayAttribute::GetMenuActions(FBlueprintActionDatabaseR
 	//
 	// GAS Companion has already a Switch On Gameplay Attribute node. We only want to expose the present class
 	// if GAS Companion is not available (and prevent duplication of this node in context menu)
+	
 	if (IsGasCompanionPluginEnabled())
 	{
 		return;
