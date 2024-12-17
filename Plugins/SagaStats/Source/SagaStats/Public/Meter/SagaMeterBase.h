@@ -27,39 +27,39 @@ class SAGASTATS_API USagaMeterBase : public USagaAttributeSet, public ITickableA
 public:
 	USagaMeterBase(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	SS_ATTRIBUTE_ACCESSORS(Current);
+	SAGA_ATTRIBUTE_ACCESSORS(Current);
 	/*Current value of meter*/
 	UPROPERTY(EditDefaultsOnly, Category="Meter", ReplicatedUsing=OnRep_Current, meta=(HideFromModifiers))
 	FSagaClampedGameplayAttributeData Current;
 	UFUNCTION()
 	void OnRep_Current(const FSagaClampedGameplayAttributeData& OldValue)
 	{
-		SS_GAMEPLAYATTRIBUTE_REPNOTIFY(Current, OldValue);
+		SAGA_GAMEPLAYATTRIBUTE_REPNOTIFY(Current, OldValue);
 	}
 
-	SS_ATTRIBUTE_ACCESSORS(Maximum);
+	SAGA_ATTRIBUTE_ACCESSORS(Maximum);
 	/* Maximum of meter*/
 	UPROPERTY(EditDefaultsOnly, Category="Meter", ReplicatedUsing=OnRep_Maximum)
 	FGameplayAttributeData Maximum;
 	UFUNCTION()
 	void OnRep_Maximum(const FGameplayAttributeData& OldValue)
 	{
-		SS_GAMEPLAYATTRIBUTE_REPNOTIFY(Maximum, OldValue);
+		SAGA_GAMEPLAYATTRIBUTE_REPNOTIFY(Maximum, OldValue);
 	}
 
-	SS_ATTRIBUTE_ACCESSORS(Accumulate);
+	SAGA_ATTRIBUTE_ACCESSORS(Accumulate);
 	UPROPERTY(EditDefaultsOnly, Category="Meter")
 	FGameplayAttributeData Accumulate;
 
-	SS_ATTRIBUTE_ACCESSORS(ImpactedAccumulate);
+	SAGA_ATTRIBUTE_ACCESSORS(ImpactedAccumulate);
 	UPROPERTY(EditDefaultsOnly, Category="Meter", meta=(HideFromModifiers))
 	FGameplayAttributeData ImpactedAccumulate;
 
-	SS_ATTRIBUTE_ACCESSORS(Reduce);
+	SAGA_ATTRIBUTE_ACCESSORS(Reduce);
 	UPROPERTY(EditDefaultsOnly, Category="Meter")
 	FGameplayAttributeData Reduce;
 
-	SS_ATTRIBUTE_ACCESSORS(ImpactedReduce);
+	SAGA_ATTRIBUTE_ACCESSORS(ImpactedReduce);
 	UPROPERTY(EditDefaultsOnly, Category="Meter", meta=(HideFromModifiers))
 	FGameplayAttributeData ImpactedReduce;
 

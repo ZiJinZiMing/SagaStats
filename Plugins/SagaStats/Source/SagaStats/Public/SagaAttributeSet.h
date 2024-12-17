@@ -43,30 +43,30 @@ class UEdGraphPin;
  *	ATTRIBUTE_ACCESSORS(UMyHealthSet, Health)
  */
 
-#define SS_GAMEPLAYATTRIBUTE_REPNOTIFY(PropertyName, OldValue) \
+#define SAGA_GAMEPLAYATTRIBUTE_REPNOTIFY(PropertyName, OldValue) \
 { \
 GetOwningAbilitySystemComponentChecked()->SetBaseAttributeValueFromReplication(Get##PropertyName##Attribute(), PropertyName, OldValue); \
 }
 
-#define SS_ATTRIBUTE_ACCESSORS(PropertyName) \
-SS_GAMEPLAYATTRIBUTE_PROPERTY_GETTER(PropertyName) \
-SS_GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
-SS_GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
-SS_GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
+#define SAGA_ATTRIBUTE_ACCESSORS(PropertyName) \
+SAGA_GAMEPLAYATTRIBUTE_PROPERTY_GETTER(PropertyName) \
+SAGA_GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+SAGA_GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
+SAGA_GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
-#define SS_GAMEPLAYATTRIBUTE_PROPERTY_GETTER(PropertyName) \
+#define SAGA_GAMEPLAYATTRIBUTE_PROPERTY_GETTER(PropertyName) \
 FGameplayAttribute Get##PropertyName##Attribute() const \
 { \
 return FGameplayAttribute(FindFieldChecked<FProperty>(GetClass(), FName(TEXT(#PropertyName))), GetClass()); \
 }
 
-#define SS_GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
+#define SAGA_GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
 FORCEINLINE float Get##PropertyName() const \
 { \
 return PropertyName.GetCurrentValue(); \
 }
 
-#define SS_GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
+#define SAGA_GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 FORCEINLINE void Set##PropertyName(float NewVal) \
 { \
 UAbilitySystemComponent* AbilityComp = GetOwningAbilitySystemComponent(); \
@@ -76,7 +76,7 @@ AbilityComp->SetNumericAttributeBase(Get##PropertyName##Attribute(), NewVal); \
 }; \
 }
 
-#define SS_GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName) \
+#define SAGA_GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName) \
 FORCEINLINE void Init##PropertyName(float NewVal) \
 { \
 PropertyName.SetBaseValue(NewVal); \
@@ -94,51 +94,51 @@ struct SAGASTATS_API FSSAttributeSetExecutionData
 	GENERATED_BODY()
 
 	/** The physical representation of the Source ASC (The ability system component of the instigator that started the whole chain) */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	TObjectPtr<AActor> SourceActor = nullptr;
 
 	/** The physical representation of the owner (Avatar) for the target we intend to apply to  */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	TObjectPtr<AActor> TargetActor = nullptr;
 
 	/** The ability system component of the instigator that started the whole chain */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	TObjectPtr<UAbilitySystemComponent> SourceASC = nullptr;
 
 	/** The ability system component we intend to apply to */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	TObjectPtr<UAbilitySystemComponent> TargetASC = nullptr;
 
 	/** PlayerController associated with the owning actor for the Source ASC (The ability system component of the instigator that started the whole chain) */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	TObjectPtr<APlayerController> SourceController = nullptr;
 
 	/** PlayerController associated with the owning actor for the target we intend to apply to */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	TObjectPtr<APlayerController> TargetController = nullptr;
 
 	/** The object this effect was created from. */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	TObjectPtr<UObject> SourceObject = nullptr;
 
 	/** This tells us how we got here (who / what applied us) */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	FGameplayEffectContextHandle Context;
 
 	/** Combination of spec and actor tags for the captured Source Tags on GameplayEffectSpec creation */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	FGameplayTagContainer SourceTags;
 
 	/** All tags that apply to the gameplay effect spec */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	FGameplayTagContainer SpecAssetTags;
 
 	/** Holds the modifier magnitude value, if it is available (for scalable floats) */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	float MagnitudeValue = 0.f;
 
 	/** Holds the delta value between old and new, if it is available (for Additive Operations) */
-	UPROPERTY(BlueprintReadOnly, Category = "Blueprint Attributes")
+	UPROPERTY(BlueprintReadOnly, Category = GameplayAttribute)
 	float DeltaValue = 0.f;
 
 	/** Default constructor */
@@ -179,7 +179,7 @@ struct SAGASTATS_API FSagaClampDefinition
 	ESagaClampingType ClampType = ESagaClampingType::Float;
 
 	/** Float value to base the clamping on */
-	UPROPERTY(EditDefaultsOnly, Category = "Clamp", meta=(EditConditionHides, EditCondition="ClampType == ESSClampingType::Float"))
+	UPROPERTY(EditDefaultsOnly, Category = "Clamp", meta=(EditConditionHides, EditCondition="ClampType == ESagaClampingType::Float"))
 	float Value = 0.f;
 	
 	/**
@@ -187,7 +187,7 @@ struct SAGASTATS_API FSagaClampDefinition
 	 *
 	 * Only "owned" attributes will be displayed here, meaning attributes that are part of the same Attribute Set class (eg. same owner)
 	 */
-	UPROPERTY(EditDefaultsOnly, Category = "Clamp", meta=(EditConditionHides, EditCondition="ClampType == ESSClampingType::AttributeBased", ShowOnlyOwnedAttributes))
+	UPROPERTY(EditDefaultsOnly, Category = "Clamp", meta=(EditConditionHides, EditCondition="ClampType == ESagaClampingType::AttributeBased", ShowOnlyOwnedAttributes))
 	FGameplayAttribute Attribute;
 
 	/** default constructor */
@@ -292,7 +292,7 @@ public:
 	 *
 	 * @return Return true to continue, or false to throw out the modification.
 	 */
-	UFUNCTION(BlueprintNativeEvent, Category = "AttributeSet", DisplayName="PreGameplayEffectExecute")
+	UFUNCTION(BlueprintNativeEvent, Category = GameplayAttribute )
 	bool K2_PreGameplayEffectExecute(const FGameplayAttribute& InAttribute, const FSSAttributeSetExecutionData& InData);
 	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 
@@ -309,7 +309,7 @@ public:
 	 * @param Data Payload with information extracted from FGameplayEffectModCallbackData, the Source / Target actor, Ability System Component,
 	 * Controllers, Effect Context, Specs and Source Tags, Magnitude and Delta values, etc.
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "AttributeSet", DisplayName="PostGameplayEffectExecute")
+	UFUNCTION(BlueprintImplementableEvent, Category = GameplayAttribute)
 	void K2_PostGameplayEffectExecute(const FGameplayAttribute& Attribute, const FSSAttributeSetExecutionData& Data);
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
@@ -330,7 +330,7 @@ public:
 	 * @param InValue Original value for the Gameplay Attribute
 	 * @param OutValue Return value of the function which represents the new value for the Gameplay Attribute
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "AttributeSet", DisplayName="PreAttributeChange")
+	UFUNCTION(BlueprintImplementableEvent, Category = GameplayAttribute)
 	void K2_PreAttributeChange(const FGameplayAttribute& InAttribute, float InValue, float& OutValue);
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& OutValue) override;
 
@@ -341,7 +341,7 @@ public:
 	 * @param OldValue Original value for the Gameplay Attribute, before PreAttributeChange event and actual modification happened
 	 * @param NewValue New value for the Gameplay Attribute, after PreAttributeChange event and modification
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "AttributeSet", DisplayName="PostAttributeChange")
+	UFUNCTION(BlueprintImplementableEvent, Category = GameplayAttribute)
 	void K2_PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue);
 	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 
@@ -355,7 +355,7 @@ public:
 	 * @param InValue Original value for the Gameplay Attribute
 	 * @param OutValue Return value of the function which represents the new base value for the Gameplay Attribute
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "AttributeSet", DisplayName="PreAttributeBaseChange")
+	UFUNCTION(BlueprintImplementableEvent, Category = GameplayAttribute)
 	void K2_PreAttributeBaseChange(const FGameplayAttribute& InAttribute, float InValue, float& OutValue) const;
 	virtual void PreAttributeBaseChange(const FGameplayAttribute& Attribute, float& OutValue) const override;
 
@@ -366,7 +366,7 @@ public:
 	 * @param OldValue Original value for the Gameplay Attribute, before PreAttributeBaseChange event and actual modification happened
 	 * @param NewValue New value for the Gameplay Attribute, after PreAttributeBaseChange event and modification
 	 */
-	UFUNCTION(BlueprintImplementableEvent, Category = "AttributeSet", DisplayName="PostAttributeBaseChange")
+	UFUNCTION(BlueprintImplementableEvent, Category = GameplayAttribute)
 	void K2_PostAttributeBaseChange(const FGameplayAttribute& InAttribute, float OldValue, float NewValue) const;
 	virtual void PostAttributeBaseChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) const override;
 
@@ -397,7 +397,7 @@ public:
 	 * @param MinValue The lower bound float to clamp the value within
 	 * @param MaxValue The higher bound float to clamp the value within
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Blueprint Attributes")
+	UFUNCTION(BlueprintCallable, Category = GameplayAttribute)
 	virtual void ClampAttributeValue(const FGameplayAttribute Attribute, float MinValue, float MaxValue);
 
 	// Note: const FGameplayAttribute& vs FGameplayAttribute for BlueprintCallables
@@ -412,7 +412,7 @@ public:
 	 *
 	 * @return Current Value for the Gameplay Attribute
 	 */
-	UFUNCTION(BlueprintPure, Category = "Blueprint Attributes", DisplayName="GetAttributeValue")
+	UFUNCTION(BlueprintPure, Category = GameplayAttribute)
 	float K2_GetAttributeValue(FGameplayAttribute Attribute, bool& bSuccessfullyFoundAttribute) const;
 	float GetAttributeValue(const FGameplayAttribute& Attribute, bool& bSuccessfullyFoundAttribute) const;
 
@@ -425,7 +425,7 @@ public:
 	 *
 	 * @return Base Value for the Gameplay Attribute
 	 */
-	UFUNCTION(BlueprintPure, Category = "Blueprint Attributes", DisplayName="GetAttributeBaseValue")
+	UFUNCTION(BlueprintPure, Category = GameplayAttribute)
 	float K2_GetAttributeBaseValue(FGameplayAttribute Attribute, bool& bSuccessfullyFoundAttribute) const;
 	float GetAttributeBaseValue(const FGameplayAttribute& Attribute, bool& bSuccessfullyFoundAttribute) const;
 
@@ -435,7 +435,7 @@ public:
 	 * @param Attribute The Gameplay Attribute we want to set the base value
 	 * @param NewValue Float value to set
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Blueprint Attributes", DisplayName="SetAttributeValue")
+	UFUNCTION(BlueprintCallable, Category = GameplayAttribute)
 	void K2_SetAttributeValue(FGameplayAttribute Attribute, float NewValue);
 	void SetAttributeValue(const FGameplayAttribute& Attribute, float NewValue) const;
 
@@ -443,18 +443,18 @@ public:
 	static bool IsGameplayAttributeDataClampedProperty(const FProperty* Property);
 
 	/** Gets information about owning actor */
-	UFUNCTION(BlueprintCallable, Category = "Blueprint Attributes", DisplayName="GetOwningActor")
+	UFUNCTION(BlueprintCallable, Category = GameplayAttribute)
 	AActor* K2_GetOwningActor() const;
 
 	/** Returns the Ability System Component of the Owning Actor */
-	UFUNCTION(BlueprintCallable, Category = "Blueprint Attributes", DisplayName="GetOwningAbilitySystemComponent")
+	UFUNCTION(BlueprintCallable, Category = GameplayAttribute)
 	UAbilitySystemComponent* K2_GetOwningAbilitySystemComponent() const;
 
 	/**
 	 * Returns the Owner's Ability System Component cached data about the owning actor that abilities will need to frequently access
 	 * (movement component, mesh component, anim instance, etc)
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Blueprint Attributes", DisplayName="GetActorInfo")
+	UFUNCTION(BlueprintCallable, Category = GameplayAttribute)
 	FGameplayAbilityActorInfo K2_GetActorInfo() const;
 
 	/** Internal implementation of Blueprint rep notifies GAMEPLAYATTRIBUTE_REPNOTIFY equivalent */
@@ -469,7 +469,7 @@ public:
 	 * @param InAttribute The Gameplay Attribute Data property to handle rep notify for. Simply wire in the appropriate
 	 * Blueprint member Attribute variable for the rep notify you're implementing.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Blueprint Attributes")
+	UFUNCTION(BlueprintCallable, Category = GameplayAttribute)
 	void HandleRepNotifyForGameplayAttributeData(const FGameplayAttributeData& InAttribute);
 	
 	/**
@@ -481,7 +481,7 @@ public:
 	 * @param InAttribute The Gameplay Attribute Data property to handle rep notify for. Simply wire in the appropriate
 	 * Blueprint member Attribute variable for the rep notify you're implementing.
 	 */
-	UFUNCTION(BlueprintCallable, Category = "Blueprint Attributes")
+	UFUNCTION(BlueprintCallable, Category = GameplayAttribute)
 	void HandleRepNotifyForGameplayClampedAttributeData(const FSagaClampedGameplayAttributeData& InAttribute);
 
 	//~ Begin UObject interface

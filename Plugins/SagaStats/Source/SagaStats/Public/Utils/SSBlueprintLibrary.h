@@ -45,7 +45,7 @@ public:
 	static FString GetDebugStringFromAttribute(const FGameplayAttribute& Attribute);
 
 	/** Simple equality operator for gameplay attributes and string (for K2 Switch Node) */
-	UFUNCTION(BlueprintPure, Category = "Blueprint Attributes | PinOptions", meta = (BlueprintInternalUseOnly = "true"))
+	UFUNCTION(BlueprintPure, Category = "Attributes | PinOptions", meta = (BlueprintInternalUseOnly = "true"))
 	static bool NotEqual_GameplayAttributeGameplayAttribute(FGameplayAttribute A, FString B);
 
 	/** Returns the Attribute name as an FText */

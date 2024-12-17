@@ -23,22 +23,22 @@ public:
 	explicit USagaIncreaseMeter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	
-	SS_ATTRIBUTE_ACCESSORS(Degeneration);
+	SAGA_ATTRIBUTE_ACCESSORS(Degeneration);
 	UPROPERTY(EditDefaultsOnly, Category="Meter", ReplicatedUsing=OnRep_Degeneration)
 	FGameplayAttributeData Degeneration;
 	UFUNCTION()
 	void OnRep_Degeneration(const FGameplayAttributeData& OldValue)
 	{
-		SS_GAMEPLAYATTRIBUTE_REPNOTIFY(Degeneration, OldValue);
+		SAGA_GAMEPLAYATTRIBUTE_REPNOTIFY(Degeneration, OldValue);
 	}
 
-	SS_ATTRIBUTE_ACCESSORS(DegenerationCooldown);
+	SAGA_ATTRIBUTE_ACCESSORS(DegenerationCooldown);
 	UPROPERTY(EditDefaultsOnly, Category="Meter", ReplicatedUsing=OnRep_DegenerationCooldown)
 	FGameplayAttributeData DegenerationCooldown;
 	UFUNCTION()
 	void OnRep_DegenerationCooldown(const FGameplayAttributeData& OldValue)
 	{
-		SS_GAMEPLAYATTRIBUTE_REPNOTIFY(DegenerationCooldown, OldValue);
+		SAGA_GAMEPLAYATTRIBUTE_REPNOTIFY(DegenerationCooldown, OldValue);
 	}
 	
 protected:

@@ -32,11 +32,11 @@ public:
 public:
 
 	/** The type of blueprint that will be created */
-	UPROPERTY(EditAnywhere, Category = SSBlueprintFactory)
+	UPROPERTY(EditAnywhere, Category = SagaEditor)
 	TEnumAsByte<enum EBlueprintType> BlueprintType;
 
 	/** The parent class of the created blueprint */
-	UPROPERTY(EditAnywhere, Category = SSBlueprintFactory)
+	UPROPERTY(EditAnywhere, Category = SagaEditor)
 	TSubclassOf<USagaAttributeSet> ParentClass;
 	
 };
