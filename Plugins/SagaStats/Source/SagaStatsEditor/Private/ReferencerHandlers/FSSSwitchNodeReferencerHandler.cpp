@@ -6,7 +6,7 @@
 #include "FSSSwitchNodeReferencerHandler.h"
 
 #include "SSEditorLog.h"
-#include "Editor/SSK2Node_SwitchGameplayAttribute.h"
+#include "Editor/SagaK2Node_SwitchGameplayAttribute.h"
 #include "EdGraph/EdGraph.h"
 #include "Engine/Blueprint.h"
 #include "SagaEditorSubsystem.h"
@@ -35,7 +35,7 @@ bool FSSSwitchNodeReferencerHandler::HandlePreCompile(const FAssetIdentifier& In
 {
 	SS_EDITOR_NS_LOG(Verbose, TEXT("InAssetIdentifier: %s, InPayload: %s"), *InAssetIdentifier.ToString(), *InPayload.ToString())
 
-	const USSK2Node_SwitchGameplayAttribute* Node = Cast<USSK2Node_SwitchGameplayAttribute>(InPayload.DefaultObject);
+	const USagaK2Node_SwitchGameplayAttribute* Node = Cast<USagaK2Node_SwitchGameplayAttribute>(InPayload.DefaultObject);
 	if (!Node)
 	{
 		return false;
@@ -79,7 +79,7 @@ bool FSSSwitchNodeReferencerHandler::HandleAttributeRename(const FAssetIdentifie
 {
 	SS_EDITOR_NS_LOG(Verbose, TEXT("InAssetIdentifier: %s, InPayload: %s"), *InAssetIdentifier.ToString(), *InPayload.ToString())
 	
-	USSK2Node_SwitchGameplayAttribute* Node = Cast<USSK2Node_SwitchGameplayAttribute>(InPayload.DefaultObject);
+	USagaK2Node_SwitchGameplayAttribute* Node = Cast<USagaK2Node_SwitchGameplayAttribute>(InPayload.DefaultObject);
 	if (!Node)
 	{
 		return false;

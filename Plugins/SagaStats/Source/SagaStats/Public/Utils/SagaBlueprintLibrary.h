@@ -8,37 +8,37 @@
 #include "CoreMinimal.h"
 #include "GameplayEffectTypes.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "SSBlueprintLibrary.generated.h"
+#include "SagaBlueprintLibrary.generated.h"
 
-struct FSSAttributeSetExecutionData;
+struct FSagaAttributeSetExecutionData;
 struct FGameplayAttribute;
 
 
 /** Blueprint library for blueprint attribute sets */
 UCLASS()
-class SAGASTATS_API USSBlueprintLibrary : public UBlueprintFunctionLibrary
+class SAGASTATS_API USagaBlueprintLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 
 public:
 	/**
-	 * Returns an FString representation of a FSSAttributeSetExecutionData structure for debugging purposes.
+	 * Returns an FString representation of a FSagaAttributeSetExecutionData structure for debugging purposes.
 	 *
 	 * The separator used to join the data structure values is a line break (new line).
 	 *
 	 * @param ExecutionData	The data to get the debug string from.
 	 */
 	UFUNCTION(BlueprintPure, Category = "Attributes")
-	static FString GetDebugStringFromExecutionData(const FSSAttributeSetExecutionData& ExecutionData);
+	static FString GetDebugStringFromExecutionData(const FSagaAttributeSetExecutionData& ExecutionData);
 
 	/**
-	 * Returns an FString representation of a FSSAttributeSetExecutionData structure for debugging purposes.
+	 * Returns an FString representation of a FSagaAttributeSetExecutionData structure for debugging purposes.
 	 *
 	 * @param ExecutionData	The data to get the debug string from.
 	 * @param Separator String separator to use when joining the structure values (Default: "\n" - new line)
 	 */
 	UFUNCTION(BlueprintPure, Category = "Attributes")
-	static FString GetDebugStringFromExecutionDataSeparator(const FSSAttributeSetExecutionData& ExecutionData, const FString& Separator = TEXT(", "));
+	static FString GetDebugStringFromExecutionDataSeparator(const FSagaAttributeSetExecutionData& ExecutionData, const FString& Separator = TEXT(", "));
 
 	/** Returns the Attribute name */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Attributes")

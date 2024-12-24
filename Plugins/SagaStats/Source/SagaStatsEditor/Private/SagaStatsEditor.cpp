@@ -85,7 +85,7 @@ void FSagaStatsEditorModule::ShutdownModule()
 
 	if (GEditor)
 	{
-		USagaEditorSubsystem::Get().UnregisterReferencerHandler(TEXT("SSK2Node_SwitchGameplayAttribute"));
+		USagaEditorSubsystem::Get().UnregisterReferencerHandler(TEXT("SagaK2Node_SwitchGameplayAttribute"));
 	}
 }
 
@@ -146,7 +146,7 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 
 	if (GEditor)
 	{
-		USagaEditorSubsystem::Get().RegisterReferencerHandler(TEXT("SSK2Node_SwitchGameplayAttribute"), FSSSwitchNodeReferencerHandler::Create());
+		USagaEditorSubsystem::Get().RegisterReferencerHandler(TEXT("SagaK2Node_SwitchGameplayAttribute"), FSSSwitchNodeReferencerHandler::Create());
 	}
 }
 

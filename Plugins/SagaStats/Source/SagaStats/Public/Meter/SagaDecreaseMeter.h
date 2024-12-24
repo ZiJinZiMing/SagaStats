@@ -144,7 +144,7 @@ protected:
 
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void OnReduce_Implementation(const FSSAttributeSetExecutionData& Data) override;
+	virtual void OnReduce_Implementation(const FSagaAttributeSetExecutionData& Data) override;
 
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 

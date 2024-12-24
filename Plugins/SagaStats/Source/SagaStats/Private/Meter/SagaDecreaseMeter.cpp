@@ -65,7 +65,7 @@ void USagaDecreaseMeter::GetLifetimeReplicatedProps(TArray<class FLifetimeProper
 	DOREPLIFETIME_CONDITION_NOTIFY(ThisClass, MeterState, COND_None, REPNOTIFY_OnChanged);
 }
 
-void USagaDecreaseMeter::OnReduce_Implementation(const FSSAttributeSetExecutionData& Data)
+void USagaDecreaseMeter::OnReduce_Implementation(const FSagaAttributeSetExecutionData& Data)
 {
 	Super::OnReduce_Implementation(Data);
 

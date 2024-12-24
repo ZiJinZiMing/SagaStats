@@ -45,7 +45,7 @@ protected:
 
 	virtual void InitFromMetaDataTable(const UDataTable* DataTable) override;
 	
-	virtual void OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data) override;
+	virtual void OnAccumulate_Implementation(const FSagaAttributeSetExecutionData& Data) override;
 	
 	
 	virtual void Tick(float DeltaTime) override;

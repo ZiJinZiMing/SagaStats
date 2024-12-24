@@ -21,7 +21,7 @@ void USagaIncreaseMeter::InitFromMetaDataTable(const UDataTable* DataTable)
 	Super::InitFromMetaDataTable(DataTable);
 }
 
-void USagaIncreaseMeter::OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data)
+void USagaIncreaseMeter::OnAccumulate_Implementation(const FSagaAttributeSetExecutionData& Data)
 {
 	Super::OnAccumulate_Implementation(Data);
 	

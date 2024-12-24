@@ -89,7 +89,7 @@ PropertyName.SetCurrentValue(NewVal); \
  * extracting info from FGameplayEffectModCallbackData.
  */
 USTRUCT(BlueprintType)
-struct SAGASTATS_API FSSAttributeSetExecutionData
+struct SAGASTATS_API FSagaAttributeSetExecutionData
 {
 	GENERATED_BODY()
 
@@ -142,14 +142,14 @@ struct SAGASTATS_API FSSAttributeSetExecutionData
 	float DeltaValue = 0.f;
 
 	/** Default constructor */
-	FSSAttributeSetExecutionData() = default;
+	FSagaAttributeSetExecutionData() = default;
 
 	/**
-	 * Fills out FSSAttributeSetExecutionData structure based on provided FGameplayEffectModCallbackData data.
+	 * Fills out FSagaAttributeSetExecutionData structure based on provided FGameplayEffectModCallbackData data.
 	 *
 	 * @param InModCallbackData The gameplay effect mod callback data available in attribute sets' Pre/PostGameplayEffectExecute
 	 */
-	explicit FSSAttributeSetExecutionData(const FGameplayEffectModCallbackData& InModCallbackData);
+	explicit FSagaAttributeSetExecutionData(const FGameplayEffectModCallbackData& InModCallbackData);
 
 	/** Returns a simple string representation for this structure */
 	FString ToString(const FString& InSeparator = TEXT(", ")) const;
@@ -293,7 +293,7 @@ public:
 	 * @return Return true to continue, or false to throw out the modification.
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = GameplayAttribute )
-	bool K2_PreGameplayEffectExecute(const FGameplayAttribute& InAttribute, const FSSAttributeSetExecutionData& InData);
+	bool K2_PreGameplayEffectExecute(const FGameplayAttribute& InAttribute, const FSagaAttributeSetExecutionData& InData);
 	virtual bool PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data) override;
 
 
@@ -310,7 +310,7 @@ public:
 	 * Controllers, Effect Context, Specs and Source Tags, Magnitude and Delta values, etc.
 	 */
 	UFUNCTION(BlueprintImplementableEvent, Category = GameplayAttribute)
-	void K2_PostGameplayEffectExecute(const FGameplayAttribute& Attribute, const FSSAttributeSetExecutionData& Data);
+	void K2_PostGameplayEffectExecute(const FGameplayAttribute& Attribute, const FSagaAttributeSetExecutionData& Data);
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
 	/**

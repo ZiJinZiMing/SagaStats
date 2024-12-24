@@ -68,27 +68,27 @@ void USagaMeterBase::PostGameplayEffectExecute(const struct FGameplayEffectModCa
 
 	if (Data.EvaluatedData.Attribute == GetAccumulateAttribute())
 	{
-		const FSSAttributeSetExecutionData ExecutionData(Data);
+		const FSagaAttributeSetExecutionData ExecutionData(Data);
 		OnAccumulate(ExecutionData);
 		SetAccumulate(0);
 	}
 	else if (Data.EvaluatedData.Attribute == GetReduceAttribute())
 	{
-		const FSSAttributeSetExecutionData ExecutionData(Data);
+		const FSagaAttributeSetExecutionData ExecutionData(Data);
 		OnReduce(ExecutionData);
 		SetReduce(0);
 	}
 }
 
 
-void USagaMeterBase::OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data)
+void USagaMeterBase::OnAccumulate_Implementation(const FSagaAttributeSetExecutionData& Data)
 {
 	float OldCurrent = GetCurrent();
 	SetAttributeValue(GetCurrentAttribute(), GetAccumulate() + OldCurrent);
 	SetImpactedAccumulate(GetCurrent() - OldCurrent);
 }
 
-void USagaMeterBase::OnReduce_Implementation(const FSSAttributeSetExecutionData& Data)
+void USagaMeterBase::OnReduce_Implementation(const FSagaAttributeSetExecutionData& Data)
 {
 	float OldCurrent = GetCurrent();
 	SetAttributeValue(GetCurrentAttribute(), OldCurrent - GetReduce());

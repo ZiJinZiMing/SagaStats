@@ -108,12 +108,12 @@ protected:
 	virtual void OnCurrentChanged(float OldValue, float NewValue);
 
 	UFUNCTION(BlueprintNativeEvent)
-	void OnAccumulate(const FSSAttributeSetExecutionData& Data);
-	virtual void OnAccumulate_Implementation(const FSSAttributeSetExecutionData& Data);
+	void OnAccumulate(const FSagaAttributeSetExecutionData& Data);
+	virtual void OnAccumulate_Implementation(const FSagaAttributeSetExecutionData& Data);
 
 	UFUNCTION(BlueprintNativeEvent)
-	void OnReduce(const FSSAttributeSetExecutionData& Data);
-	virtual void OnReduce_Implementation(const FSSAttributeSetExecutionData& Data);
+	void OnReduce(const FSagaAttributeSetExecutionData& Data);
+	virtual void OnReduce_Implementation(const FSagaAttributeSetExecutionData& Data);
 
 	//~begin ITickableAttributeSetInterface interface
 

@@ -17,7 +17,7 @@
 #endif
 
 /**
- * Handlers for attribute renames on USSK2Node_SwitchGameplayAttribute nodes.
+ * Handlers for attribute renames on USagaK2Node_SwitchGameplayAttribute nodes.
  */
 class SAGASTATSEDITOR_API FSSSwitchNodeReferencerHandler : public ISSAttributeReferencerHandler
 {

@@ -36,7 +36,7 @@ TMap<FString, FString> USagaAttributeSet::RepNotifierHandlerNames = {
 	{ TEXT("FSagaClampedGameplayAttributeData"), TEXT("HandleRepNotifyForGameplayClampedAttributeData") }
 };
 
-FSSAttributeSetExecutionData::FSSAttributeSetExecutionData(const FGameplayEffectModCallbackData& InModCallbackData)
+FSagaAttributeSetExecutionData::FSagaAttributeSetExecutionData(const FGameplayEffectModCallbackData& InModCallbackData)
 {
 	Context = InModCallbackData.EffectSpec.GetContext();
 	SourceASC = Context.GetOriginalInstigatorAbilitySystemComponent();
@@ -80,7 +80,7 @@ FSSAttributeSetExecutionData::FSSAttributeSetExecutionData(const FGameplayEffect
 	}
 }
 
-FString FSSAttributeSetExecutionData::ToString(const FString& InSeparator) const
+FString FSagaAttributeSetExecutionData::ToString(const FString& InSeparator) const
 {
 	const TArray Results = {
 		FString::Printf(TEXT("SourceActor: %s"), *GetNameSafe(SourceActor)),
@@ -197,10 +197,10 @@ void USagaAttributeSet::InitFromMetaDataTable(const UDataTable* DataTable)
 bool USagaAttributeSet::PreGameplayEffectExecute(FGameplayEffectModCallbackData& Data)
 {
 	const bool bShouldExecute = Super::PreGameplayEffectExecute(Data);
-	return bShouldExecute && K2_PreGameplayEffectExecute(Data.EvaluatedData.Attribute, FSSAttributeSetExecutionData(Data));
+	return bShouldExecute && K2_PreGameplayEffectExecute(Data.EvaluatedData.Attribute, FSagaAttributeSetExecutionData(Data));
 }
 
-bool USagaAttributeSet::K2_PreGameplayEffectExecute_Implementation(const FGameplayAttribute& InAttribute, const FSSAttributeSetExecutionData& InData)
+bool USagaAttributeSet::K2_PreGameplayEffectExecute_Implementation(const FGameplayAttribute& InAttribute, const FSagaAttributeSetExecutionData& InData)
 {
 	return true;
 }
@@ -209,7 +209,7 @@ void USagaAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallba
 {
 	Super::PostGameplayEffectExecute(Data);
 
-	const FSSAttributeSetExecutionData ExecutionData(Data);
+	const FSagaAttributeSetExecutionData ExecutionData(Data);
 
 	// Call BP event if implemented
 	K2_PostGameplayEffectExecute(Data.EvaluatedData.Attribute, ExecutionData);
