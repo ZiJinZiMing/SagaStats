@@ -6,11 +6,10 @@
 
 
 #include "Meter/SagaDecreaseMeter.h"
-
 #include "GameplayEffectExtension.h"
+#include "SagaAbilitySystemComponent.h"
 #include "Net/UnrealNetwork.h"
 
-DEFINE_ENUM_TO_STRING(EMeterState, "/Script/SagaStats")
 
 
 USagaDecreaseMeter::USagaDecreaseMeter(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
@@ -37,6 +36,7 @@ void USagaDecreaseMeter::StopResetState()
 
 void USagaDecreaseMeter::OnRep_MeterState(const EMeterState& OldValue)
 {
+	Cast<USagaAbilitySystemComponent>(GetOwningAbilitySystemComponent())->GetMeterStateChangeDelegate(GetClass()).Broadcast(this,OldValue);
 }
 
 
@@ -182,4 +182,14 @@ bool USagaDecreaseMeter::IsInResetImmune() const
 		}
 	}
 	return false;
+}
+
+void USagaDecreaseMeter::SetMeterState(EMeterState NewState)
+{
+	if (MeterState != NewState)
+	{
+		EMeterState OldState = MeterState;
+		MeterState = NewState;
+		Cast<USagaAbilitySystemComponent>(GetOwningAbilitySystemComponent())->GetMeterStateChangeDelegate(GetClass()).Broadcast(this,OldState);
+	}
 }

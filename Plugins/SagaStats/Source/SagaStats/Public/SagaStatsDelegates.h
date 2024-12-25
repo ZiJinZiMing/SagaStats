@@ -7,8 +7,6 @@
 
 #include "CoreMinimal.h"
 
-class UGameplayAbility;
-
 struct SAGASTATS_API FSagaStatsDelegates
 {
 	DECLARE_MULTICAST_DELEGATE_OneParam(FSSOnVariableAddedOrRemoved, const FName&);

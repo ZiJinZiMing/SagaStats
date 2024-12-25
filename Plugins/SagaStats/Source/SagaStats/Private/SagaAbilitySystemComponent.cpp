@@ -7,6 +7,7 @@
 
 #include "SagaAbilitySystemComponent.h"
 #include "Meter/SagaMeterBase.h"
+#include "Meter/SagaDecreaseMeter.h"
 
 
 void USagaAbilitySystemComponent::RemoveAttributeSet(UAttributeSet* AttributeSet)
@@ -35,6 +36,12 @@ FOnMeterEmptiedEvent& USagaAbilitySystemComponent::GetMeterEmptiedDelegate(TSubc
 FOnMeterFilledEvent& USagaAbilitySystemComponent::GetMeterFilledDelegate(TSubclassOf<USagaMeterBase> MeterClass)
 {
 	return MeterFilledDelegates.FindOrAdd(MeterClass);
+}
+
+FOnMeterStateChangeEvent& USagaAbilitySystemComponent::GetMeterStateChangeDelegate(
+	TSubclassOf<USagaDecreaseMeter> MeterClass)
+{
+	return MeterStateChangeDelegates.FindOrAdd(MeterClass);
 }
 
 void USagaAbilitySystemComponent::AddSpawnedAttribute(UAttributeSet* AttributeSet)

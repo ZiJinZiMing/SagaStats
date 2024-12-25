@@ -7,14 +7,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SagaStatsType.h"
 #include "AbilitySystemComponent.h"
 #include "SagaAbilitySystemComponent.generated.h"
 
 class USagaMeterBase;
+class USagaDecreaseMeter;
 
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnAttributeSetAddOrRemoveEvent, UAttributeSet* /*AttributeSet*/, bool /*IsAdd*/)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMeterEmptiedEvent, USagaMeterBase* /*Meter*/)
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnMeterFilledEvent, USagaMeterBase* /*Meter*/)
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnMeterStateChangeEvent, USagaDecreaseMeter* /*Meter*/, EMeterState /*OldState*/)
 
 
 UCLASS(ClassGroup=(AbilitySystem), meta=(BlueprintSpawnableComponent))
@@ -36,12 +39,16 @@ public:
 	
 	FOnMeterFilledEvent& GetMeterFilledDelegate(TSubclassOf<USagaMeterBase> MeterClass);
 	
+	FOnMeterStateChangeEvent& GetMeterStateChangeDelegate(TSubclassOf<USagaDecreaseMeter> MeterClass);
+	
 protected:
 	TMap<TSubclassOf<UAttributeSet>, FOnAttributeSetAddOrRemoveEvent> AttributeSetAddOrRemoveDelegates;
 	
 	TMap<TSubclassOf<USagaMeterBase>, FOnMeterEmptiedEvent> MeterEmptiedDelegates;
 
 	TMap<TSubclassOf<USagaMeterBase>, FOnMeterFilledEvent> MeterFilledDelegates;
+	
+	TMap<TSubclassOf<USagaDecreaseMeter>, FOnMeterStateChangeEvent> MeterStateChangeDelegates;
 	
 protected:
 	/** Add a new attribute set */

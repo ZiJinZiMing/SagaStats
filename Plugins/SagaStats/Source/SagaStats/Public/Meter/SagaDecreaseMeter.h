@@ -8,20 +8,9 @@
 
 #include "CoreMinimal.h"
 #include "SagaMeterBase.h"
+#include "SagaStatsType.h"
 #include "SagaDecreaseMeter.generated.h"
 
-
-class USagaDecreaseMeter;
-/*State of Meter*/
-UENUM(BlueprintType)
-enum class EMeterState : uint8
-{
-	Normal,
-	Lock,
-	Reset,
-};
-
-DECLARE_ENUM_TO_STRING(EMeterState);
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnDynamicGuardMeterSet, TSubclassOf<USagaDecreaseMeter> /*GuardMeterClass*/);
 
@@ -169,6 +158,7 @@ protected:
 
 	virtual void OnFilled_Implementation() override;
 
-
 	bool IsInResetImmune() const;
+
+	void SetMeterState(EMeterState NewState);
 };
