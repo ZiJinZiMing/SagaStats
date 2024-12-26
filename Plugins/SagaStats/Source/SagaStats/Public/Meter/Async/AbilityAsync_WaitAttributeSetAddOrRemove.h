@@ -22,19 +22,20 @@ class SAGASTATS_API UAbilityAsync_WaitAttributeSetAddOrRemove : public UAbilityA
 	GENERATED_BODY()
 
 public:
-
 	UPROPERTY(BlueprintAssignable)
 	FOnWaitAttributeSetAddOrRemoveEvent OnAdd;
-	
+
 	UPROPERTY(BlueprintAssignable)
 	FOnWaitAttributeSetAddOrRemoveEvent OnRemove;
 
 	UFUNCTION(BlueprintCallable, Category = "Ability|Async", meta = (DefaultToSelf = "TargetActor", BlueprintInternalUseOnly = "TRUE"))
-	static UAbilityAsync_WaitAttributeSetAddOrRemove* WaitAttributeSetAddOrRemove(AActor* TargetActor, TSubclassOf<UAttributeSet> SetClass);
+	static UAbilityAsync_WaitAttributeSetAddOrRemove* WaitAttributeSetAddOrRemove(AActor* TargetActor, TSubclassOf<UAttributeSet> SetClass,bool TriggerAddWhenActive = true);
+
+	uint8 TriggerAddWhenActive : 1;
 
 protected:
 	virtual void Activate() override;
-	
+
 	virtual void EndAction() override;
 	
 private:

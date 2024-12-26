@@ -9,11 +9,12 @@
 
 #include "SagaAbilitySystemComponent.h"
 
-UAbilityAsync_WaitAttributeSetAddOrRemove* UAbilityAsync_WaitAttributeSetAddOrRemove::WaitAttributeSetAddOrRemove(AActor* TargetActor, TSubclassOf<UAttributeSet> SetClass)
+UAbilityAsync_WaitAttributeSetAddOrRemove* UAbilityAsync_WaitAttributeSetAddOrRemove::WaitAttributeSetAddOrRemove(AActor* TargetActor, TSubclassOf<UAttributeSet> SetClass,bool TriggerAddWhenActive)
 {
 	UAbilityAsync_WaitAttributeSetAddOrRemove* Async = NewObject<UAbilityAsync_WaitAttributeSetAddOrRemove>();
 	Async->SetAbilityActor(TargetActor);
 	Async->SetClass = SetClass;
+	Async->TriggerAddWhenActive = TriggerAddWhenActive;
 	return Async;
 }
 
@@ -23,6 +24,13 @@ void UAbilityAsync_WaitAttributeSetAddOrRemove::Activate()
 	if(USagaAbilitySystemComponent* ASC = Cast<USagaAbilitySystemComponent>(GetAbilitySystemComponent()))
 	{
 		AttributeSetAddOrRemoveHandle = ASC->GetAttributeSetAddOrRemoveDelegate(SetClass).AddUObject(this,&ThisClass::OnAttributeSetAddOrRemoveCallback);
+		if (TriggerAddWhenActive)
+		{
+			if (const UAttributeSet* Set = ASC->GetAttributeSet(SetClass))
+			{
+				OnAdd.Broadcast(const_cast<UAttributeSet*>(Set));
+			}
+		}
 	}else
 	{
 		EndAction();

@@ -1,0 +1,4 @@
+,BaseValue
+Meter_MyIncrease.Maximum,100
+Meter_MyIncrease.Degeneration,10
+Meter_MyIncrease.DegenerationCooldown,2
