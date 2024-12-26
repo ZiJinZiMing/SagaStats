@@ -1,0 +1,7 @@
+,BaseValue
+Meter_Shield.Maximum,50
+Meter_Shield.Regeneration,0
+Meter_Shield.RegenerationCooldown,0
+Meter_Shield.LockDuration,10
+Meter_Shield.ResetRate,0
+Meter_Shield.ImmuneThreshold,0

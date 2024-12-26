@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "NativeGameplayTags.h"
 #include "UObject/Object.h"
 #include "SagaStatsType.generated.h"
 
@@ -16,3 +17,6 @@ enum class EMeterState : uint8
 	Reset,
 };
 DECLARE_ENUM_TO_STRING(EMeterState);
+
+
+UE_DECLARE_GAMEPLAY_TAG_EXTERN(SagaMeter_Calc_Reduce);

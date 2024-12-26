@@ -1,0 +1,7 @@
+,BaseValue
+Meter_Health.Maximum,100
+Meter_Health.Regeneration,10
+Meter_Health.RegenerationCooldown,2
+Meter_Health.LockDuration,2
+Meter_Health.ResetRate,100
+Meter_Health.ImmuneThreshold,100
