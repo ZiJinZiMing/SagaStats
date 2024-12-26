@@ -1,0 +1,4 @@
+,BaseValue
+Meter_MyIncrease_2.Maximum,100
+Meter_MyIncrease_2.Degeneration,0
+Meter_MyIncrease_2.DegenerationCooldown,2

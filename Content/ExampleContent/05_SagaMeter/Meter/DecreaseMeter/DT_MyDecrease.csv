@@ -1,0 +1,7 @@
+,BaseValue
+Meter_MyDecrease.Maximum,100
+Meter_MyDecrease.Regeneration,10
+Meter_MyDecrease.RegenerationCooldown,2
+Meter_MyDecrease.LockDuration,2
+Meter_MyDecrease.ResetRate,100
+Meter_MyDecrease.ImmuneThreshold,100

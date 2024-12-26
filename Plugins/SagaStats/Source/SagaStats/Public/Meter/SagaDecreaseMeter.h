@@ -58,10 +58,10 @@ public:
 	}
 
 	SAGA_ATTRIBUTE_ACCESSORS(LockDuration)
-	/* Duration of lockdown state
-	 * >0, keep lockdown state in seconds
-	 * =0, keep lockdown state a frame
-	 * <0, always keep lockdown state 
+	/* Duration of lock state
+	 * >0, keep lock state in seconds
+	 * =0, keep lock state a frame
+	 * <0, always keep lock state 
 	 */
 	UPROPERTY(EditDefaultsOnly, Category="Meter", ReplicatedUsing=OnRep_LockDuration)
 	FGameplayAttributeData LockDuration;
@@ -137,11 +137,12 @@ protected:
 
 	virtual bool PreGameplayEffectExecute(struct FGameplayEffectModCallbackData& Data) override;
 
-
 	virtual void Tick(float DeltaTime) override;
 
 	bool CanRegeneration() const;
 
+	virtual void InitFromMetaDataTable(const UDataTable* DataTable) override;
+	
 	UPROPERTY(transient, VisibleInstanceOnly, BlueprintReadOnly, Category="Runtime")
 	FTimerHandle RegenerationCooldownTimer;
 

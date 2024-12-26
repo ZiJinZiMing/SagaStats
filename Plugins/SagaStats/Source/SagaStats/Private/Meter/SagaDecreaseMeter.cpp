@@ -19,7 +19,7 @@ USagaDecreaseMeter::USagaDecreaseMeter(const FObjectInitializer& ObjectInitializ
 	Current.MaxValue.ClampType = ESagaClampingType::AttributeBased;
 	Current.MaxValue.Attribute = GetMaximumAttribute();
 
-	MeterState = EMeterState::Normal;
+	SetMeterState(EMeterState::Normal);
 }
 
 void USagaDecreaseMeter::StopLockState()
@@ -31,7 +31,7 @@ void USagaDecreaseMeter::StopLockState()
 void USagaDecreaseMeter::StopResetState()
 {
 	check(MeterState == EMeterState::Reset);
-	MeterState = EMeterState::Normal;
+	SetMeterState(EMeterState::Normal);
 }
 
 void USagaDecreaseMeter::OnRep_MeterState(const EMeterState& OldValue)
@@ -114,6 +114,12 @@ bool USagaDecreaseMeter::CanRegeneration() const
 	return GetRegeneration() > 0 && !RegenerationCooldownTimer.IsValid();
 }
 
+void USagaDecreaseMeter::InitFromMetaDataTable(const UDataTable* DataTable)
+{
+	Super::InitFromMetaDataTable(DataTable);
+	SetCurrent(GetMaximum());
+}
+
 void USagaDecreaseMeter::OnRegenerationCooldownTimerFinish()
 {
 	RegenerationCooldownTimer.Invalidate();
@@ -130,12 +136,12 @@ void USagaDecreaseMeter::OnLockStateFinish()
 
 	if (GetResetRate() > 0.f)
 	{
-		MeterState = EMeterState::Reset;
+		SetMeterState(EMeterState::Reset);
 	}
 	else
 	{
 		SetAttributeValue(GetCurrentAttribute(), GetMaximum());
-		MeterState = EMeterState::Normal;
+		SetMeterState(EMeterState::Normal);
 	}
 }
 
@@ -145,7 +151,7 @@ void USagaDecreaseMeter::OnEmptied_Implementation()
 
 	if (MeterState == EMeterState::Normal)
 	{
-		MeterState = EMeterState::Lock;
+		SetMeterState(EMeterState::Lock);
 
 		if (GetLockDuration() > 0)
 		{
@@ -164,7 +170,7 @@ void USagaDecreaseMeter::OnFilled_Implementation()
 
 	if (MeterState == EMeterState::Reset)
 	{
-		MeterState = EMeterState::Normal;
+		SetMeterState(EMeterState::Normal);
 	}
 }
 
