@@ -59,6 +59,10 @@ FGameplayAttribute::FGameplayAttribute(FProperty *NewProperty)
 	Attribute = CastField<FNumericProperty>(NewProperty);
 	AttributeOwner = nullptr;
 
+	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+	AttributeOwnerClass = nullptr;
+	//ZhangJinming EndChange
+	
 	if (!Attribute.Get())
 	{
 		if (IsGameplayAttributeDataProperty(NewProperty))
@@ -73,6 +77,38 @@ FGameplayAttribute::FGameplayAttribute(FProperty *NewProperty)
  		Attribute->GetName(AttributeName);
 	}
 }
+
+//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+FGameplayAttribute::FGameplayAttribute(FProperty* NewProperty, UClass* InAttributeOwnerClass):FGameplayAttribute(NewProperty)
+{
+	AttributeOwnerClass = InAttributeOwnerClass;
+}
+//ZhangJinming EndChange
+
+
+//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+FString FGameplayAttribute::GetAttributeSetClassName(const UClass* Class)
+{
+	if(!Class)
+	{
+		return TEXT("None");
+	}
+#if WITH_EDITORONLY_DATA
+	if (Class->ClassGeneratedBy)
+	{
+		return Class->ClassGeneratedBy->GetName();
+	}
+#endif
+	FString ClassName = Class->GetName();
+	if (ClassName.IsEmpty())
+	{
+		return ClassName;
+	}
+	ClassName.RemoveFromEnd(TEXT("_C"));
+	return ClassName;
+}
+//ZhangJinming EndChange
+
 
 void FGameplayAttribute::SetNumericValueChecked(float& NewValue, class UAttributeSet* Dest) const
 {
@@ -406,6 +442,9 @@ bool UAttributeSet::IsSupportedForNetworking() const
 
 void UAttributeSet::GetAttributesFromSetClass(const TSubclassOf<UAttributeSet>& AttributeSetClass, TArray<FGameplayAttribute>& Attributes)
 {
+	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+	
+	/*
 	for (TFieldIterator<FProperty> It(AttributeSetClass); It; ++It)
 	{
 		if (FFloatProperty* FloatProperty = CastField<FFloatProperty>(*It))
@@ -417,6 +456,25 @@ void UAttributeSet::GetAttributesFromSetClass(const TSubclassOf<UAttributeSet>& 
 			Attributes.Add(FGameplayAttribute(*It));
 		}
 	}
+	*/
+
+	for (TFieldIterator<FProperty> It(AttributeSetClass); It; ++It)
+	{
+		if (FFloatProperty* FloatProperty = CastField<FFloatProperty>(*It))
+		{
+			FGameplayAttribute Attribute = FGameplayAttribute(FloatProperty, AttributeSetClass);
+			Attributes.Add(Attribute);
+		}
+		else if (FGameplayAttribute::IsGameplayAttributeDataProperty(*It))
+		{
+			FGameplayAttribute Attribute = FGameplayAttribute(*It, AttributeSetClass);
+			Attributes.Add(Attribute);
+		}
+	}
+
+
+	//ZhangJinming EndChange
+
 }
 
 void UAttributeSet::SetNetAddressable()
@@ -530,12 +588,18 @@ FAttributeMetaData::FAttributeMetaData()
 
 bool FGameplayAttribute::operator==(const FGameplayAttribute& Other) const
 {
-	return ((Other.Attribute == Attribute));
+	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+	/*return ((Other.Attribute == Attribute));*/
+	return ((Other.Attribute == Attribute) && (Other.AttributeOwnerClass == AttributeOwnerClass));
+	//ZhangJinming EndChange
 }
 
 bool FGameplayAttribute::operator!=(const FGameplayAttribute& Other) const
 {
-	return ((Other.Attribute != Attribute));
+	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+	/*return ((Other.Attribute != Attribute));*/
+	return ((Other.Attribute != Attribute) && (Other.AttributeOwnerClass != AttributeOwnerClass));
+	//ZhangJinming EndChange
 }
 
 // ------------------------------------------------------------------------------------

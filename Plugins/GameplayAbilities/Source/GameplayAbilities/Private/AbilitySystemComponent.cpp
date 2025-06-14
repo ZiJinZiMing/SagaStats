@@ -2593,7 +2593,11 @@ void UAbilitySystemComponent::Debug_Internal(FAbilitySystemComponentDebugInfo& I
 				float FinalValue = GetNumericAttribute(Attribute);
 				float BaseValue = Aggregator.GetBaseValue();
 
-				FString AttributeString = FString::Printf(TEXT("%s %.2f "), *Attribute.GetName(), GetNumericAttribute(Attribute));
+
+				//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+				// FString AttributeString = FString::Printf(TEXT("%s %.2f "), *Attribute.GetName(), GetNumericAttribute(Attribute));
+				FString AttributeString = FString::Printf(TEXT("%s.%s %.2f "),*FGameplayAttribute::GetAttributeSetClassName(Attribute.GetAttributeSetClass()), *Attribute.GetName(), GetNumericAttribute(Attribute));
+				//ZhangJinming EndChange 
 				if (FMath::Abs<float>(BaseValue - FinalValue) > SMALL_NUMBER)
 				{
 					AttributeString += FString::Printf(TEXT(" (Base: %.2f)"), BaseValue);
@@ -2771,7 +2775,10 @@ void UAbilitySystemComponent::Debug_Internal(FAbilitySystemComponentDebugInfo& I
 				if (Attribute.IsValid())
 				{
 					const float Value = GetNumericAttribute(Attribute);
-					DebugLine(Info, FString::Printf(TEXT("%s %.2f"), *Attribute.GetName(), Value), 4.f, 0.f);
+					//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+					// DebugLine(Info, FString::Printf(TEXT("%s %.2f"), *Attribute.GetName(), Value), 4.f, 0.f);
+					DebugLine(Info, FString::Printf(TEXT("%s.%s %.2f"),*FGameplayAttribute::GetAttributeSetClassName(Attribute.GetAttributeSetClass()), *Attribute.GetName(), Value), 4.f, 0.f);
+					//ZhangJinming EndChange 
 				}
 			}
 		}

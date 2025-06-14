@@ -209,15 +209,21 @@ class GAMEPLAYABILITIES_API UAbilitySystemComponent : public UGameplayTasksCompo
 	/** Access the spawned attributes list when you don't intend to modify the list. */
 	const TArray<UAttributeSet*>& GetSpawnedAttributes() const;
 
+	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+	
 	/** Add a new attribute set */
-	void AddSpawnedAttribute(UAttributeSet* Attribute);
+	// void AddSpawnedAttribute(UAttributeSet* Attribute);
+	virtual  void AddSpawnedAttribute(UAttributeSet* Attribute);
 
 	/** Remove an existing attribute set */
-	void RemoveSpawnedAttribute(UAttributeSet* Attribute);
+	//  void RemoveSpawnedAttribute(UAttributeSet* Attribute);
+	virtual void RemoveSpawnedAttribute(UAttributeSet* Attribute);
 
 	/** Remove all attribute sets */
-	void RemoveAllSpawnedAttributes();
+	// void RemoveAllSpawnedAttributes();
+	virtual void RemoveAllSpawnedAttributes();
 
+	//ZhangJinming EndChange 
 
 	/** The linked Anim Instance that this component will play montages in. Use NAME_None for the main anim instance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Skills")
@@ -1951,9 +1957,15 @@ private:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_SpawnedAttributes, Transient)
 	TArray<TObjectPtr<UAttributeSet>>	SpawnedAttributes;
 
+	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+	//Change OnRep_SpawnedAttributes Authority
+protected:
 	UFUNCTION()
-	void OnRep_SpawnedAttributes(const TArray<UAttributeSet*>& PreviousSpawnedAttributes);
-
+	// void OnRep_SpawnedAttributes(const TArray<UAttributeSet*>& PreviousSpawnedAttributes);
+	virtual void OnRep_SpawnedAttributes(const TArray<UAttributeSet*>& PreviousSpawnedAttributes);
+private:
+	//ZhangJinming EndChange 
+	
 	FDelegateHandle MonitoredTagChangedDelegateHandle;
 	FTimerHandle    OnRep_ActivateAbilitiesTimerHandle;
 

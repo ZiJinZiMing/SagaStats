@@ -182,7 +182,11 @@ void UAbilitySystemDebugHUDExtension_Attributes::GetDebugStrings(const AActor* A
 				if (AttributesToDisplay.Contains(Property->GetName()))
 				{
 					FGameplayAttribute Attribute(Property);
-					OutDebugStrings.Add(FString::Printf(TEXT("%s: %f (Base: %f)"), *Property->GetName(), Comp->GetNumericAttribute(Attribute), Comp->GetNumericAttributeBase(Attribute)));
+					
+					//ZhangJinming BeginChange Attribute In subclass of AttributeSet
+					// OutDebugStrings.Add(FString::Printf(TEXT("%s: %f (Base: %f)"), *Property->GetName(), Comp->GetNumericAttribute(Attribute), Comp->GetNumericAttributeBase(Attribute)));
+					OutDebugStrings.Add(FString::Printf(TEXT("%s.%s: %f (Base: %f)"),*FGameplayAttribute::GetAttributeSetClassName(Class), *Property->GetName(), Comp->GetNumericAttribute(Attribute), Comp->GetNumericAttributeBase(Attribute)));
+					//ZhangJinming EndChange 
 
 					// if we're also showing modifiers, grab them and display them here
 					if (bIncludeModifiers)
