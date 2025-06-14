@@ -59,10 +59,6 @@ FGameplayAttribute::FGameplayAttribute(FProperty *NewProperty)
 	Attribute = CastField<FNumericProperty>(NewProperty);
 	AttributeOwner = nullptr;
 
-	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-	AttributeOwnerClass = nullptr;
-	//ZhangJinming EndChange
-	
 	if (!Attribute.Get())
 	{
 		if (IsGameplayAttributeDataProperty(NewProperty))
@@ -77,13 +73,6 @@ FGameplayAttribute::FGameplayAttribute(FProperty *NewProperty)
  		Attribute->GetName(AttributeName);
 	}
 }
-
-//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-FGameplayAttribute::FGameplayAttribute(FProperty* NewProperty, UClass* InAttributeOwnerClass):FGameplayAttribute(NewProperty)
-{
-	AttributeOwnerClass = InAttributeOwnerClass;
-}
-//ZhangJinming EndChange
 
 void FGameplayAttribute::SetNumericValueChecked(float& NewValue, class UAttributeSet* Dest) const
 {
@@ -272,7 +261,7 @@ void FGameplayAttribute::PostSerialize(const FArchive& Ar)
 				Attribute = FindFProperty<FProperty>(NewClass, *NewAttributeName);
 
 				// Verbose log any applied redirectors
-				FUObjectSerializeContext* LoadContext = const_cast<FArchive*>(&Ar)->GetSerializeContext();
+				FUObjectSerializeContext* LoadContext = FUObjectThreadContext::Get().GetSerializeContext();
 				const FString AssetName = (LoadContext && LoadContext->SerializedObject) ? LoadContext->SerializedObject->GetPathName() : TEXT("Unknown Object");
 				ABILITY_LOG(Verbose, TEXT("FGameplayAttribute::PostSerialize redirected an attribute '%s' -> '%s'. (Asset: %s)"), *PathName, *RedirectedPathName, *AssetName);
 			}
@@ -297,7 +286,7 @@ void FGameplayAttribute::PostSerialize(const FArchive& Ar)
 			// Log warning if attribute failed to resolve while name + owner were non-null
 			if (!Attribute.Get())
 			{
-				FUObjectSerializeContext* LoadContext = const_cast<FArchive*>(&Ar)->GetSerializeContext();
+				FUObjectSerializeContext* LoadContext = FUObjectThreadContext::Get().GetSerializeContext();
 				const FString AssetName = (LoadContext && LoadContext->SerializedObject) ? LoadContext->SerializedObject->GetPathName() : TEXT("Unknown Object");
 				const FString OwnerName = AttributeOwner ? AttributeOwner->GetName() : TEXT("NONE");
 				ABILITY_LOG(Warning, TEXT("FGameplayAttribute::PostSerialize called on an invalid attribute with owner %s and name %s. (Asset: %s)"), *OwnerName, *AttributeName, *AssetName);
@@ -390,29 +379,6 @@ void FGameplayAttribute::GetAllAttributeProperties(TArray<FProperty*>& OutProper
 	}
 }
 
-//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-FString FGameplayAttribute::GetAttributeSetClassName(const UClass* Class)
-{
-	if(!Class)
-	{
-		return TEXT("None");
-	}
-#if WITH_EDITORONLY_DATA
-	if (Class->ClassGeneratedBy)
-	{
-		return Class->ClassGeneratedBy->GetName();
-	}
-#endif
-	FString ClassName = Class->GetName();
-	if (ClassName.IsEmpty())
-	{
-		return ClassName;
-	}
-	ClassName.RemoveFromEnd(TEXT("_C"));
-	return ClassName;
-}
-//ZhangJinming EndChange
-
 UAttributeSet::UAttributeSet(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -440,9 +406,6 @@ bool UAttributeSet::IsSupportedForNetworking() const
 
 void UAttributeSet::GetAttributesFromSetClass(const TSubclassOf<UAttributeSet>& AttributeSetClass, TArray<FGameplayAttribute>& Attributes)
 {
-	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-	
-	/*
 	for (TFieldIterator<FProperty> It(AttributeSetClass); It; ++It)
 	{
 		if (FFloatProperty* FloatProperty = CastField<FFloatProperty>(*It))
@@ -454,28 +417,7 @@ void UAttributeSet::GetAttributesFromSetClass(const TSubclassOf<UAttributeSet>& 
 			Attributes.Add(FGameplayAttribute(*It));
 		}
 	}
-	*/
-
-	for (TFieldIterator<FProperty> It(AttributeSetClass); It; ++It)
-	{
-		if (FFloatProperty* FloatProperty = CastField<FFloatProperty>(*It))
-		{
-			FGameplayAttribute Attribute = FGameplayAttribute(FloatProperty, AttributeSetClass);
-			Attributes.Add(Attribute);
-		}
-		else if (FGameplayAttribute::IsGameplayAttributeDataProperty(*It))
-		{
-			FGameplayAttribute Attribute = FGameplayAttribute(*It, AttributeSetClass);
-			Attributes.Add(Attribute);
-		}
-	}
-
-
-	//ZhangJinming EndChange
-
 }
-
-
 
 void UAttributeSet::SetNetAddressable()
 {
@@ -588,18 +530,12 @@ FAttributeMetaData::FAttributeMetaData()
 
 bool FGameplayAttribute::operator==(const FGameplayAttribute& Other) const
 {
-	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-	//ZhangJinming EndChange
-	/*return ((Other.Attribute == Attribute));*/
-	return ((Other.Attribute == Attribute) && (Other.AttributeOwnerClass == AttributeOwnerClass));
+	return ((Other.Attribute == Attribute));
 }
 
 bool FGameplayAttribute::operator!=(const FGameplayAttribute& Other) const
 {
-	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-	/*return ((Other.Attribute != Attribute));*/
-	return ((Other.Attribute != Attribute) && (Other.AttributeOwnerClass != AttributeOwnerClass));
-	//ZhangJinming EndChange
+	return ((Other.Attribute != Attribute));
 }
 
 // ------------------------------------------------------------------------------------

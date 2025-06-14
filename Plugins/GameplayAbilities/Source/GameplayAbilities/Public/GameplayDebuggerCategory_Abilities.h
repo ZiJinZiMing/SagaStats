@@ -17,17 +17,17 @@ class UPackageMap;
 class FGameplayDebuggerCategory_Abilities : public FGameplayDebuggerCategory
 {
 public:
-	FGameplayDebuggerCategory_Abilities();
+	GAMEPLAYABILITIES_API FGameplayDebuggerCategory_Abilities();
 
-	virtual void CollectData(APlayerController* OwnerPC, AActor* DebugActor) override;
-	virtual void DrawData(APlayerController* OwnerPC, FGameplayDebuggerCanvasContext& CanvasContext) override;
+	GAMEPLAYABILITIES_API virtual void CollectData(APlayerController* OwnerPC, AActor* DebugActor) override;
+	GAMEPLAYABILITIES_API virtual void DrawData(APlayerController* OwnerPC, FGameplayDebuggerCanvasContext& CanvasContext) override;
 
-	static TSharedRef<FGameplayDebuggerCategory> MakeInstance();
+	GAMEPLAYABILITIES_API static TSharedRef<FGameplayDebuggerCategory> MakeInstance();
 
-	void OnShowGameplayTagsToggle();
-	void OnShowGameplayAbilitiesToggle();
-	void OnShowGameplayEffectsToggle();
-	void OnShowGameplayAttributesToggle();
+	GAMEPLAYABILITIES_API void OnShowGameplayTagsToggle();
+	GAMEPLAYABILITIES_API void OnShowGameplayAbilitiesToggle();
+	GAMEPLAYABILITIES_API void OnShowGameplayEffectsToggle();
+	GAMEPLAYABILITIES_API void OnShowGameplayAttributesToggle();
 		
 
 	// Some GAS features such as Attributes can exist on the server, client, or both.  We can also get 'detached' if both sides have the same values (such as Attributes) that aren't networked.
@@ -42,16 +42,13 @@ public:
 
 protected:
 
-	void DrawGameplayTags(FGameplayDebuggerCanvasContext& CanvasContext, const APlayerController* OwnerPC) const;
-	void DrawGameplayAbilities(FGameplayDebuggerCanvasContext& CanvasContext, const APlayerController* OwnerPC) const;
-	void DrawGameplayEffects(FGameplayDebuggerCanvasContext& CanvasContext, const APlayerController* OwnerPC) const;
-	void DrawGameplayAttributes(FGameplayDebuggerCanvasContext& CanvasContext, const APlayerController* OwnerPC) const;
+	GAMEPLAYABILITIES_API void DrawGameplayTags(FGameplayDebuggerCanvasContext& CanvasContext, const APlayerController* OwnerPC) const;
+	GAMEPLAYABILITIES_API void DrawGameplayAbilities(FGameplayDebuggerCanvasContext& CanvasContext, const APlayerController* OwnerPC) const;
+	GAMEPLAYABILITIES_API void DrawGameplayEffects(FGameplayDebuggerCanvasContext& CanvasContext, const APlayerController* OwnerPC) const;
+	GAMEPLAYABILITIES_API void DrawGameplayAttributes(FGameplayDebuggerCanvasContext& CanvasContext, const APlayerController* OwnerPC) const;
 
 	struct FRepData
 	{
-		// to aid in NetSerialize
-		TWeakObjectPtr<UPackageMap>	ClientPackageMap;
-
 		FGameplayTagContainer OwnedTags;
 		TArray<int32> TagCounts;
 
@@ -66,7 +63,7 @@ protected:
 
 		struct FGameplayEffectDebug
 		{
-			FPredictionKey PredictionKey;
+			int32 ReplicationID = INDEX_NONE; // unique & shared between server/client (or INDEX_NONE if local)
 			FString Effect;
 			FString Context;
 			float Duration = 0.0f;
@@ -92,7 +89,7 @@ protected:
 	};
 	FRepData DataPack;
 
-	bool WrapStringAccordingToViewport(const FString& iStr, FString& oStr, FGameplayDebuggerCanvasContext& CanvasContext, float ViewportWitdh) const;
+	GAMEPLAYABILITIES_API bool WrapStringAccordingToViewport(const FString& iStr, FString& oStr, FGameplayDebuggerCanvasContext& CanvasContext, float ViewportWitdh) const;
 
 private:
 	TArray<FRepData::FGameplayAttributeDebug> CollectAttributeData(const APlayerController* OwnerPC, const UAbilitySystemComponent* AbilityComp) const;

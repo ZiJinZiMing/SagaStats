@@ -184,7 +184,7 @@ class GAMEPLAYABILITIES_API UAbilitySystemComponent : public UGameplayTasksCompo
 	 * @param AttributeSetClass The type of attribute set to look for
 	 * @param bFound Set to true if an instance of the Attribute Set exists
 	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Gameplay Attributes")
+	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "Gameplay Attributes", meta=(DeterminesOutputType = AttributeSetClass))
 	const UAttributeSet* GetAttributeSet(TSubclassOf<UAttributeSet> AttributeSetClass) const;
 
 	/**
@@ -209,21 +209,15 @@ class GAMEPLAYABILITIES_API UAbilitySystemComponent : public UGameplayTasksCompo
 	/** Access the spawned attributes list when you don't intend to modify the list. */
 	const TArray<UAttributeSet*>& GetSpawnedAttributes() const;
 
-	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-	
 	/** Add a new attribute set */
-	// void AddSpawnedAttribute(UAttributeSet* Attribute);
-	virtual void AddSpawnedAttribute(UAttributeSet* Attribute);
+	void AddSpawnedAttribute(UAttributeSet* Attribute);
 
 	/** Remove an existing attribute set */
-	// void RemoveSpawnedAttribute(UAttributeSet* Attribute);
-	virtual void RemoveSpawnedAttribute(UAttributeSet* Attribute);
+	void RemoveSpawnedAttribute(UAttributeSet* Attribute);
 
 	/** Remove all attribute sets */
-	// void RemoveAllSpawnedAttributes();
-	virtual void RemoveAllSpawnedAttributes();
+	void RemoveAllSpawnedAttributes();
 
-	//ZhangJinming EndChange 
 
 	/** The linked Anim Instance that this component will play montages in. Use NAME_None for the main anim instance. */
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Skills")
@@ -398,10 +392,8 @@ class GAMEPLAYABILITIES_API UAbilitySystemComponent : public UGameplayTasksCompo
 	int32 GetAggregatedStackCount(const FGameplayEffectQuery& Query) const;
 
 	/** This only exists so it can be hooked up to a multicast delegate */
-	void RemoveActiveGameplayEffect_NoReturn(FActiveGameplayEffectHandle Handle, int32 StacksToRemove=-1)
-	{
-		RemoveActiveGameplayEffect(Handle, StacksToRemove);
-	}
+	UE_DEPRECATED_FORGAME(5.5, "This shouldn't be public. Use RemoveActiveGameplayEffect (which won't allow non-authority to remove) or expose RemoveActiveGameplayEffect_AllowClientRemoval if your intent is to break that contract.")
+	void RemoveActiveGameplayEffect_NoReturn(FActiveGameplayEffectHandle Handle, int32 StacksToRemove = -1);
 
 	/** Called for predictively added gameplay cue. Needs to remove tag count and possible invoke OnRemove event if misprediction */
 	virtual void OnPredictiveGameplayCueCatchup(FGameplayTag Tag);
@@ -817,13 +809,13 @@ class GAMEPLAYABILITIES_API UAbilitySystemComponent : public UGameplayTasksCompo
 	/** Call from OnRep functions to set the attribute base value on the client */
 	void SetBaseAttributeValueFromReplication(const FGameplayAttribute& Attribute, float NewValue, float OldValue)
 	{
-		ActiveGameplayEffects.SetBaseAttributeValueFromReplication(Attribute, NewValue, OldValue);
+		ActiveGameplayEffects.SetBaseAttributeValueFromReplication(Attribute, FGameplayAttributeData(NewValue), FGameplayAttributeData(OldValue) );
 	}
 
 	/** Call from OnRep functions to set the attribute base value on the client */
 	void SetBaseAttributeValueFromReplication(const FGameplayAttribute& Attribute, const FGameplayAttributeData& NewValue, const FGameplayAttributeData& OldValue)
 	{
-		ActiveGameplayEffects.SetBaseAttributeValueFromReplication(Attribute, NewValue.GetBaseValue(), OldValue.GetBaseValue());
+		ActiveGameplayEffects.SetBaseAttributeValueFromReplication(Attribute, NewValue, OldValue);
 	}
 
 	/** Tests if all modifiers in this GameplayEffect will leave the attribute > 0.f */
@@ -1874,7 +1866,10 @@ protected:
 	void CheckDurationExpired(FActiveGameplayEffectHandle Handle);
 		
 	TArray<TObjectPtr<UGameplayTask>>&	GetAbilityActiveTasks(UGameplayAbility* Ability);
-	
+
+	/** A version of RemoveActiveGameplayEffect that allows us to remove it even when we don't have authority */
+	void RemoveActiveGameplayEffect_AllowClientRemoval(FActiveGameplayEffectHandle Handle, int32 StacksToRemove = -1);
+
 	/** Contains all of the gameplay effects that are currently active on this component */
 	UPROPERTY(Replicated)
 	FActiveGameplayEffectsContainer ActiveGameplayEffects;
@@ -1956,15 +1951,9 @@ private:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_SpawnedAttributes, Transient)
 	TArray<TObjectPtr<UAttributeSet>>	SpawnedAttributes;
 
-	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-	//Change OnRep_SpawnedAttributes Authority
-protected:
 	UFUNCTION()
-	// void OnRep_SpawnedAttributes(const TArray<UAttributeSet*>& PreviousSpawnedAttributes);
-	virtual void OnRep_SpawnedAttributes(const TArray<UAttributeSet*>& PreviousSpawnedAttributes);
-private:
-	//ZhangJinming EndChange 
-	
+	void OnRep_SpawnedAttributes(const TArray<UAttributeSet*>& PreviousSpawnedAttributes);
+
 	FDelegateHandle MonitoredTagChangedDelegateHandle;
 	FTimerHandle    OnRep_ActivateAbilitiesTimerHandle;
 

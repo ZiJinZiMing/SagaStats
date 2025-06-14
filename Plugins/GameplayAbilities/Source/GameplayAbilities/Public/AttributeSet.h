@@ -61,17 +61,10 @@ struct GAMEPLAYABILITIES_API FGameplayAttribute
 	FGameplayAttribute()
 		: Attribute(nullptr)
 		, AttributeOwner(nullptr)
-		//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-		, AttributeOwnerClass(nullptr)
-		//ZhangJinming EndChange
 	{
 	}
 
 	FGameplayAttribute(FProperty *NewProperty);
-	
-	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-	FGameplayAttribute(FProperty *NewProperty,UClass* InAttributeOwnerClass);
-	//ZhangJinming EndChange
 
 	bool IsValid() const
 	{
@@ -100,20 +93,10 @@ struct GAMEPLAYABILITIES_API FGameplayAttribute
 		return Attribute.Get();
 	}
 
-
 	/** Returns the AttributeSet subclass holding this attribute */
 	UClass* GetAttributeSetClass() const
 	{
 		check(Attribute.Get());
-		//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-		if (Attribute.Get())
-		{
-			if (AttributeOwnerClass)
-			{
-				return AttributeOwnerClass.Get();				
-			}
-		}
-		//ZhangJinming EndChange
 		return CastChecked<UClass>(Attribute->GetOwner<UObject>());
 	}
 
@@ -164,10 +147,6 @@ struct GAMEPLAYABILITIES_API FGameplayAttribute
 	/** In editor, this will filter out properties with meta tag "HideInDetailsView" or equal to FilterMetaStr. In non editor, it returns all properties */
 	static void GetAllAttributeProperties(TArray<FProperty*>& OutProperties, FString FilterMetaStr=FString(), bool UseEditorOnlyData=true);
 
-	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-	static FString GetAttributeSetClassName(const UClass* Class);
-	//ZhangJinming EndChange
-
 private:
 	friend class FAttributePropertyDetails;
 
@@ -177,11 +156,6 @@ private:
 
 	UPROPERTY(Category = GameplayAttribute, VisibleAnywhere)
 	TObjectPtr<UStruct> AttributeOwner;
-
-	//ZhangJinming BeginChange Attribute In subclass of AttributeSet
-	UPROPERTY(Category = GameplayAttribute, VisibleAnywhere)
-	TObjectPtr<UClass> AttributeOwnerClass;
-	//ZhangJinming EndChange
 };
 
 #if WITH_EDITORONLY_DATA
