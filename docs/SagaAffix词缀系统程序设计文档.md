@@ -28,7 +28,8 @@
 ## 系统概述
 
 ### 设计目标
-基于纯GameplayAbility架构设计SagaStats词缀系统，实现：
+基于分层架构设计SagaStats词缀系统，实现：
+- **核心框架与业务分离**: 稳定的核心框架 + 灵活的业务扩展
 - **完全GAS集成**: 零桥接成本，深度利用GAS生态
 - **模块化设计**: 高内聚低耦合的组件架构
 - **数据驱动**: 通过DataTable配置词缀定义
@@ -36,61 +37,115 @@
 - **高性能**: 优化的事件驱动和缓存策略
 
 ### 核心设计原则
-1. **PassiveAbility模式**: 所有管理器作为被动能力运行
-2. **事件驱动架构**: 基于GameplayEvents的松耦合通信
-3. **属性集集中管理**: 统一的状态和统计信息存储
-4. **分层责任**: 明确的管理层、实例层、数据层分离
+1. **分层架构**: 核心框架层、接口层、业务逻辑层的清晰分离
+2. **依赖倒置**: 核心不依赖具体实现，具体实现依赖核心抽象
+3. **PassiveAbility模式**: 所有管理器作为被动能力运行
+4. **事件驱动架构**: 基于GameplayEvents的松耦合通信
+5. **属性集集中管理**: 统一的状态和统计信息存储
+
+### 架构分层原则
+参考 `词缀系统架构分层设计文档.md` 中的详细分层定义：
+- **基础设施层**: GAS集成、数据结构、枚举常量
+- **核心框架层**: 生命周期管理、状态机、依赖验证、网络复制
+- **接口层**: 抽象基类、扩展点、事件回调
+- **业务逻辑层**: 具体词缀实现、游戏规则、UI表现
 
 ---
 
 ## 核心类设计
 
-### 1. USagaAffixManagerAbility
-**作用**: 词缀系统核心管理器，作为PassiveAbility运行
+### 1. USagaAffixManagerAbility（核心框架层）
+**作用**: 词缀系统核心管理器，提供稳定的框架服务
 
 ```cpp
-// 关键职责
-class USagaAffixManagerAbility : public UGameplayAbility
+// 核心框架职责 - 所有子类共享的稳定功能
+class SAGASTATS_API USagaAffixManagerAbility : public UGameplayAbility
 {
-    // 生命周期管理
-    - 词缀实例创建/销毁
-    - 过期检查和清理
-    - 系统初始化和配置加载
+protected:
+    // 核心生命周期管理 - 框架提供
+    virtual void ActivateAbility(...) override;
+    virtual void EndAbility(...) override;
     
-    // 业务逻辑
-    - 词缀应用/移除
-    - 冲突检测和协同效应
-    - 叠加规则处理
+    // 核心功能接口 - 框架的稳定API
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    FGuid ApplyAffix(const FSagaAffixApplicationRequest& Request);
     
-    // 查询服务
-    - 活跃词缀查询
-    - 定义查询和过滤
-    - 统计信息获取
-}
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    bool RemoveAffix(const FGuid& InstanceID);
+    
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Saga Affix Core")
+    TArray<FSagaActiveAffixInfo> GetActiveAffixes() const;
+    
+    // 业务扩展点 - 子类可重写的接口
+    virtual bool CanApplyAffix(const FSagaAffixApplicationRequest& Request) { return true; }
+    virtual void OnAffixApplied(const FGuid& InstanceID, const FSagaActiveAffixInfo& AffixInfo) {}
+    virtual void OnAffixRemoved(const FGuid& InstanceID, const FSagaActiveAffixInfo& AffixInfo) {}
+    
+private:
+    // 核心数据 - 框架管理，业务层不直接访问
+    UPROPERTY(Replicated)
+    TMap<FGuid, FSagaActiveAffixInfo> ActiveAffixInstances;
+    
+    UPROPERTY()
+    TMap<FGameplayTag, FSagaAffixDefinitionCore> CachedAffixDefinitions;
+};
 ```
 
-### 2. USagaAffixInstanceAbility
-**作用**: 单个词缀实例的具体实现
+### 2. USagaAffixInstanceAbility（核心框架层 + 业务接口）
+**作用**: 词缀实例的抽象基类，定义核心行为和业务扩展点
 
 ```cpp
-// 关键职责
-class USagaAffixInstanceAbility : public UGameplayAbility
+// 核心框架 + 业务接口的混合设计
+class SAGASTATS_API USagaAffixInstanceAbility : public UGameplayAbility
 {
-    // 实例管理
-    - 效果应用/移除
-    - 状态转换控制
-    - 持续时间管理
+protected:
+    // 核心生命周期 - 框架管理，final防止重写
+    virtual void ActivateAbility(...) override final;
+    virtual void EndAbility(...) override final;
     
-    // 效果处理
-    - GameplayEffect管理
-    - 周期性效果执行
-    - 条件检查和验证
+    // 核心状态管理 - 框架提供的通用功能
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    bool UpdateInstanceState(ESagaAffixState NewState);
     
-    // 叠加机制
-    - 层数增减控制
-    - 叠加规则执行
-    - 效果强度计算
-}
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    bool AddStack(int32 StacksToAdd = 1);
+    
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    bool RemoveStack(int32 StacksToRemove = 1);
+    
+public:
+    // 业务扩展接口 - 子类必须实现
+    UFUNCTION(BlueprintImplementableEvent, Category = "Saga Affix Business")
+    void OnAffixActivated();
+    
+    UFUNCTION(BlueprintImplementableEvent, Category = "Saga Affix Business")
+    void OnAffixDeactivated();
+    
+    UFUNCTION(BlueprintImplementableEvent, Category = "Saga Affix Business")
+    void OnStackCountChanged(int32 OldCount, int32 NewCount);
+    
+    // 业务扩展接口 - 子类可选择实现
+    UFUNCTION(BlueprintNativeEvent, Category = "Saga Affix Business")
+    float CalculateEffectMagnitude(float BaseMagnitude);
+    virtual float CalculateEffectMagnitude_Implementation(float BaseMagnitude) { return BaseMagnitude; }
+    
+    UFUNCTION(BlueprintNativeEvent, Category = "Saga Affix Business")
+    bool ShouldAffixExpire() const;
+    virtual bool ShouldAffixExpire_Implementation() const { return GetRemainingDuration() <= 0.0f; }
+    
+protected:
+    // 核心数据 - 框架管理
+    UPROPERTY(BlueprintReadOnly, Category = "Saga Affix Core")
+    FSagaAffixDefinitionCore AffixDefinition;
+    
+    UPROPERTY(BlueprintReadOnly, Category = "Saga Affix Core")
+    FSagaActiveAffixInfo InstanceInfo;
+    
+private:
+    // 内部状态 - 框架私有
+    FTimerHandle DurationTimerHandle;
+    FTimerHandle PeriodicEffectTimerHandle;
+};
 ```
 
 ### 3. USagaAffixAttributeSet
@@ -120,67 +175,159 @@ class USagaAffixAttributeSet : public USagaAttributeSet
 
 ## 数据结构设计
 
-### 1. 核心枚举类型
+### 1. 核心枚举类型（基础设施层）
 
-```mermaid
-classDiagram
-    class ESagaAffixRarity {
-        <<enumeration>>
-        None
-        Common
-        Rare
-        Epic
-        Legendary
-        Mythic
-    }
-    
-    class ESagaAffixEffectType {
-        <<enumeration>>
-        None
-        AttributeModifier
-        BehaviorModifier
-        AbilityGrant
-        ConditionalEffect
-        StackingEffect
-    }
-    
-    class ESagaAffixStackingMode {
-        <<enumeration>>
-        None
-        Replace
-        Additive
-        Multiplicative
-        MaxValue
-        Independent
-    }
-    
-    class ESagaAffixState {
-        <<enumeration>>
-        None
-        Pending
-        Active
-        Suspended
-        Expired
-        Removed
-    }
+#### 系统核心枚举 - 不可变更
+```cpp
+// 核心状态枚举 - 框架必需，版本间保持稳定
+UENUM(BlueprintType)
+enum class ESagaAffixState : uint8
+{
+    None        UMETA(DisplayName = "None"),
+    Pending     UMETA(DisplayName = "Pending"),     // 等待应用
+    Active      UMETA(DisplayName = "Active"),      // 正常运行
+    Suspended   UMETA(DisplayName = "Suspended"),   // 临时暂停
+    Expired     UMETA(DisplayName = "Expired"),     // 已过期
+    Removed     UMETA(DisplayName = "Removed")      // 已移除
+};
+
+// 核心叠加模式 - 框架提供的通用叠加逻辑
+UENUM(BlueprintType)
+enum class ESagaAffixStackingMode : uint8
+{
+    None            UMETA(DisplayName = "None"),            // 不叠加
+    Replace         UMETA(DisplayName = "Replace"),         // 替换
+    Additive        UMETA(DisplayName = "Additive"),        // 加法叠加
+    Multiplicative  UMETA(DisplayName = "Multiplicative"),  // 乘法叠加
+    MaxValue        UMETA(DisplayName = "MaxValue"),        // 取最大值
+    Independent     UMETA(DisplayName = "Independent")      // 独立实例
+};
 ```
 
-### 2. 数据结构层次关系
+#### 业务扩展枚举 - 可自定义
+```cpp
+// 稀有度枚举 - 业务层定义，游戏可自由扩展
+UENUM(BlueprintType)
+enum class ESagaAffixRarity : uint8
+{
+    None        UMETA(DisplayName = "None"),
+    Common      UMETA(DisplayName = "Common"),
+    Rare        UMETA(DisplayName = "Rare"),
+    Epic        UMETA(DisplayName = "Epic"),
+    Legendary   UMETA(DisplayName = "Legendary"),
+    // 游戏可以添加更多稀有度类型
+    Mythic      UMETA(DisplayName = "Mythic")
+};
 
-```mermaid
-classDiagram
-    class FSagaAffixDefinition {
-        +FGameplayTag AffixID
-        +FText DisplayName
-        +FText Description
-        +ESagaAffixRarity Rarity
-        +TArray Effects
-        +FGameplayTagContainer ExclusiveTags
-        +FGameplayTagContainer PrerequisiteTags
-        +bool bIsUnique
-        +float Weight
-        +int32 RequiredLevel
-    }
+// 效果类型 - 业务层定义，用于分类管理
+UENUM(BlueprintType)
+enum class ESagaAffixEffectType : uint8
+{
+    None                UMETA(DisplayName = "None"),
+    AttributeModifier   UMETA(DisplayName = "Attribute Modifier"),
+    BehaviorModifier    UMETA(DisplayName = "Behavior Modifier"),
+    AbilityGrant        UMETA(DisplayName = "Ability Grant"),
+    ConditionalEffect   UMETA(DisplayName = "Conditional Effect"),
+    // 游戏可以添加更多效果类型
+    StackingEffect      UMETA(DisplayName = "Stacking Effect")
+};
+```
+
+### 2. 分层数据结构设计
+
+#### 核心数据结构（基础设施层）
+```cpp
+// 核心定义 - 系统必需字段，所有词缀都需要
+USTRUCT(BlueprintType)
+struct SAGASTATS_API FSagaAffixDefinitionCore
+{
+    GENERATED_BODY()
+
+    // 系统必需字段 - 框架要求，不可删除
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Core", meta = (Categories = "Saga.Affix"))
+    FGameplayTag AffixID;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Core")
+    TSubclassOf<USagaAffixInstanceAbility> ImplementationClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Core")
+    ESagaAffixState InitialState = ESagaAffixState::Pending;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Core")
+    float BaseDuration = -1.0f; // -1表示永久
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Core")
+    bool bCanStack = false;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Core", meta = (EditCondition = "bCanStack"))
+    int32 MaxStackCount = 1;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Core")
+    ESagaAffixStackingMode StackingMode = ESagaAffixStackingMode::None;
+};
+
+// 核心依赖结构 - 基于Hades分析的通用依赖模式
+USTRUCT(BlueprintType)
+struct SAGASTATS_API FSagaAffixDependencyCore
+{
+    GENERATED_BODY()
+
+    // OneOf模式：需要其中任意一个
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Core Dependencies")
+    TArray<FGameplayTag> OneOfRequired;
+    
+    // OneFromEachSet模式：需要每个集合中至少一个
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Core Dependencies")
+    TArray<FSagaAffixSet> OneFromEachSetRequired;
+    
+    // 基础互斥标签
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Core Dependencies")
+    FGameplayTagContainer ExclusiveTags;
+};
+
+USTRUCT(BlueprintType)
+struct SAGASTATS_API FSagaAffixSet
+{
+    GENERATED_BODY()
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TArray<FGameplayTag> AffixesInSet;
+};
+```
+
+#### 业务扩展数据结构示例
+```cpp
+// 业务扩展定义 - 游戏特定字段，可自由添加
+USTRUCT(BlueprintType)
+struct MYGAME_API FMyGameAffixDefinition : public FSagaAffixDefinitionCore
+{
+    GENERATED_BODY()
+
+    // 显示相关 - 游戏特定
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display")
+    FText DisplayName;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display")
+    FText Description;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Display")
+    TSoftObjectPtr<UTexture2D> Icon;
+    
+    // 游戏规则 - 游戏特定
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Rules")
+    ESagaAffixRarity Rarity = ESagaAffixRarity::Common;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Rules")
+    int32 RequiredLevel = 1;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Rules")
+    float Weight = 1.0f;
+    
+    // 业务依赖扩展
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Business Dependencies")
+    FMyGameAffixDependencies BusinessDependencies;
+};
+```
     
     class FSagaAffixEffectConfig {
         +ESagaAffixEffectType EffectType
@@ -238,16 +385,71 @@ classDiagram
 
 ### 1. 管理器API设计
 
-#### 词缀应用接口
+#### 核心API接口（框架层 - 稳定接口）
 ```cpp
-// 基础应用接口
-FGuid ApplyAffix(const FSagaAffixApplicationRequest& Request);
+// 基础CRUD操作 - 核心框架提供的稳定API
+namespace SagaStats::Core 
+{
+    // 词缀应用 - 核心功能
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    FGuid ApplyAffix(const FSagaAffixApplicationRequest& Request);
+    
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    FGuid ApplyAffixSimple(const FGameplayTag& AffixID, AActor* TargetActor, AActor* SourceActor = nullptr);
+    
+    // 词缀移除 - 核心功能
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    bool RemoveAffix(const FGuid& InstanceID);
+    
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    int32 RemoveAffixesByID(const FGameplayTag& AffixID, AActor* TargetActor = nullptr);
+    
+    // 基础查询 - 核心功能
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Saga Affix Core")
+    TArray<FSagaActiveAffixInfo> GetActiveAffixes(AActor* TargetActor = nullptr) const;
+    
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Saga Affix Core")
+    bool HasAffix(const FGameplayTag& AffixID, AActor* TargetActor = nullptr) const;
+    
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Saga Affix Core")
+    int32 GetAffixCount(AActor* TargetActor = nullptr) const;
+    
+    // 依赖验证 - 核心功能
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    static bool ValidateAffixDependencies(const FSagaAffixDependencyCore& Dependencies, const USagaAbilitySystemComponent* ASC);
+    
+    UFUNCTION(BlueprintCallable, Category = "Saga Affix Core")
+    static bool CheckAffixConflicts(const FGameplayTag& AffixID, const USagaAbilitySystemComponent* ASC);
+}
+```
 
-// 便捷应用接口  
-FGuid ApplyAffixSimple(const FGameplayTag& AffixID, AActor* TargetActor, AActor* SourceActor = nullptr);
-
-// 批量应用接口
-TArray<FGuid> ApplyMultipleAffixes(const TArray<FSagaAffixApplicationRequest>& Requests);
+#### 业务扩展API示例（业务层 - 可扩展）
+```cpp
+// 游戏特定功能 - 业务层实现
+namespace MyGame::Affixes
+{
+    // 游戏规则检查
+    UFUNCTION(BlueprintCallable, Category = "My Game Affixes")
+    bool CanPlayerAffordAffix(const FGameplayTag& AffixID, AActor* Player);
+    
+    UFUNCTION(BlueprintCallable, Category = "My Game Affixes")
+    bool CheckLevelRequirement(const FGameplayTag& AffixID, AActor* Player);
+    
+    // UI相关
+    UFUNCTION(BlueprintCallable, Category = "My Game Affixes")
+    void ShowAffixSelectionUI(const TArray<FGameplayTag>& AvailableAffixes);
+    
+    // 特效系统
+    UFUNCTION(BlueprintCallable, Category = "My Game Affixes")
+    void PlayAffixAcquisitionEffects(const FGameplayTag& AffixID, AActor* TargetActor);
+    
+    // 游戏特定查询
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "My Game Affixes")
+    ESagaAffixRarity GetAffixRarity(const FGameplayTag& AffixID);
+    
+    UFUNCTION(BlueprintCallable, BlueprintPure, Category = "My Game Affixes")
+    int32 GetRequiredLevel(const FGameplayTag& AffixID);
+}
 ```
 
 #### 词缀移除接口
@@ -325,45 +527,92 @@ bool CanAddStack() const;
 
 ---
 
-## 系统架构图
+## 分层系统架构图
 
-### 1. 总体架构图
+### 1. 分层架构总览
 
 ```mermaid
 graph TB
-    subgraph "应用层 Application Layer"
-        UI[词缀UI界面]
-        BP[蓝图逻辑]
-        Event[游戏事件]
+    subgraph "业务逻辑层 Business Logic Layer"
+        BL1[具体词缀实现<br/>UFireDamageAffixAbility]
+        BL2[游戏规则管理器<br/>UMyGameAffixManager]
+        BL3[UI和表现系统<br/>词缀选择界面]
+        BL4[业务配置<br/>FMyGameAffixDefinition]
     end
     
-    subgraph "管理层 Management Layer"
-        Manager[USagaAffixManagerAbility<br/>词缀管理器]
-        Registry[词缀注册表缓存]
-        Validator[验证器]
+    subgraph "接口层 Interface Layer"
+        IL1[抽象基类<br/>USagaAffixInstanceAbility]
+        IL2[扩展点接口<br/>OnAffixActivated()]
+        IL3[事件回调<br/>CalculateEffectMagnitude()]
+        IL4[配置扩展<br/>FSagaAffixDefinitionCore]
     end
     
-    subgraph "实例层 Instance Layer"
-        Instance1[USagaAffixInstanceAbility<br/>词缀实例1]
-        Instance2[USagaAffixInstanceAbility<br/>词缀实例2]
-        InstanceN[USagaAffixInstanceAbility<br/>词缀实例N]
+    subgraph "核心框架层 Core Framework Layer"
+        CL1[生命周期管理<br/>词缀创建/销毁]
+        CL2[状态机系统<br/>ESagaAffixState转换]
+        CL3[依赖验证系统<br/>OneOf/OneFromEachSet]
+        CL4[网络复制框架<br/>GAS集成复制]
+        CL5[缓存管理系统<br/>定义缓存/实例缓存]
     end
     
-    subgraph "数据层 Data Layer"
-        AttributeSet[USagaAffixAttributeSet<br/>属性集]
-        DataTable[DataTable<br/>词缀定义]
-        GameplayEffect[GameplayEffect<br/>效果实例]
+    subgraph "基础设施层 Infrastructure Layer"
+        IL_1[GAS集成层<br/>UGameplayAbility基类]
+        IL_2[数据结构定义<br/>FSagaActiveAffixInfo]
+        IL_3[核心枚举<br/>ESagaAffixState]
+        IL_4[工具函数<br/>依赖验证函数]
     end
     
-    subgraph "GAS核心 GAS Core"
+    %% 依赖关系
+    BL1 --> IL1
+    BL2 --> IL2
+    BL3 --> IL3
+    BL4 --> IL4
+    
+    IL1 --> CL1
+    IL2 --> CL2
+    IL3 --> CL3
+    IL4 --> CL4
+    
+    CL1 --> IL_1
+    CL2 --> IL_2
+    CL3 --> IL_3
+    CL4 --> IL_4
+    CL5 --> IL_1
+    
+    %% 样式
+    classDef businessLayer fill:#e1f5fe
+    classDef interfaceLayer fill:#f3e5f5
+    classDef coreLayer fill:#e8f5e8
+    classDef infraLayer fill:#fff3e0
+    
+    class BL1,BL2,BL3,BL4 businessLayer
+    class IL1,IL2,IL3,IL4 interfaceLayer
+    class CL1,CL2,CL3,CL4,CL5 coreLayer
+    class IL_1,IL_2,IL_3,IL_4 infraLayer
+```
+
+### 2. 核心框架内部架构
+
+```mermaid
+graph TB
+    subgraph "核心管理器 Core Manager"
+        Manager[USagaAffixManagerAbility<br/>核心管理器基类]
+        Registry[词缀注册表缓存<br/>FSagaAffixDefinitionCore]
+        Validator[依赖验证器<br/>USagaAffixDependencyValidator]
+    end
+    
+    subgraph "词缀实例池 Instance Pool"
+        Instance1[词缀实例1<br/>USagaAffixInstanceAbility]
+        Instance2[词缀实例2<br/>USagaAffixInstanceAbility]
+        InstanceN[词缀实例N<br/>USagaAffixInstanceAbility]
+    end
+    
+    subgraph "GAS集成层 GAS Integration"
         ASC[AbilitySystemComponent]
-        GAS_Events[GameplayEvents]
-        GAS_Tags[GameplayTags]
+        AttributeSet[USagaAffixAttributeSet<br/>词缀统计属性]
+        GameplayEffect[GameplayEffect<br/>实际效果实例]
+        Events[GameplayEvents<br/>词缀事件]
     end
-    
-    UI --> Manager
-    BP --> Manager
-    Event --> Manager
     
     Manager --> Registry
     Manager --> Validator
@@ -371,186 +620,232 @@ graph TB
     Manager --> Instance2
     Manager --> InstanceN
     
-    Instance1 --> AttributeSet
-    Instance2 --> AttributeSet
-    InstanceN --> AttributeSet
-    
     Instance1 --> GameplayEffect
     Instance2 --> GameplayEffect
     InstanceN --> GameplayEffect
     
-    Manager --> DataTable
-    AttributeSet --> ASC
+    Instance1 --> AttributeSet
+    Instance2 --> AttributeSet
+    InstanceN --> AttributeSet
+    
     GameplayEffect --> ASC
-    
-    Manager --> GAS_Events
-    Instance1 --> GAS_Events
-    Instance2 --> GAS_Events
-    InstanceN --> GAS_Events
-    
-    GAS_Events --> GAS_Tags
-    ASC --> GAS_Tags
+    AttributeSet --> ASC
+    Manager --> Events
+    Instance1 --> Events
 ```
 
-### 2. 组件交互图
+### 3. 分层交互时序图
 
 ```mermaid
 sequenceDiagram
-    participant App as 应用层
-    participant Manager as 词缀管理器
-    participant Instance as 词缀实例
-    participant AttributeSet as 属性集
-    participant GE as GameplayEffect
-    participant ASC as AbilitySystemComponent
+    participant Business as 业务层<br/>UMyGameAffixManager
+    participant Core as 核心框架层<br/>USagaAffixManagerAbility
+    participant Interface as 接口层<br/>USagaAffixInstanceAbility
+    participant Concrete as 具体实现<br/>UFireDamageAffixAbility
+    participant GAS as GAS层<br/>AbilitySystemComponent
     
-    App->>Manager: ApplyAffix(Request)
-    Manager->>Manager: ValidateApplication()
-    Manager->>Manager: CheckConflicts()
-    Manager->>Instance: CreateInstance()
-    Instance->>Instance: InitializeInstance()
-    Instance->>GE: CreateGameplayEffectSpec()
-    Instance->>ASC: ApplyGameplayEffectSpecToSelf()
-    ASC->>AttributeSet: ModifyAttribute()
-    AttributeSet->>AttributeSet: UpdateStatistics()
-    AttributeSet-->>Manager: OnAttributeChanged
-    Manager-->>App: OnAffixApplied(InstanceID)
+    Business->>Core: ApplyAffix(Request)
+    Core->>Core: 验证核心依赖<br/>ValidateAffixDependencies()
+    Core->>Business: 调用业务扩展点<br/>CanApplyAffix(Request)
+    Business-->>Core: 业务验证结果
+    Core->>Interface: 创建实例<br/>CreateInstance()
+    Interface->>Concrete: 调用具体实现<br/>OnAffixActivated()
+    Concrete->>Concrete: 实现具体逻辑<br/>SetupFireDamageEffect()
+    Concrete->>GAS: 应用GameplayEffect
+    GAS-->>Interface: 效果应用完成
+    Interface-->>Core: 实例激活完成
+    Core->>Business: 触发业务事件<br/>OnAffixApplied()
     
-    Note over Instance: 持续运行周期
-    Instance->>Instance: CheckExpiration()
-    Instance->>Instance: ApplyPeriodicEffects()
+    Note over Concrete: 业务逻辑持续运行
+    Concrete->>Concrete: 执行火焰伤害逻辑
     
-    App->>Manager: RemoveAffix(InstanceID)
-    Manager->>Instance: EndAbility()
-    Instance->>ASC: RemoveActiveGameplayEffect()
-    ASC->>AttributeSet: ModifyAttribute()
-    AttributeSet->>AttributeSet: UpdateStatistics()
-    Manager-->>App: OnAffixRemoved(InstanceID)
+    Business->>Core: RemoveAffix(InstanceID)
+    Core->>Interface: EndAbility()
+    Interface->>Concrete: OnAffixDeactivated()
+    Concrete->>GAS: RemoveGameplayEffect
+    Core->>Business: OnAffixRemoved()
 ```
 
 ---
 
 ## 类关系图
 
-### 1. 核心类继承关系
+### 1. 分层类继承关系图
 
 ```mermaid
 classDiagram
+    %% 基础设施层
     class UGameplayAbility {
-        <<abstract>>
+        <<GAS Base Class>>
         +ActivateAbility()
         +EndAbility()
         +CanActivateAbility()
     }
     
     class USagaAttributeSet {
-        <<abstract>>
+        <<SagaStats Base>>
         +GetLifetimeReplicatedProps()
         +PreAttributeChange()
         +PostGameplayEffectExecute()
     }
     
+    %% 核心框架层
     class USagaAffixManagerAbility {
-        +ApplyAffix()
-        +RemoveAffix()
-        +GetActiveAffixes()
-        +ValidateApplication()
-        +CheckConflicts()
-        +LoadAffixDefinitions()
-        -ActiveAffixInstances: TMap
-        -CachedAffixDefinitions: TMap
-        -ExpirationCheckTimerHandle: FTimerHandle
+        <<Core Framework>>
+        +ApplyAffix() : FGuid
+        +RemoveAffix() : bool
+        +GetActiveAffixes() : TArray
+        #CanApplyAffix() : bool {业务扩展点}
+        #OnAffixApplied() {业务扩展点}
+        #OnAffixRemoved() {业务扩展点}
+        -ActiveAffixInstances : TMap
+        -CachedDefinitions : TMap
     }
     
     class USagaAffixInstanceAbility {
-        +InitializeInstance()
-        +ApplyAffixEffects()
-        +RemoveAffixEffects()
-        +UpdateInstanceState()
-        +AddStack()
-        +RefreshDuration()
-        -AffixDefinition: FSagaAffixDefinition
-        -InstanceInfo: FSagaActiveAffixInfo
-        -ManagerAbility: TWeakObjectPtr
-        -DurationTimerHandle: FTimerHandle
+        <<Core Framework + Interface>>
+        +UpdateInstanceState() : bool
+        +AddStack() : bool
+        +RemoveStack() : bool
+        +OnAffixActivated() {业务接口}
+        +OnAffixDeactivated() {业务接口}
+        +CalculateEffectMagnitude() {业务接口}
+        #AffixDefinition : FSagaAffixDefinitionCore
+        #InstanceInfo : FSagaActiveAffixInfo
     }
     
     class USagaAffixAttributeSet {
-        +ActiveAffixCount: FSagaClampedGameplayAttributeData
-        +MaxAffixSlots: FSagaClampedGameplayAttributeData
-        +TotalAffixPower: FSagaClampedGameplayAttributeData
-        +AffixEfficiency: FSagaClampedGameplayAttributeData
+        <<Core Framework>>
+        +ActiveAffixCount : FSagaClampedGameplayAttributeData
+        +MaxAffixSlots : FSagaClampedGameplayAttributeData
+        +TotalAffixPower : FSagaClampedGameplayAttributeData
         +OnRep_ActiveAffixCount()
         +UpdateDerivedAttributes()
-        +ValidateAttributeConstraints()
     }
     
-    UGameplayAbility <|-- USagaAffixManagerAbility
-    UGameplayAbility <|-- USagaAffixInstanceAbility
-    USagaAttributeSet <|-- USagaAffixAttributeSet
+    %% 业务逻辑层
+    class UMyGameAffixManager {
+        <<Business Implementation>>
+        +CanApplyAffix() override
+        +OnAffixApplied() override
+        +CheckLevelRequirement() : bool
+        +CheckClassRestriction() : bool
+        +GetMaxAffixSlots() : int32
+    }
     
-    USagaAffixManagerAbility --o USagaAffixInstanceAbility : manages
-    USagaAffixInstanceAbility --> USagaAffixAttributeSet : modifies
-    USagaAffixManagerAbility --> USagaAffixAttributeSet : queries
+    class UFireDamageAffixAbility {
+        <<Business Implementation>>
+        +OnAffixActivated() override
+        +OnAffixDeactivated() override
+        +CalculateEffectMagnitude() override
+        +ApplyBurnEffect()
+        +GetFireAffinityBonus() : float
+    }
+    
+    %% 继承关系
+    UGameplayAbility <|-- USagaAffixManagerAbility : 核心框架继承
+    UGameplayAbility <|-- USagaAffixInstanceAbility : 核心框架继承
+    USagaAttributeSet <|-- USagaAffixAttributeSet : 核心框架继承
+    
+    USagaAffixManagerAbility <|-- UMyGameAffixManager : 业务层继承
+    USagaAffixInstanceAbility <|-- UFireDamageAffixAbility : 业务层继承
+    
+    %% 组合关系
+    USagaAffixManagerAbility --o USagaAffixInstanceAbility : 管理实例
+    USagaAffixInstanceAbility --> USagaAffixAttributeSet : 修改属性
+    
+    %% 样式
+    classDef coreFramework fill:#e8f5e8,stroke:#4caf50
+    classDef businessLogic fill:#e1f5fe,stroke:#2196f3
+    classDef infrastructure fill:#fff3e0,stroke:#ff9800
+    
+    class USagaAffixManagerAbility,USagaAffixInstanceAbility,USagaAffixAttributeSet coreFramework
+    class UMyGameAffixManager,UFireDamageAffixAbility businessLogic
+    class UGameplayAbility,USagaAttributeSet infrastructure
 ```
 
-### 2. 数据结构关系图
+### 2. 分层数据结构关系图
 
 ```mermaid
 classDiagram
-    class FSagaAffixDefinition {
-        +AffixID: FGameplayTag
-        +DisplayName: FText
-        +Description: FText
-        +Rarity: ESagaAffixRarity
-        +Category: FGameplayTag
-        +Effects: TArray~FSagaAffixEffectConfig~
-        +ExclusiveTags: FGameplayTagContainer
-        +PrerequisiteTags: FGameplayTagContainer
-        +bIsUnique: bool
-        +Weight: float
-        +RequiredLevel: int32
+    %% 基础设施层 - 核心数据结构
+    class FSagaAffixDefinitionCore {
+        <<Core Framework>>
+        +AffixID : FGameplayTag
+        +ImplementationClass : TSubclassOf
+        +InitialState : ESagaAffixState
+        +BaseDuration : float
+        +bCanStack : bool
+        +MaxStackCount : int32
+        +StackingMode : ESagaAffixStackingMode
     }
     
-    class FSagaAffixEffectConfig {
-        +EffectType: ESagaAffixEffectType
-        +Magnitude: float
-        +Duration: float
-        +StackingMode: ESagaAffixStackingMode
-        +MaxStacks: int32
-        +bIsInstant: bool
-        +bIsPeriodic: bool
-        +Period: float
-        +GameplayEffectClass: TSoftClassPtr
-        +Conditions: TArray~FSagaAffixCondition~
+    class FSagaAffixDependencyCore {
+        <<Core Framework>>
+        +OneOfRequired : TArray~FGameplayTag~
+        +OneFromEachSetRequired : TArray~FSagaAffixSet~
+        +ExclusiveTags : FGameplayTagContainer
     }
     
     class FSagaActiveAffixInfo {
-        +AffixID: FGameplayTag
-        +InstanceID: FGuid
-        +State: ESagaAffixState
-        +StackCount: int32
-        +RemainingDuration: float
-        +AppliedTimestamp: float
-        +SourceActorWeak: TWeakObjectPtr
-        +ActiveEffectHandles: TArray~FActiveGameplayEffectHandle~
-        +CustomData: TMap~FString,FString~
+        <<Core Framework>>
+        +AffixID : FGameplayTag
+        +InstanceID : FGuid
+        +State : ESagaAffixState
+        +StackCount : int32
+        +RemainingDuration : float
+        +AppliedTimestamp : float
+        +SourceActorWeak : TWeakObjectPtr
+        +ActiveEffectHandles : TArray
     }
     
     class FSagaAffixApplicationRequest {
-        +AffixID: FGameplayTag
-        +TargetActor: TObjectPtr~AActor~
-        +SourceActor: TObjectPtr~AActor~
-        +OverrideDuration: float
-        +OverrideMagnitude: float
-        +bForceApplication: bool
-        +bSuppressEvents: bool
-        +RequestPriority: int32
-        +CustomParameters: TMap~FString,FString~
+        <<Core Framework>>
+        +AffixID : FGameplayTag
+        +TargetActor : TObjectPtr~AActor~
+        +SourceActor : TObjectPtr~AActor~
+        +OverrideDuration : float
+        +OverrideMagnitude : float
+        +bForceApplication : bool
+        +CustomParameters : TMap
     }
     
-    FSagaAffixDefinition *-- FSagaAffixEffectConfig
-    FSagaAffixDefinition ..> FSagaActiveAffixInfo
-    FSagaAffixApplicationRequest ..> FSagaActiveAffixInfo
+    %% 业务逻辑层 - 扩展数据结构
+    class FMyGameAffixDefinition {
+        <<Business Extension>>
+        +DisplayName : FText
+        +Description : FText
+        +Icon : TSoftObjectPtr~UTexture2D~
+        +Rarity : ESagaAffixRarity
+        +RequiredLevel : int32
+        +Weight : float
+        +BusinessDependencies : FMyGameDependencies
+    }
+    
+    class FMyGameAffixDependencies {
+        <<Business Extension>>
+        +QualityRequirements : TMap
+        +MinimumLevel : int32
+        +AllowedClasses : TArray~FGameplayTag~
+        +RequiredItems : TArray~FGameplayTag~
+    }
+    
+    %% 依赖关系
+    FSagaAffixDefinitionCore <|-- FMyGameAffixDefinition : 业务层继承核心定义
+    FSagaAffixDependencyCore <|-- FMyGameAffixDependencies : 业务层扩展核心依赖
+    
+    FSagaAffixDefinitionCore --> FSagaAffixDependencyCore : 包含核心依赖
+    FMyGameAffixDefinition --> FMyGameAffixDependencies : 包含业务依赖
+    
+    FSagaAffixDefinitionCore ..> FSagaActiveAffixInfo : 生成运行时信息
+    FSagaAffixApplicationRequest ..> FSagaActiveAffixInfo : 创建实例信息
+    
+    %% 样式
+    classDef coreData fill:#e8f5e8,stroke:#4caf50
+    classDef businessData fill:#e1f5fe,stroke:#2196f3
+    
+    class FSagaAffixDefinitionCore,FSagaAffixDependencyCore,FSagaActiveAffixInfo,FSagaAffixApplicationRequest coreData
+    class FMyGameAffixDefinition,FMyGameAffixDependencies businessData
 ```
 
 ---
@@ -737,60 +1032,101 @@ stateDiagram-v2
 
 ## 网络架构设计
 
-### 1. 网络复制架构
+### 1. 分层网络架构设计
 
 ```mermaid
 graph TB
-    subgraph "服务器 Server"
-        ServerASC[AbilitySystemComponent]
-        ServerManager[词缀管理器]
-        ServerInstance[词缀实例]
-        ServerAttributeSet[属性集]
+    subgraph "服务器端 Server"
+        subgraph "业务逻辑层"
+            ServerBusiness[UMyGameAffixManager<br/>业务规则处理]
+            ServerConcrete[UFireDamageAffixAbility<br/>具体实现]
+        end
+        
+        subgraph "核心框架层"
+            ServerCore[USagaAffixManagerAbility<br/>核心管理器]
+            ServerInstance[USagaAffixInstanceAbility<br/>核心实例]
+        end
+        
+        subgraph "GAS层"
+            ServerASC[AbilitySystemComponent]
+            ServerAttributeSet[USagaAffixAttributeSet]
+            ServerGE[GameplayEffect实例]
+        end
     end
     
     subgraph "客户端 Client"
-        ClientASC[AbilitySystemComponent]
-        ClientManager[词缀管理器代理]
-        ClientAttributeSet[属性集副本]
-        ClientUI[UI界面]
+        subgraph "UI表现层"
+            ClientUI[词缀UI界面]
+            ClientVFX[特效系统]
+        end
+        
+        subgraph "代理层"
+            ClientProxy[词缀管理器代理]
+        end
+        
+        subgraph "GAS层"
+            ClientASC[AbilitySystemComponent]
+            ClientAttributeSet[属性集副本]
+        end
     end
     
-    ServerASC -.->|GAS复制| ClientASC
+    %% 网络复制关系
+    ServerASC -.->|GAS原生复制| ClientASC
     ServerAttributeSet -.->|属性复制| ClientAttributeSet
-    ServerManager -.->|事件复制| ClientManager
-    ServerInstance -.->|状态复制| ClientManager
+    ServerCore -.->|事件广播| ClientProxy
     
+    %% 客户端数据流
     ClientAttributeSet --> ClientUI
-    ClientManager --> ClientUI
+    ClientProxy --> ClientUI
+    ClientUI --> ClientVFX
     
-    %% 基于GAS原生复制机制
+    %% 服务器内部依赖
+    ServerBusiness --> ServerCore
+    ServerConcrete --> ServerInstance
+    ServerCore --> ServerASC
+    ServerInstance --> ServerGE
+    ServerGE --> ServerASC
 ```
 
-### 2. 网络事件流程
+### 2. 分层网络交互时序图
 
 ```mermaid
 sequenceDiagram
-    participant Client as 客户端
-    participant ServerManager as 服务器管理器
-    participant ServerInstance as 服务器实例
-    participant ServerASC as 服务器ASC
-    participant ClientASC as 客户端ASC
     participant ClientUI as 客户端UI
+    participant ClientProxy as 客户端代理
+    participant ServerBiz as 服务器业务层
+    participant ServerCore as 服务器核心层
+    participant ServerGAS as 服务器GAS
+    participant ClientGAS as 客户端GAS
     
-    Client->>ServerManager: 请求应用词缀(RPC)
-    ServerManager->>ServerManager: 验证权限
-    ServerManager->>ServerInstance: 创建实例
-    ServerInstance->>ServerASC: 应用GameplayEffect
-    ServerASC-->>ClientASC: 复制效果(GAS)
-    ServerManager-->>Client: 广播事件(Multicast)
-    Client->>ClientUI: 更新UI显示
+    ClientUI->>ClientProxy: 用户请求应用词缀
+    ClientProxy->>ServerBiz: RPC: RequestApplyAffix()
     
-    Note over ServerInstance: 持续时间管理
-    ServerInstance->>ServerInstance: 检查过期
-    ServerInstance->>ServerASC: 移除GameplayEffect
-    ServerASC-->>ClientASC: 复制移除(GAS)
-    ServerManager-->>Client: 广播移除事件(Multicast)
-    Client->>ClientUI: 更新UI显示
+    ServerBiz->>ServerBiz: 业务规则验证<br/>CheckLevelRequirement()
+    ServerBiz->>ServerCore: 调用核心框架<br/>ApplyAffix()
+    
+    ServerCore->>ServerCore: 核心验证<br/>ValidateAffixDependencies()
+    ServerCore->>ServerCore: 创建词缀实例
+    
+    Note over ServerCore: 实例激活
+    ServerCore->>ServerGAS: 应用GameplayEffect
+    ServerGAS-->>ClientGAS: GAS复制<br/>效果自动同步
+    
+    ServerCore->>ServerBiz: 触发业务事件<br/>OnAffixApplied()
+    ServerBiz-->>ClientProxy: Multicast: NotifyAffixApplied()
+    ClientProxy->>ClientUI: 更新UI显示
+    
+    Note over ServerCore: 持续运行
+    loop 词缀生命周期
+        ServerCore->>ServerCore: 检查过期
+        alt 词缀过期
+            ServerCore->>ServerGAS: 移除GameplayEffect
+            ServerGAS-->>ClientGAS: GAS复制<br/>移除同步
+            ServerCore->>ServerBiz: OnAffixRemoved()
+            ServerBiz-->>ClientProxy: Multicast: NotifyAffixRemoved()
+            ClientProxy->>ClientUI: 更新UI显示
+        end
+    end
 ```
 
 ---
@@ -923,78 +1259,137 @@ flowchart TD
 
 ---
 
-## 测试策略设计
+## 分层测试策略设计
 
-### 1. 测试金字塔
+### 1. 分层测试金字塔
 
 ```mermaid
 graph TD
-    subgraph "测试层次结构"
-        E2E[端到端测试<br/>完整流程验证]
-        Integration[集成测试<br/>组件交互验证]
-        Unit[单元测试<br/>函数级别验证]
+    subgraph "测试分层结构"
+        E2E["端到端测试<br/>完整游戏流程验证<br/>业务层+核心层+GAS"]
+        Integration["集成测试<br/>跨层交互验证<br/>业务层↔核心层"]
+        CoreUnit["核心单元测试<br/>核心框架功能验证<br/>状态机+依赖验证"]
+        BusinessUnit["业务单元测试<br/>具体词缀逻辑验证<br/>火焰伤害+治疗"]
     end
     
-    Unit -.->|支撑| Integration
+    BusinessUnit -.->|支撑| Integration
+    CoreUnit -.->|支撑| Integration
     Integration -.->|支撑| E2E
     
-    Unit -.->|占比70%| UnitDesc[快速反馈<br/>高覆盖率<br/>低成本]
-    Integration -.->|占比20%| IntDesc[接口验证<br/>交互测试<br/>中等成本]
-    E2E -.->|占比10%| E2EDesc[用户体验<br/>完整验证<br/>高成本]
+    CoreUnit -.->|占比40%| CoreDesc["框架稳定性<br/>高覆盖率<br/>快速反馈"]
+    BusinessUnit -.->|占比30%| BusinessDesc["功能正确性<br/>业务逻辑<br/>中等成本"]
+    Integration -.->|占比20%| IntDesc["接口兼容性<br/>跨层交互<br/>中等成本"]
+    E2E -.->|占比10%| E2EDesc["用户体验<br/>完整验证<br/>高成本"]
+    
+    %% 样式
+    classDef coreTest fill:#e8f5e8,stroke:#4caf50
+    classDef businessTest fill:#e1f5fe,stroke:#2196f3
+    classDef integrationTest fill:#f3e5f5,stroke:#9c27b0
+    classDef e2eTest fill:#fff3e0,stroke:#ff9800
+    
+    class CoreUnit coreTest
+    class BusinessUnit businessTest
+    class Integration integrationTest
+    class E2E e2eTest
 ```
 
-### 2. 测试用例设计
+### 2. 分层测试用例设计
 
 ```mermaid
 mindmap
-  root((测试用例))
-    单元测试
-      词缀定义验证
-      效果计算验证
-      状态转换验证
-      条件检查验证
-    集成测试
-      管理器-实例交互
-      属性集同步
+  root((分层测试用例))
+    核心框架测试
+      生命周期管理
+        词缀创建/销毁
+        状态转换验证
+        过期检查机制
+      依赖验证系统
+        OneOf依赖检查
+        OneFromEachSet验证
+        冲突检测逻辑
       网络复制
+        GAS集成复制
+        属性同步
+        事件广播
+    业务逻辑测试
+      具体词缀实现
+        火焰伤害计算
+        治疗效果验证
+        速度提升逻辑
+      游戏规则
+        等级要求检查
+        职业限制验证
+        稀有度限制
+      UI集成
+        界面显示正确性
+        交互响应验证
+    跨层集成测试
+      接口兼容性
+        核心框架↔业务层
+        扩展点正确调用
+        数据传递完整性
       事件传播
-    性能测试
-      大量词缀性能
-      内存使用测试
-      网络带宽测试
-      并发操作测试
-    压力测试
-      极限词缀数量
-      快速操作频率
-      长时间运行
-      异常情况处理
+        业务事件触发
+        核心事件响应
+        跨层通信
+    性能和压力测试
+      框架性能
+        大量实例管理
+        缓存效率
+        内存使用
+      业务性能
+        复杂词缀计算
+        UI渲染性能
+        特效系统负载
 ```
 
 ---
 
 ## 总结
 
-本详细程序设计文档为SagaStats词缀系统提供了完整的技术规范：
+本详细程序设计文档为SagaStats词缀系统提供了完整的分层架构技术规范：
 
-### 核心特性
-- **纯GAS架构**: 深度集成GameplayAbility系统
-- **事件驱动**: 基于GameplayEvents的松耦合设计
-- **数据驱动**: DataTable配置的灵活定义系统
-- **网络优化**: 基于GAS原生复制的高效网络架构
+### 核心架构特性
+- **分层架构**: 核心框架与业务逻辑的清晰分离，确保高复用性和可扩展性
+- **纯GAS集成**: 深度集成GameplayAbility系统，无缝利用GAS生态
+- **依赖倒置设计**: 核心框架不依赖具体实现，通过接口定义扩展点
+- **Hades经验借鉴**: 基于对Hades源码的深入分析，实现经过实战验证的依赖验证系统
 
 ### 设计亮点
-- **分层架构**: 清晰的管理层、实例层、数据层分离
-- **状态机**: 完善的实例和系统状态管理
-- **性能优化**: 多层次缓存和批处理策略
-- **错误处理**: 完整的错误分类和恢复机制
+- **四层架构**: 基础设施层、核心框架层、接口层、业务逻辑层的明确分工
+- **双重配置系统**: 核心配置（稳定不变）+ 业务配置（灵活扩展）
+- **分层测试策略**: 针对不同层次的专门化测试方案
+- **网络架构优化**: 分层网络设计，核心数据自动同步，业务事件精准广播
 
 ### 实施路径
-1. **第一阶段**: 核心类和数据结构实现
-2. **第二阶段**: 基础功能和API接口
-3. **第三阶段**: 高级特性和优化
-4. **第四阶段**: 测试验证和性能调优
+1. **第一阶段**: 基础设施层和核心框架层实现
+   - 核心数据结构和枚举定义
+   - 生命周期管理和状态机系统
+   - 基于Hades经验的依赖验证系统
 
-该设计文档为后续的代码实现提供了详细的技术指导，确保系统的可维护性、可扩展性和高性能。
+2. **第二阶段**: 接口层和基础API实现
+   - 抽象基类和扩展点定义
+   - 核心API接口实现
+   - GAS集成和网络复制框架
+
+3. **第三阶段**: 业务示例和高级特性
+   - 具体词缀实现示例
+   - 游戏特定规则系统
+   - UI集成和表现系统
+
+4. **第四阶段**: 全面测试和性能优化
+   - 分层测试体系建设
+   - 性能监控和调优
+   - 文档完善和用例示例
+
+### 架构价值
+这种分层设计确保了SagaStats词缀系统：
+- **高复用性**: 核心框架可在多个项目间复用
+- **强扩展性**: 业务层可以自由扩展而不影响核心稳定性
+- **易维护性**: 清晰的职责边界，便于定位和修复问题
+- **测试友好**: 分层测试策略，确保各层次的质量
+
+该分层设计文档为后续的代码实现提供了详细的技术指导，确保系统既能作为稳定的框架基础，又能满足不同游戏的个性化需求。
 
 ---
 
