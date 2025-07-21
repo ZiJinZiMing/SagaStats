@@ -424,7 +424,7 @@ AbilitySystem.Ability.Grant Meter_Health
 ## 联系信息
 
 - **项目位置**: `D:\UnrealEngine\UnrealEngine\Projects\SagaStats`
-- **文档维护**: Claude Code
+- **文档作者**: ZhangJinming
 - **最后更新**: 2025-07-16
 
 ---
