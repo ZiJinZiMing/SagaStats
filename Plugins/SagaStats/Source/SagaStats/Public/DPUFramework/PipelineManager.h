@@ -73,6 +73,26 @@ public:
 	/** 便捷方法：从 PipelineAsset 执行。 */
 	TArray<FDPUExecutionEntry> ExecuteFromAsset(UPipelineAsset* Asset, UDamageContext* DC);
 
+	// === Mermaid DAG 导出 ===
+
+	/** 是否在每次 ExecutePipeline 后自动导出 Mermaid DAG 文件 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bAutoExportMermaid = true;
+
+	/** 场景名称标签，会显示在 Mermaid 图表标题中 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FString ScenarioLabel;
+
+	/**
+	 * 将 Pipeline 执行结果导出为 Mermaid DAG (.mmd) 文件。
+	 * 包含：DPU 节点（Condition + Produces + 执行状态）、依赖连线、DC 初始字段。
+	 * 保存到 Saved/Graphs/ 目录。
+	 */
+	void ExportMermaidDAG(
+		const TArray<UDPUDefinition*>& DPUs,
+		const TArray<FDPUExecutionEntry>& ExecutionLog,
+		const UDamageContext* DC) const;
+
 private:
 	/** 逻辑实例缓存，避免每次执行时重复创建 NewObject。 */
 	UPROPERTY()

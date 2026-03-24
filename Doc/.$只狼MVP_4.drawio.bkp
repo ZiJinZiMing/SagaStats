@@ -1,0 +1,913 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.3.0 Chrome/140.0.7339.249 Electron/38.7.2 Safari/537.36" version="29.3.0">
+  <diagram name="伤害处理瀑布" id="OdQjEf6cZG8PLCbepIdW">
+    <mxGraphModel dx="-31135" dy="-15229" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="1mbgIBx3Q-0EeWusDaob-0" />
+        <mxCell id="1mbgIBx3Q-0EeWusDaob-1" parent="1mbgIBx3Q-0EeWusDaob-0" />
+        <mxCell id="dstLN57wYbqUIXLDyb3q-380" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-400" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-477">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34724.5" y="24762.500000000004" as="sourcePoint" />
+            <mxPoint x="34492.5" y="24875.500000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-381" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="213.75" width="127" x="34275.5" y="24828.750000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-382" parent="dstLN57wYbqUIXLDyb3q-381" style="rounded=0;whiteSpace=wrap;html=1;" value="动画Tag" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-383" parent="dstLN57wYbqUIXLDyb3q-381" style="rounded=0;whiteSpace=wrap;html=1;" value="Motion" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-384" parent="dstLN57wYbqUIXLDyb3q-381" style="rounded=0;whiteSpace=wrap;html=1;" value="sfx命中视效" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="123.75" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-385" parent="dstLN57wYbqUIXLDyb3q-381" style="rounded=0;whiteSpace=wrap;html=1;" value="se命中音效" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="163.75" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-386" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-474" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-381">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33950.5" y="25015.000000000004" as="sourcePoint" />
+            <mxPoint x="34200.5" y="24895.000000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-387" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="210" width="210" x="33630" y="24532.500000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-388" parent="dstLN57wYbqUIXLDyb3q-387" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DmgLevel 攻击类型" vertex="1">
+          <mxGeometry height="24" width="120" x="10" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-389" parent="dstLN57wYbqUIXLDyb3q-387" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="knockbackDist_DirectHit" vertex="1">
+          <mxGeometry height="24" width="130" x="10" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-390" parent="dstLN57wYbqUIXLDyb3q-387" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkMaterial_forSe武器音效材质" vertex="1">
+          <mxGeometry height="24" width="170" x="10" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-391" parent="dstLN57wYbqUIXLDyb3q-387" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkType （音视效）攻击物理类型" vertex="1">
+          <mxGeometry height="24" width="170" x="10" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-392" parent="dstLN57wYbqUIXLDyb3q-387" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkMaterial_forSfx武器视效材质" vertex="1">
+          <mxGeometry height="24" width="170" x="10" y="136" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-393" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=30;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="210" width="240" x="34238" y="24520.000000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-394" parent="dstLN57wYbqUIXLDyb3q-393" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="IsInAir是否在空中" vertex="1">
+          <mxGeometry height="24" width="100" x="15" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-395" parent="dstLN57wYbqUIXLDyb3q-393" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="knockbackRate_DirectHit" vertex="1">
+          <mxGeometry height="24" width="145" x="15" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-396" parent="dstLN57wYbqUIXLDyb3q-393" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="受击部位的materialSfx视效材质二维表" vertex="1">
+          <mxGeometry height="28" width="195" x="15" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-397" parent="dstLN57wYbqUIXLDyb3q-393" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="受击部位的materialSe音效材质二维表" vertex="1">
+          <mxGeometry height="28" width="195" x="15" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-398" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-387" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-477">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33430.5" y="24752.500000000004" as="sourcePoint" />
+            <mxPoint x="34010.5" y="24682.500000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-399" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-393" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-477">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34400.5" y="24632.500000000004" as="sourcePoint" />
+            <mxPoint x="34625.5" y="24775.500000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-400" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;swimlaneFillColor=#F5F5F5;startSize=25;fontSize=12;fontColor=#333333;" value="Attack上下文" vertex="1">
+          <mxGeometry height="100" width="120" x="34508.5" y="24597.500000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-401" parent="dstLN57wYbqUIXLDyb3q-400" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="受击部位" vertex="1">
+          <mxGeometry height="24" width="70" x="10" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-418" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-459" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-576">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33955.5" y="18860.120000000003" as="sourcePoint" />
+            <mxPoint x="34205.5" y="18740.120000000003" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-419" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="280" width="320" x="33490" y="18118.120000000003" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-420" parent="dstLN57wYbqUIXLDyb3q-419" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DmgLevel 攻击类型" vertex="1">
+          <mxGeometry height="24" width="120" x="10" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-421" parent="dstLN57wYbqUIXLDyb3q-419" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkType （音视效）攻击物理类型" vertex="1">
+          <mxGeometry height="24" width="170" x="10" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-422" parent="dstLN57wYbqUIXLDyb3q-419" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="knockbackDist_Guard" vertex="1">
+          <mxGeometry height="24" width="130" x="10" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-423" parent="dstLN57wYbqUIXLDyb3q-419" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkMaterial_forSfx武器视效材质" vertex="1">
+          <mxGeometry height="24" width="170" x="10" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-424" parent="dstLN57wYbqUIXLDyb3q-419" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkMaterial_forSe武器音效材质" vertex="1">
+          <mxGeometry height="24" width="170" x="10" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-425" parent="dstLN57wYbqUIXLDyb3q-419" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="knockbackDist_JustGuard" vertex="1">
+          <mxGeometry height="24" width="140" x="160" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-426" parent="dstLN57wYbqUIXLDyb3q-419" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkPosture_attacker 攻击者被弹开躯干伤害基础数值" vertex="1">
+          <mxGeometry height="24" width="280" x="10" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-427" parent="dstLN57wYbqUIXLDyb3q-419" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DefPostureRate 躯干伤害修正值" vertex="1">
+          <mxGeometry height="24" width="195" x="10" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-428" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="300" width="337" x="34171.5" y="18098.120000000003" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-429" parent="dstLN57wYbqUIXLDyb3q-428" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="knockbackRate_Guard" vertex="1">
+          <mxGeometry height="24" width="145" x="15" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-430" parent="dstLN57wYbqUIXLDyb3q-428" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="guard_level 受击方防御等级" vertex="1">
+          <mxGeometry height="24" width="145" x="15" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-431" parent="dstLN57wYbqUIXLDyb3q-428" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="受击方武器的materialSfx视效材质二维表" vertex="1">
+          <mxGeometry height="28" width="220" x="15" y="101" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-432" parent="dstLN57wYbqUIXLDyb3q-428" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="受击方武器的materialSe音&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;效材质二维表&lt;/span&gt;" vertex="1">
+          <mxGeometry height="28" width="220" x="15" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-433" parent="dstLN57wYbqUIXLDyb3q-428" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="knockbackRate_JustGuard" vertex="1">
+          <mxGeometry height="24" width="145" x="170" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-434" parent="dstLN57wYbqUIXLDyb3q-428" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="受击方武器JustGuard专用的materialSfx视效材质二维表" vertex="1">
+          <mxGeometry height="28" width="285" x="15" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-435" parent="dstLN57wYbqUIXLDyb3q-428" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="受击方武器JustGuard专用的materialSe音效材质二维表" vertex="1">
+          <mxGeometry height="28" width="285" x="15" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-436" parent="dstLN57wYbqUIXLDyb3q-428" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="GuardDirection 格挡方向" vertex="1">
+          <mxGeometry height="24" width="145" x="170" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-437" parent="dstLN57wYbqUIXLDyb3q-428" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="AtkPostureRate 躯干&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;伤害修正值&lt;/span&gt;" vertex="1">
+          <mxGeometry height="24" width="210" x="15" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-438" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-419" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-462">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33435.5" y="18637.620000000003" as="sourcePoint" />
+            <mxPoint x="34015.5" y="18567.620000000003" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-439" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-428" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-462">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34405.5" y="18517.620000000003" as="sourcePoint" />
+            <mxPoint x="34630.5" y="18660.620000000003" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-441" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="131" width="183.5" x="34343.37" y="21464.000000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-442" parent="dstLN57wYbqUIXLDyb3q-441" style="rounded=0;whiteSpace=wrap;html=1;" value="崩架势槽 动画Tag" vertex="1">
+          <mxGeometry height="30" width="130" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-443" parent="dstLN57wYbqUIXLDyb3q-441" style="rounded=0;whiteSpace=wrap;html=1;" value="IsCollapse" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="81" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-444" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-469" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-441">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33906.87" y="21700.750000000004" as="sourcePoint" />
+            <mxPoint x="34156.87" y="21580.750000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-445" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="173" width="220" x="33456.87" y="21506.500000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-446" parent="dstLN57wYbqUIXLDyb3q-445" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DmgPhy 攻击物理类型" vertex="1">
+          <mxGeometry height="24" width="120" x="10" y="63" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-447" parent="dstLN57wYbqUIXLDyb3q-445" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkPosture 躯干伤害基础数值" vertex="1">
+          <mxGeometry height="24" width="150" x="10" y="93" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-448" parent="dstLN57wYbqUIXLDyb3q-445" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="AtkPostureRate 攻击方躯干&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;伤害修正值&lt;/span&gt;" vertex="1">
+          <mxGeometry height="24" width="200" x="10" y="123" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-449" parent="dstLN57wYbqUIXLDyb3q-445" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DmgLevel 攻击类型" vertex="1">
+          <mxGeometry height="24" width="120" x="10" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-450" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="162" width="230" x="33446.87" y="21330.000000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-451" parent="dstLN57wYbqUIXLDyb3q-450" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="IsInAir是否在空中" vertex="1">
+          <mxGeometry height="24" width="100" x="15" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-452" parent="dstLN57wYbqUIXLDyb3q-450" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DmgDirection&amp;nbsp;受击方向" vertex="1">
+          <mxGeometry height="24" width="135" x="15" y="69" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-453" parent="dstLN57wYbqUIXLDyb3q-450" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DefPostureRate 受击方躯干伤害修正值" vertex="1">
+          <mxGeometry height="24" width="195" x="15" y="99" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-454" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-445" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-469">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33466.87" y="21459.500000000004" as="sourcePoint" />
+            <mxPoint x="33691.87" y="21602.500000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-455" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-450" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-469">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34376.87" y="21259.500000000004" as="sourcePoint" />
+            <mxPoint x="34566.87" y="21382.500000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-456" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-469" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=20;" target="dstLN57wYbqUIXLDyb3q-525" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34726.87" y="21137.000000000004" as="sourcePoint" />
+            <mxPoint x="34736.87" y="21617.000000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-457" parent="1mbgIBx3Q-0EeWusDaob-1" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fontSize=20;" value="只狼V4" vertex="1">
+          <mxGeometry height="90" width="230" x="33190" y="17430" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-458" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="1248.510000000002" width="842.5" x="33669" y="18521.489999999998" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-459" parent="dstLN57wYbqUIXLDyb3q-458" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_Guard" vertex="1">
+          <mxGeometry height="335" width="663.5" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-460" parent="dstLN57wYbqUIXLDyb3q-459" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=16;" value="Guard机制：通过动画、Motion、sfx、se等多维度表现来表达角色成功格挡或弹开攻击" vertex="1">
+          <mxGeometry height="47.5" width="360" x="155" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-461" parent="dstLN57wYbqUIXLDyb3q-459" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;if JustGuard:&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; IsJustGuard=true&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; 弹开动画：JustGuard动画&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; Motion: knockbackDist_JustGuard = Dist × (1 - knockbackRate_JustGuard/100)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; sfx命中视效：受击方武器JustGuard专用的materialSfx（atkMaterial_forSfx，atkType）&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; se命中音效：受击方武器JustGuard专用的materialSe（atkMaterial_forSe，atkType）&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;else:&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; 格挡动画：格挡二维表guard_damage_table[DmgLevel, guard_level]&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; Motion: MotionDist = knockbackDist_Guard × (1 - knockbackRate_Guard/100)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; sfx命中视效：受击方武器的materialSfx（atkMaterial_forSfx，atkType）&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; se命中音效：受击方武器的materialSe（atkMaterial_forSe，atkType）&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="212.5" width="620" x="10" y="87.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-462" parent="dstLN57wYbqUIXLDyb3q-458" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition: Guard &amp;amp;&amp;amp;&amp;nbsp;&lt;span style=&quot;font-weight: 400;&quot;&gt;&amp;amp;&amp;amp; !&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;IsLightningInAir&amp;nbsp;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="25" width="663.5" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-403" parent="dstLN57wYbqUIXLDyb3q-458" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="131.5" width="148" x="648.5" y="632.2600000000057" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-404" parent="dstLN57wYbqUIXLDyb3q-403" style="rounded=0;whiteSpace=wrap;html=1;" value="死亡动画Tag" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-405" parent="dstLN57wYbqUIXLDyb3q-403" style="rounded=0;whiteSpace=wrap;html=1;" value="IsDeath" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="87.25" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-406" edge="1" parent="dstLN57wYbqUIXLDyb3q-458" source="dstLN57wYbqUIXLDyb3q-464" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-403">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="869.2600000000057" as="sourcePoint" />
+            <mxPoint x="450" y="749.2600000000057" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-407" parent="dstLN57wYbqUIXLDyb3q-458" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="173" width="220" x="-170" y="680.2600000000057" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-408" parent="dstLN57wYbqUIXLDyb3q-407" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DmgPhy 攻击物理类型" vertex="1">
+          <mxGeometry height="24" width="120" x="10" y="63" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-409" parent="dstLN57wYbqUIXLDyb3q-407" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="AtkDmg 伤害基础数值" vertex="1">
+          <mxGeometry height="24" width="120" x="10" y="93" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-410" parent="dstLN57wYbqUIXLDyb3q-407" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="AtkPhyRate 攻击方物理伤害修正值" vertex="1">
+          <mxGeometry height="24" width="180" x="10" y="123" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-411" parent="dstLN57wYbqUIXLDyb3q-407" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DmgLevel 攻击类型" vertex="1">
+          <mxGeometry height="24" width="120" x="10" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-412" parent="dstLN57wYbqUIXLDyb3q-458" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="162" width="230" x="-175" y="498.5100000000057" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-413" parent="dstLN57wYbqUIXLDyb3q-412" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="IsInAir是否在空中" vertex="1">
+          <mxGeometry height="24" width="100" x="15" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-414" parent="dstLN57wYbqUIXLDyb3q-412" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DmgDirection&amp;nbsp;受击方向" vertex="1">
+          <mxGeometry height="24" width="135" x="15" y="69" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-415" parent="dstLN57wYbqUIXLDyb3q-412" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DefPhyRate 受击方物理伤害修正值" vertex="1">
+          <mxGeometry height="24" width="185" x="15" y="112" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-416" edge="1" parent="dstLN57wYbqUIXLDyb3q-458" source="dstLN57wYbqUIXLDyb3q-407" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-464">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="-240" y="628.0100000000057" as="sourcePoint" />
+            <mxPoint x="-15" y="771.0100000000057" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-417" edge="1" parent="dstLN57wYbqUIXLDyb3q-458" source="dstLN57wYbqUIXLDyb3q-412" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-464">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="670" y="428.0100000000057" as="sourcePoint" />
+            <mxPoint x="860" y="551.0100000000057" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-463" connectable="0" parent="dstLN57wYbqUIXLDyb3q-458" style="group" value="" vertex="1">
+          <mxGeometry height="185" width="454" x="111" y="593.0100000000057" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-464" parent="dstLN57wYbqUIXLDyb3q-463" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_Death" vertex="1">
+          <mxGeometry height="160" width="454" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-465" parent="dstLN57wYbqUIXLDyb3q-464" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="死亡机制：HP为0时播放死亡动画" vertex="1">
+          <mxGeometry height="27.5" width="302.5" x="78.75" y="28.75" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-466" parent="dstLN57wYbqUIXLDyb3q-464" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;div&gt;&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;死亡判定：Meter_HP为空&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;HPDamage计算：GEModifier动态公式：&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;AtkDmg *&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;AtkPhyRate *&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;DefPhyRate&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;死亡动画：死亡动画选取器(&lt;/span&gt;&lt;span style=&quot;text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;DmgLevel,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;IsInAir,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;DmgPhy,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;DmgDirection&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 12px;&quot;&gt;)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="69.25" width="425" x="15" y="70.75" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-467" parent="dstLN57wYbqUIXLDyb3q-463" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition: !(Guard &amp;amp;&amp;amp;&amp;nbsp;&lt;span style=&quot;font-weight: 400;&quot;&gt;GuardSuccess &lt;/span&gt;)&lt;span style=&quot;font-weight: 400;&quot;&gt;&amp;amp;&amp;amp; !&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;IsLightningInAir&amp;nbsp;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="25" width="454" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-440" edge="1" parent="dstLN57wYbqUIXLDyb3q-458" source="dstLN57wYbqUIXLDyb3q-459" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=20;" target="dstLN57wYbqUIXLDyb3q-467" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1042" y="233.63000000000466" as="sourcePoint" />
+            <mxPoint x="317" y="-356.86999999999534" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-468" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="184.5" width="490" x="33786.87" y="21425.000000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-469" parent="dstLN57wYbqUIXLDyb3q-468" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_Collapse" vertex="1">
+          <mxGeometry height="160" width="490" y="24.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-470" parent="dstLN57wYbqUIXLDyb3q-469" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="架势槽崩溃机制：架势槽满播放崩溃动画" vertex="1">
+          <mxGeometry height="27.5" width="311.25" x="89.38" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-471" parent="dstLN57wYbqUIXLDyb3q-469" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;span style=&quot;font-size: 12px;&quot;&gt;架势槽崩溃&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;判定：Meter_Posture为空&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Posture计算：GEModifier动态公式：&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;atk&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Posture&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;&amp;nbsp;*&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Atk&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Posture&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Rate *&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Def&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Posture&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Rate&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;崩溃&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;动画：&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;崩溃&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;动画选取器(&lt;/span&gt;&lt;span style=&quot;text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;DmgLevel,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;IsInAir,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;DmgPhy,&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;DmgDirection&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 12px;&quot;&gt;)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="69.25" width="465" x="15" y="70.75" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-472" parent="dstLN57wYbqUIXLDyb3q-468" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition: !(Guard &amp;amp;&amp;amp;&amp;nbsp;&lt;span style=&quot;font-weight: 400;&quot;&gt;GuardSuccess&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;&amp;nbsp;&lt;/span&gt;) &amp;amp;&amp;amp; !&lt;span style=&quot;font-weight: 400;&quot;&gt;IsLightningInAir&lt;/span&gt;" vertex="1">
+          <mxGeometry height="25" width="490" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-473" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="242.50000000000364" width="345" x="33870.5" y="24800.000000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-474" parent="dstLN57wYbqUIXLDyb3q-473" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_Hurt" vertex="1">
+          <mxGeometry height="217.5" width="345" y="25.000000000003638" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-475" parent="dstLN57wYbqUIXLDyb3q-474" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=16;" value="受击动画：通过动画、Motion、sfx、se表现来表达角色受击" vertex="1">
+          <mxGeometry height="47.5" width="300" x="10" y="32.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-476" parent="dstLN57wYbqUIXLDyb3q-474" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;span style=&quot;font-size: 12px;&quot;&gt;动画：Hurt动画表(DmgLevel,IsInAir)&lt;/span&gt;&lt;div style=&quot;font-size: 12px;&quot;&gt;Motion:&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;MotionDist = Dist × (1 - Rate/100)&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;font-size: 12px;&quot;&gt;&lt;div&gt;sfx命中视效：&lt;span style=&quot;font-size: 11px; text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;materialSfx（&lt;/span&gt;&lt;span style=&quot;font-size: 11px; text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;atkMaterial_forSfx，&lt;/span&gt;&lt;span style=&quot;font-size: 11px; text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;atkType&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 11px; text-align: center;&quot;&gt;）&lt;/span&gt;&lt;/div&gt;&lt;div&gt;se命中音效：&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 11px; text-align: center;&quot;&gt;materialSe（&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 11px; text-align: center;&quot;&gt;atkMaterial_forSe，&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 11px; text-align: center;&quot;&gt;atkType&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255)); font-size: 11px; text-align: center;&quot;&gt;）&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="82.5" width="300" x="10" y="87.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-477" parent="dstLN57wYbqUIXLDyb3q-473" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition: !(Guard &amp;amp;&amp;amp;&amp;nbsp;&lt;span style=&quot;font-weight: 400;&quot;&gt;GuardSuccess&lt;/span&gt;) &amp;amp;&amp;amp; !&lt;span style=&quot;font-weight: 400;&quot;&gt;IsLightningInAir&lt;/span&gt;" vertex="1">
+          <mxGeometry height="25" width="344.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-478" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="109.19" width="129.5" x="34245" y="17235.41" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-479" parent="dstLN57wYbqUIXLDyb3q-478" style="rounded=0;whiteSpace=wrap;html=1;" value="Guard" vertex="1">
+          <mxGeometry height="30" width="97" x="13.5" y="36.379999999999995" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-483" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-485" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-478">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34445.5" y="17281.620000000006" as="sourcePoint" />
+            <mxPoint x="34318" y="17225.620000000006" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-484" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="295" width="380" x="33810" y="17130.000000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-485" parent="dstLN57wYbqUIXLDyb3q-484" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;miterlimit=10;" value="DPU_Mixup" vertex="1">
+          <mxGeometry height="270" width="380" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-486" parent="dstLN57wYbqUIXLDyb3q-485" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=16;" value="猜拳机制：根据双方策略选择产生博弈结果" vertex="1">
+          <mxGeometry height="30" width="360" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-487" parent="dstLN57wYbqUIXLDyb3q-485" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;br&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;攻\防&lt;/th&gt;&lt;th&gt;无行动&lt;/th&gt;&lt;th&gt;格挡&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;斩击\打击&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;Guard&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;突刺&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;Guard&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td&gt;横扫&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;" vertex="1">
+          <mxGeometry height="142.5" width="330" x="10" y="87.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-488" parent="dstLN57wYbqUIXLDyb3q-484" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition:&amp;nbsp;" vertex="1">
+          <mxGeometry height="25" width="380" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-489" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-485" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=20;" target="PMGCJRvY5HDDYp9rtdw4-12" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34740" y="18328.120000000003" as="sourcePoint" />
+            <mxPoint x="34742" y="18612.120000000003" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-490" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="131" width="183.5" x="34348.37" y="21039.000000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-491" parent="dstLN57wYbqUIXLDyb3q-490" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;span style=&quot;text-align: left;&quot;&gt;破防&lt;/span&gt;动画Tag" vertex="1">
+          <mxGeometry height="30" width="130" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-492" parent="dstLN57wYbqUIXLDyb3q-490" style="rounded=0;whiteSpace=wrap;html=1;" value="IsCollapse" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="81" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-493" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-495" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-490">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33911.87" y="21275.750000000004" as="sourcePoint" />
+            <mxPoint x="34161.87" y="21155.750000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-494" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="184.5" width="490" x="33791.87" y="21000.000000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-495" parent="dstLN57wYbqUIXLDyb3q-494" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_CollapseGuard" vertex="1">
+          <mxGeometry height="160" width="490" y="24.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-496" parent="dstLN57wYbqUIXLDyb3q-495" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="格挡崩架势槽溃：格挡时架势槽满" vertex="1">
+          <mxGeometry height="27.5" width="311.25" x="89.38" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-497" parent="dstLN57wYbqUIXLDyb3q-495" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;span style=&quot;font-size: 12px;&quot;&gt;架势槽崩溃&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;判定：Meter_Posture为空&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Posture计算：GEModifier动态公式：&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;atk&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Posture&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;&amp;nbsp;*&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Atk&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Posture&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Rate *&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Def&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Posture&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Rate&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px; text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;破防&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;动画：破防动画&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="69.25" width="465" x="15" y="70.75" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-498" parent="dstLN57wYbqUIXLDyb3q-494" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition:&amp;nbsp;&lt;span style=&quot;font-weight: 400;&quot;&gt;GuardSuccess&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;&amp;nbsp;&amp;amp;&amp;amp; !&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;IsJustGuard&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;&amp;amp;&amp;amp; !&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;IsLightningInAir&amp;nbsp;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="25" width="490" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-499" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="109.5" width="240" x="33466.87" y="21104.000000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-500" parent="dstLN57wYbqUIXLDyb3q-499" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkPosture_Guard 躯干伤害基础数值" vertex="1">
+          <mxGeometry height="24" width="200" x="10" y="39.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-501" parent="dstLN57wYbqUIXLDyb3q-499" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="AtkPostureRate 攻击方躯干&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;伤害修正值&lt;/span&gt;" vertex="1">
+          <mxGeometry height="24" width="210" x="10" y="69.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-502" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="68.5" width="220" x="33486.87" y="21024.500000000004" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-503" parent="dstLN57wYbqUIXLDyb3q-502" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DefPostureRate 受击方躯干伤害修正值" vertex="1">
+          <mxGeometry height="24" width="195" x="10" y="34.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-504" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-499" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-495">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34296.87" y="20739.500000000004" as="sourcePoint" />
+            <mxPoint x="33856.87" y="20965.000000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-505" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-502" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-495">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="35206.87" y="20539.500000000004" as="sourcePoint" />
+            <mxPoint x="33861.87" y="20960.000000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-506" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-495" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=20;" target="dstLN57wYbqUIXLDyb3q-472" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34716.87" y="20770.000000000004" as="sourcePoint" />
+            <mxPoint x="34743.87" y="21400.000000000004" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-507" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="147.75" width="174" x="34354.37" y="22067.010000000002" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-508" parent="dstLN57wYbqUIXLDyb3q-507" style="rounded=0;whiteSpace=wrap;html=1;" value="中毒表现 动画Tag" vertex="1">
+          <mxGeometry height="30" width="130" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-509" parent="dstLN57wYbqUIXLDyb3q-507" style="rounded=0;whiteSpace=wrap;html=1;" value="IsPoisoned" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="85.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-510" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-521" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-507">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33887.87" y="22292.13" as="sourcePoint" />
+            <mxPoint x="34137.87" y="22172.13" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-511" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="110" width="185" x="33710.62" y="21820.88" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-512" parent="dstLN57wYbqUIXLDyb3q-511" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="poizonAttackPower 毒积累值" vertex="1">
+          <mxGeometry height="24" width="150" x="10" y="33" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-513" parent="dstLN57wYbqUIXLDyb3q-511" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="Poison/Toxic 毒类型" vertex="1">
+          <mxGeometry height="24" width="150" x="8.75" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-514" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="160" width="180" x="34154.37" y="21801.88" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-515" parent="dstLN57wYbqUIXLDyb3q-514" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="是否有中毒反应" vertex="1">
+          <mxGeometry height="24" width="100" x="15" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-516" parent="dstLN57wYbqUIXLDyb3q-514" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="resist_poison 毒积累抗性" vertex="1">
+          <mxGeometry height="24" width="145" x="15" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-517" parent="dstLN57wYbqUIXLDyb3q-514" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="IsPlayer" vertex="1">
+          <mxGeometry height="24" width="75" x="15" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-518" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-511" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-525">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33447.87" y="22050.88" as="sourcePoint" />
+            <mxPoint x="33672.87" y="22193.88" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-519" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-514" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-525" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34244.37" y="21941.88" as="sourcePoint" />
+            <mxPoint x="34013.37" y="22040.88" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-520" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="225" width="496.5" x="33784.37" y="22015.88" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-521" parent="dstLN57wYbqUIXLDyb3q-520" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_Poison" vertex="1">
+          <mxGeometry height="200" width="496.5" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-522" parent="dstLN57wYbqUIXLDyb3q-521" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="毒槽积累机制" vertex="1">
+          <mxGeometry height="34" width="311.25" x="89.38" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-523" parent="dstLN57wYbqUIXLDyb3q-521" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;span style=&quot;font-size: 12px;&quot;&gt;毒槽满&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;判定：Meter_Poison为满&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;毒累积值计算：GEModifier动态公式：&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;poizonAttackPower&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;/ (&lt;/span&gt;&lt;span style=&quot;text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;resist_poison / 100&lt;/span&gt;&lt;span style=&quot;text-align: center; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;)&lt;/span&gt;&lt;/div&gt;&lt;div&gt;角色允许有中毒反应时毒槽满会播放中毒反应动画，且中毒过程中不会再有&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;毒&lt;/span&gt;&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;累积&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;NPC：&lt;/span&gt;&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Hurt/Guard/&lt;/span&gt;&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;JustGuard 全积累毒&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;主角：Hurt/Guard都会积累毒，&lt;/span&gt;&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;JustGuard不会积累&lt;/span&gt;&lt;/div&gt;&lt;div&gt;毒的&quot;先占&quot;机制：最终毒槽满的中毒效果由第一次中毒类型决定&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="99.25" width="465" x="15" y="70.75" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-524" edge="1" parent="dstLN57wYbqUIXLDyb3q-520" source="dstLN57wYbqUIXLDyb3q-525" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-521">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="590" y="-165" as="sourcePoint" />
+            <mxPoint x="780" y="-42" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-525" parent="dstLN57wYbqUIXLDyb3q-520" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition: !(JustGuard&amp;amp;&amp;amp;IsPlayer)" vertex="1">
+          <mxGeometry height="25" width="496.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-527" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="128.79" width="181" x="34279" y="24194.32" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-528" parent="dstLN57wYbqUIXLDyb3q-527" style="rounded=0;whiteSpace=wrap;html=1;" value="IsTough" vertex="1">
+          <mxGeometry height="30" width="85" x="5" y="78.79" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-529" parent="dstLN57wYbqUIXLDyb3q-527" style="rounded=0;whiteSpace=wrap;html=1;" value="强韧生效的 动画Tag" vertex="1">
+          <mxGeometry height="30" width="155" x="5" y="33.79" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-530" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-552" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-527">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33940" y="24354.960000000003" as="sourcePoint" />
+            <mxPoint x="34190" y="24234.960000000003" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-531" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="90" width="180" x="33770" y="24009.999999999996" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-532" parent="dstLN57wYbqUIXLDyb3q-531" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DmgLevel 攻击类型" vertex="1">
+          <mxGeometry height="24" width="120" x="10" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-533" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="96.24" width="179" x="34150" y="23997.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-534" parent="dstLN57wYbqUIXLDyb3q-533" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="toughness 强韧等级" vertex="1">
+          <mxGeometry height="24" width="135" x="15" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-535" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-531" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-552">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33512" y="24128.100000000002" as="sourcePoint" />
+            <mxPoint x="34092" y="24058.100000000002" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-536" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-533" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-552">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34482" y="24008.100000000002" as="sourcePoint" />
+            <mxPoint x="34707" y="24151.100000000002" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-537" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="182.69" width="235.5" x="34374.5" y="23694.81" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-538" parent="dstLN57wYbqUIXLDyb3q-537" style="rounded=0;whiteSpace=wrap;html=1;" value="SuperArmorBroken 动画Tag" vertex="1">
+          <mxGeometry height="30" width="170" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-539" parent="dstLN57wYbqUIXLDyb3q-537" style="rounded=0;whiteSpace=wrap;html=1;" value="IsInSuperArmor&amp;nbsp;" vertex="1">
+          <mxGeometry height="30" width="110" x="10" y="132.69" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-540" parent="dstLN57wYbqUIXLDyb3q-537" style="rounded=0;whiteSpace=wrap;html=1;" value="SuperArmor 生效的加法动画Tag" vertex="1">
+          <mxGeometry height="30" width="200" x="10" y="82.69" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-541" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-557" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-537">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33895.5" y="23874.36" as="sourcePoint" />
+            <mxPoint x="34145.5" y="23754.36" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-542" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="117.5" width="300" x="33630" y="23480" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-543" parent="dstLN57wYbqUIXLDyb3q-542" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkSuperArmor 对SuperArmor的伤害" vertex="1">
+          <mxGeometry height="24" width="190" x="10" y="36" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-544" parent="dstLN57wYbqUIXLDyb3q-542" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkSuperArmorCorrection 对SuperArmor的伤害修正" vertex="1">
+          <mxGeometry height="24" width="270" x="10" y="71" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-545" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="110" width="335" x="34100" y="23487.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-546" parent="dstLN57wYbqUIXLDyb3q-545" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="superArmorDurability SuperArmor最大值" vertex="1">
+          <mxGeometry height="24" width="243" x="7" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-547" parent="dstLN57wYbqUIXLDyb3q-545" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="superArmorRecoverCorrection SuperArmor恢复计时器修正" vertex="1">
+          <mxGeometry height="24" width="313" x="7" y="68" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-548" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-542" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-557">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33375.5" y="23651.86" as="sourcePoint" />
+            <mxPoint x="33955.5" y="23581.86" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-549" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-545" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-557">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34345.5" y="23531.86" as="sourcePoint" />
+            <mxPoint x="34570.5" y="23674.86" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-550" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-557" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontSize=20;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-552" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34141.5" y="24524.38" as="sourcePoint" />
+            <mxPoint x="34141.5" y="24654.38" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-551" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="212.50000000000364" width="380" x="33860" y="24139.96" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-552" parent="dstLN57wYbqUIXLDyb3q-551" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_Toughness" vertex="1">
+          <mxGeometry height="187.5" width="380" y="25.000000000003638" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-553" parent="dstLN57wYbqUIXLDyb3q-552" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=16;" value="强韧度机制：攻击产生HitStun的门槛" vertex="1">
+          <mxGeometry height="47.5" width="340" x="10" y="32.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-554" parent="dstLN57wYbqUIXLDyb3q-552" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="IsTough:&amp;nbsp;&lt;span style=&quot;text-align: center;&quot;&gt;当前强韧等级 &amp;gt;&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;DmgLevel?&lt;/span&gt;" vertex="1">
+          <mxGeometry height="50" width="290" x="10" y="87.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-555" parent="dstLN57wYbqUIXLDyb3q-551" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition: !(Guard &amp;amp;&amp;amp;&amp;nbsp;&lt;span style=&quot;font-weight: 400;&quot;&gt;GuardSuccess&lt;/span&gt;)&amp;amp;&amp;amp; !&lt;span style=&quot;font-weight: 400;&quot;&gt;IsLightningInAir&lt;/span&gt;" vertex="1">
+          <mxGeometry height="25" width="380" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-556" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="195" width="455" x="33825" y="23655.62" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-557" parent="dstLN57wYbqUIXLDyb3q-556" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_SuperArmor" vertex="1">
+          <mxGeometry height="170" width="455" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-558" parent="dstLN57wYbqUIXLDyb3q-557" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=16;" value="SuperArmor机制：对连续攻击的一次性奖励" vertex="1">
+          <mxGeometry height="37.5" width="430" x="10" y="32.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-559" parent="dstLN57wYbqUIXLDyb3q-557" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;div&gt;&lt;div&gt;SuperArmor槽被打空时会根据DmgLevel播放一次性的HitStun动画，因此&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;高冲击力的&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;最后一击会有很大优势&lt;/span&gt;&lt;/div&gt;&lt;div&gt;GE Modifier：atkSuperArmor* atkSuperArmorCorrection&amp;nbsp;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;SuperArmor在不受击一段时间时后会重置SuperArmor，来惩罚不连续的攻击&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="62.5" width="410" x="10" y="87.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-560" parent="dstLN57wYbqUIXLDyb3q-556" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition: !(Guard &amp;amp;&amp;amp;&amp;nbsp;&lt;span style=&quot;font-weight: 400;&quot;&gt;GuardSuccess&lt;/span&gt;)&amp;amp;&amp;amp; !&lt;span style=&quot;font-weight: 400;&quot;&gt;IsLightningInAir&lt;/span&gt;" vertex="1">
+          <mxGeometry height="25" width="455" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-561" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-552" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=20;" target="dstLN57wYbqUIXLDyb3q-477" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34060" y="24450.000000000004" as="sourcePoint" />
+            <mxPoint x="34921" y="24174.54" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-575" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-666" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=20;" target="dstLN57wYbqUIXLDyb3q-560" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34820.62" y="21571.88" as="sourcePoint" />
+            <mxPoint x="34825.62" y="21856.88" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-576" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="290" width="190" x="34380" y="18581.68" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-577" parent="dstLN57wYbqUIXLDyb3q-576" style="rounded=0;whiteSpace=wrap;html=1;" value="动画Tag" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-578" parent="dstLN57wYbqUIXLDyb3q-576" style="rounded=0;whiteSpace=wrap;html=1;" value="Motion" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-579" parent="dstLN57wYbqUIXLDyb3q-576" style="rounded=0;whiteSpace=wrap;html=1;" value="sfx命中视效" vertex="1">
+          <mxGeometry height="30" width="90" x="13" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-580" parent="dstLN57wYbqUIXLDyb3q-576" style="rounded=0;whiteSpace=wrap;html=1;" value="se命中音效" vertex="1">
+          <mxGeometry height="30" width="90" x="13" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-581" parent="dstLN57wYbqUIXLDyb3q-576" style="rounded=0;whiteSpace=wrap;html=1;" value="IsJustGuard" vertex="1">
+          <mxGeometry height="30" width="97" x="13" y="203.12" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-582" parent="dstLN57wYbqUIXLDyb3q-576" style="rounded=0;whiteSpace=wrap;html=1;" value="GuardSuccess" vertex="1">
+          <mxGeometry height="30" width="97" x="14.5" y="244" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-583" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="131" width="183.5" x="34336.5" y="20624.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-584" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-586" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-583">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33903.75" y="20875.75" as="sourcePoint" />
+            <mxPoint x="34153.75" y="20755.75" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-585" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="184.5" width="490" x="33783.75" y="20600" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-586" parent="dstLN57wYbqUIXLDyb3q-585" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_CollapseJustGuard" vertex="1">
+          <mxGeometry height="125.5" width="490" y="24.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-587" parent="dstLN57wYbqUIXLDyb3q-586" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="弹开架势槽机制" vertex="1">
+          <mxGeometry height="27.5" width="311.25" x="89.38" y="26" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-588" parent="dstLN57wYbqUIXLDyb3q-586" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Posture计算：GEModifier动态公式：&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;atk&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Posture&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;&amp;nbsp;*&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Atk&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Posture&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Rate *&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Def&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Posture&lt;/span&gt;&lt;span style=&quot;text-align: center;&quot;&gt;Rate&lt;/span&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="39.25" width="465" x="15" y="70.75" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-589" parent="dstLN57wYbqUIXLDyb3q-585" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition:&amp;nbsp;&lt;span style=&quot;font-weight: 400;&quot;&gt;GuardSuccess&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;&amp;nbsp;&amp;amp;&amp;amp; &lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;IsJustGuard&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;&amp;amp;&amp;amp; !&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;IsLightningInAir&amp;nbsp;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="25" width="490" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-590" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="109.5" width="271.25" x="33458.75" y="20704" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-591" parent="dstLN57wYbqUIXLDyb3q-590" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkPosture_JustGuard 躯干伤害基础数值" vertex="1">
+          <mxGeometry height="24" width="220" x="10" y="39.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-592" parent="dstLN57wYbqUIXLDyb3q-590" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="AtkPostureRate 攻击方躯干&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;伤害修正值&lt;/span&gt;" vertex="1">
+          <mxGeometry height="24" width="210" x="10" y="69.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-593" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="68.5" width="220" x="33478.75" y="20624.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-594" parent="dstLN57wYbqUIXLDyb3q-593" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DefPostureRate 受击方躯干伤害修正值" vertex="1">
+          <mxGeometry height="24" width="195" x="10" y="34.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-595" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-590" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-586">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34288.75" y="20339.5" as="sourcePoint" />
+            <mxPoint x="33848.75" y="20565" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-596" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-593" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-586">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="35198.75" y="20139.5" as="sourcePoint" />
+            <mxPoint x="33853.75" y="20560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-597" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="182.57" width="200" x="34420" y="20178.71" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-598" parent="dstLN57wYbqUIXLDyb3q-597" style="rounded=0;whiteSpace=wrap;html=1;" value="攻击方 被弹开动画" vertex="1">
+          <mxGeometry height="30" width="130" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-599" parent="dstLN57wYbqUIXLDyb3q-597" style="rounded=0;whiteSpace=wrap;html=1;" value="Motion" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="76.28000000000058" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-600" parent="dstLN57wYbqUIXLDyb3q-597" style="rounded=0;whiteSpace=wrap;html=1;" value="IsBound" vertex="1">
+          <mxGeometry height="30" width="90" x="10" y="121.29000000000087" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-601" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-603" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-597">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33895" y="20385.75" as="sourcePoint" />
+            <mxPoint x="34145" y="20265.75" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-602" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="270" width="658.75" x="33691.25" y="20120" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-603" parent="dstLN57wYbqUIXLDyb3q-602" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;startSize=30;" value="DPU_AttackerBound" vertex="1">
+          <mxGeometry height="240" width="658.75" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-604" parent="dstLN57wYbqUIXLDyb3q-603" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="攻击方被弹开" vertex="1">
+          <mxGeometry height="40.243902439024396" width="418.4406887755102" x="120.1613775510204" y="22.00306620209059" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-605" parent="dstLN57wYbqUIXLDyb3q-603" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;攻击方：&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;架势槽崩溃判定：Attacker.Meter_Posture为空&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;Posture计算：GEModifier动态公式：atkPosture_attacker * 受击方AtkPostureRate * 攻击方DefPostureRate&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;if 躯干值满:&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; 被弹开崩溃动画&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;else:&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;font-size: 12px;&quot;&gt;&amp;nbsp; &amp;nbsp; 被弹开动画&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="129.79" width="625.1371428571429" x="16.8175" y="70.21" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-606" parent="dstLN57wYbqUIXLDyb3q-602" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition:&amp;nbsp;&lt;span style=&quot;font-weight: 400;&quot;&gt;GuardSuccess&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;&amp;nbsp;&amp;amp;&amp;amp;&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;IsJustGuard&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;&amp;amp;&amp;amp; !&lt;/span&gt;&lt;span style=&quot;font-weight: 400;&quot;&gt;IsLightningInAir&amp;nbsp;&lt;/span&gt;" vertex="1">
+          <mxGeometry height="26.59" width="658.75" y="3.41" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-607" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="167.38" width="260" x="33360" y="20292.62" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-608" parent="dstLN57wYbqUIXLDyb3q-607" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="atkPosture_Attacker 躯干伤害基础数值" vertex="1">
+          <mxGeometry height="24" width="220" x="10" y="39.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-609" parent="dstLN57wYbqUIXLDyb3q-607" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="DefPostureRate 躯干伤害防御修正值" vertex="1">
+          <mxGeometry height="24" width="230" x="10" y="77.37999999999897" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-610" parent="dstLN57wYbqUIXLDyb3q-607" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="CanBound 是否可以被弹开" vertex="1">
+          <mxGeometry height="24" width="230" x="10" y="117.38000000000102" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-611" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="106.38" width="270" x="33350" y="20146.239999999998" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-612" parent="dstLN57wYbqUIXLDyb3q-611" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="AtkPostureRate 躯干&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;伤害攻击修正值&lt;/span&gt;" vertex="1">
+          <mxGeometry height="24" width="210" x="9" y="38.76000000000204" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-613" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-607" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-603">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34240" y="19849.5" as="sourcePoint" />
+            <mxPoint x="33800" y="20075" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-614" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-611" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-603">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="35150" y="19649.5" as="sourcePoint" />
+            <mxPoint x="33805" y="20070" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-615" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-603" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=20;" target="dstLN57wYbqUIXLDyb3q-589" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34700" y="20330" as="sourcePoint" />
+            <mxPoint x="34707" y="20703" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-616" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-586" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=20;" target="dstLN57wYbqUIXLDyb3q-498" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33180" y="20900" as="sourcePoint" />
+            <mxPoint x="33318" y="21213" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-656" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="165.25" width="180" x="34250" y="22630.63" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-657" parent="dstLN57wYbqUIXLDyb3q-656" style="rounded=0;whiteSpace=wrap;html=1;" value="空中感电动画 动画&amp;nbsp;" vertex="1">
+          <mxGeometry height="30" width="150" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-658" parent="dstLN57wYbqUIXLDyb3q-656" style="rounded=0;whiteSpace=wrap;html=1;" value="添加新的大伤害实例" vertex="1">
+          <mxGeometry height="30" width="150" x="15" y="83.36999999999898" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-659" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-666" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-656">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34011" y="22893.75" as="sourcePoint" />
+            <mxPoint x="34261" y="22773.75" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-660" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="74" width="130" x="33840" y="22497" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-661" parent="dstLN57wYbqUIXLDyb3q-660" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="&lt;span style=&quot;font-size: 12px; text-align: left;&quot;&gt;Lighting&lt;/span&gt;" vertex="1">
+          <mxGeometry height="24" width="100" x="12.25" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-662" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="80" width="140" x="34080" y="22491" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-663" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-660" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-669">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33571" y="22652.5" as="sourcePoint" />
+            <mxPoint x="33796" y="22795.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-664" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-662" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-669">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34481" y="22452.5" as="sourcePoint" />
+            <mxPoint x="34671" y="22575.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-665" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="166.5" width="299" x="33891" y="22617.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-666" parent="dstLN57wYbqUIXLDyb3q-665" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_Lightn&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ingOnGround&lt;/span&gt;" vertex="1">
+          <mxGeometry height="141.5" width="299" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-667" parent="dstLN57wYbqUIXLDyb3q-666" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="地面雷击：落地触电动画+大伤害事件" vertex="1">
+          <mxGeometry height="28.5" width="228.89952153110048" x="28.61244019138756" y="31.5" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-668" parent="dstLN57wYbqUIXLDyb3q-666" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="230" x="30" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-669" parent="dstLN57wYbqUIXLDyb3q-665" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;Condition: Lightning&amp;amp;&amp;amp;&lt;span style=&quot;font-weight: 400;&quot;&gt;!&lt;/span&gt;&lt;/span&gt;&lt;span style=&quot;font-weight: 400; background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;IsInAir&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="25" width="299" as="geometry" />
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-673" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-521" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=20;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="dstLN57wYbqUIXLDyb3q-669" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34037.37" y="22880.38" as="sourcePoint" />
+            <mxPoint x="34035.5" y="22563.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-0" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;swimlaneFillColor=#E1D5E7;" value="Fact" vertex="1">
+          <mxGeometry height="165.25" width="180" x="34210" y="17739.63" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-1" parent="PMGCJRvY5HDDYp9rtdw4-0" style="rounded=0;whiteSpace=wrap;html=1;" value="空中感电动画 动画&amp;nbsp;" vertex="1">
+          <mxGeometry height="30" width="150" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-14" parent="PMGCJRvY5HDDYp9rtdw4-0" style="rounded=0;whiteSpace=wrap;html=1;" value="IsLightningInAir&amp;nbsp;" vertex="1">
+          <mxGeometry height="30" width="150" x="13.25" y="86.86999999999898" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-2" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="PMGCJRvY5HDDYp9rtdw4-9" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="PMGCJRvY5HDDYp9rtdw4-0">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33971" y="18002.75" as="sourcePoint" />
+            <mxPoint x="34221" y="17882.75" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-3" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;swimlaneFillColor=#F8CECC;startSize=25;fontSize=12;" value="攻击方" vertex="1">
+          <mxGeometry height="74" width="130" x="33800" y="17606" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-4" parent="PMGCJRvY5HDDYp9rtdw4-3" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;" value="&lt;span style=&quot;font-size: 12px; text-align: left;&quot;&gt;Lighting&lt;/span&gt;" vertex="1">
+          <mxGeometry height="24" width="100" x="12.25" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-5" parent="1mbgIBx3Q-0EeWusDaob-1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;swimlaneFillColor=#D5E8D4;startSize=25;fontSize=12;" value="受击方" vertex="1">
+          <mxGeometry height="80" width="140" x="34040" y="17600" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-6" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="PMGCJRvY5HDDYp9rtdw4-3" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="PMGCJRvY5HDDYp9rtdw4-12">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="33531" y="17761.5" as="sourcePoint" />
+            <mxPoint x="33756" y="17904.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-7" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="PMGCJRvY5HDDYp9rtdw4-5" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="PMGCJRvY5HDDYp9rtdw4-12">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34441" y="17561.5" as="sourcePoint" />
+            <mxPoint x="34631" y="17684.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-8" connectable="0" parent="1mbgIBx3Q-0EeWusDaob-1" style="group" value="" vertex="1">
+          <mxGeometry height="166.5" width="299" x="33851" y="17726.5" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-9" parent="PMGCJRvY5HDDYp9rtdw4-8" style="swimlane;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;swimlaneFillColor=#DAE8FC;" value="DPU_Lightn&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ing&lt;/span&gt;InAir" vertex="1">
+          <mxGeometry height="141.5" width="299" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-10" parent="PMGCJRvY5HDDYp9rtdw4-9" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="空中感电：感电动画" vertex="1">
+          <mxGeometry height="28.5" width="228.89952153110048" x="28.61244019138756" y="31.5" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-11" parent="PMGCJRvY5HDDYp9rtdw4-9" style="rounded=0;whiteSpace=wrap;html=1;fontSize=11;align=left;verticalAlign=top;" value="&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="230" x="30" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-12" parent="PMGCJRvY5HDDYp9rtdw4-8" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontStyle=1;verticalAlign=middle;align=center;" value="Condition: Lightning&amp;amp;&amp;amp;&lt;span style=&quot;font-weight: 400; text-align: left;&quot;&gt;IsInAir&lt;/span&gt;" vertex="1">
+          <mxGeometry height="25" width="299" as="geometry" />
+        </mxCell>
+        <mxCell id="PMGCJRvY5HDDYp9rtdw4-13" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="PMGCJRvY5HDDYp9rtdw4-9" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontSize=20;" target="dstLN57wYbqUIXLDyb3q-462" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="34470" y="17590" as="sourcePoint" />
+            <mxPoint x="34471" y="17892" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dstLN57wYbqUIXLDyb3q-402" edge="1" parent="1mbgIBx3Q-0EeWusDaob-1" source="dstLN57wYbqUIXLDyb3q-464" style="rounded=1;orthogonalLoop=1;jettySize=auto;html=1;shape=flexArrow;strokeWidth=3;startSize=5;endSize=5;fillColor=#6c8ebf;strokeColor=#6c8ebf;exitX=0.5;exitY=1;exitDx=0;exitDy=0;fontSize=20;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dstLN57wYbqUIXLDyb3q-606" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="38561.5" y="17781.120000000003" as="sourcePoint" />
+            <mxPoint x="34014.75" y="19603.5" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -127,6 +127,8 @@ void ADPUPipelineTestActor::RunScenario(int32 ScenarioIndex)
 // ============================================================================
 void ADPUPipelineTestActor::RunScenario_NormalHit()
 {
+	PipelineManager->ScenarioLabel = TEXT("1.NormalSlashHit");
+
 	UDamageContext* DC = NewObject<UDamageContext>(this);
 	DC->SetFloat(FName("DmgLevel"), 3.0f);
 	DC->SetFloat(FName("CurrentHP"), 100.0f);
@@ -144,6 +146,7 @@ void ADPUPipelineTestActor::RunScenario_NormalHit()
 // ============================================================================
 void ADPUPipelineTestActor::RunScenario_Guard()
 {
+	PipelineManager->ScenarioLabel = TEXT("2.Guard");
 	UDamageContext* DC = NewObject<UDamageContext>(this);
 	DC->SetFloat(FName("DmgLevel"), 3.0f);
 	DC->SetFloat(FName("guard_level"), 3.0f); // == DmgLevel -> 格挡成功但非弹刀
@@ -161,6 +164,7 @@ void ADPUPipelineTestActor::RunScenario_Guard()
 // ============================================================================
 void ADPUPipelineTestActor::RunScenario_JustGuard()
 {
+	PipelineManager->ScenarioLabel = TEXT("3.JustGuard");
 	UDamageContext* DC = NewObject<UDamageContext>(this);
 	DC->SetFloat(FName("DmgLevel"), 3.0f);
 	DC->SetFloat(FName("guard_level"), 5.0f); // > DmgLevel -> 触发弹刀
@@ -179,6 +183,7 @@ void ADPUPipelineTestActor::RunScenario_JustGuard()
 // ============================================================================
 void ADPUPipelineTestActor::RunScenario_LightningGround()
 {
+	PipelineManager->ScenarioLabel = TEXT("4.LightningGround");
 	UDamageContext* DC = NewObject<UDamageContext>(this);
 	DC->SetBool(FName("Lightning"), true);
 	DC->SetBool(FName("IsInAir"), false);
@@ -197,6 +202,7 @@ void ADPUPipelineTestActor::RunScenario_LightningGround()
 // ============================================================================
 void ADPUPipelineTestActor::RunScenario_LightningInAir()
 {
+	PipelineManager->ScenarioLabel = TEXT("5.LightningInAir");
 	UDamageContext* DC = NewObject<UDamageContext>(this);
 	DC->SetBool(FName("Lightning"), true);
 	DC->SetBool(FName("IsInAir"), true);
