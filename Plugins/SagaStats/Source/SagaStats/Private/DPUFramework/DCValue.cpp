@@ -41,6 +41,14 @@ FDCValue FDCValue::FromVector(const FVector& V)
 	return Result;
 }
 
+FDCValue FDCValue::FromTag(FGameplayTag V)
+{
+	FDCValue Result;
+	Result.Type = EDCValueType::Tag;
+	Result.TagValue = V;
+	return Result;
+}
+
 bool FDCValue::AsBool() const
 {
 	switch (Type)
@@ -51,6 +59,7 @@ bool FDCValue::AsBool() const
 	case EDCValueType::Float:  return FloatValue != 0.f;
 	case EDCValueType::Name:   return NameValue != NAME_None;
 	case EDCValueType::Vector: return !VectorValue.IsZero();
+	case EDCValueType::Tag:    return TagValue.IsValid();
 	default:                   return false;
 	}
 }
@@ -88,6 +97,15 @@ FName FDCValue::AsName() const
 	return NAME_None;
 }
 
+FGameplayTag FDCValue::AsTag() const
+{
+	if (Type == EDCValueType::Tag)
+	{
+		return TagValue;
+	}
+	return FGameplayTag();
+}
+
 FString FDCValue::ToString() const
 {
 	switch (Type)
@@ -98,6 +116,7 @@ FString FDCValue::ToString() const
 	case EDCValueType::Float:  return FString::SanitizeFloat(FloatValue);
 	case EDCValueType::Name:   return NameValue.ToString();
 	case EDCValueType::Vector: return VectorValue.ToString();
+	case EDCValueType::Tag:    return TagValue.IsValid() ? TagValue.ToString() : TEXT("None");
 	default:                   return TEXT("Unknown");
 	}
 }

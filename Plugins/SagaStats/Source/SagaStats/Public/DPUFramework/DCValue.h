@@ -2,6 +2,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "DCValue.generated.h"
 
 UENUM(BlueprintType)
@@ -12,7 +13,8 @@ enum class EDCValueType : uint8
 	Int,
 	Float,
 	Name,
-	Vector
+	Vector,
+	Tag
 };
 
 USTRUCT(BlueprintType)
@@ -38,18 +40,23 @@ struct SAGASTATS_API FDCValue
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FVector VectorValue = FVector::ZeroVector;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGameplayTag TagValue;
+
 	// 工厂方法
 	static FDCValue FromBool(bool V);
 	static FDCValue FromInt(int32 V);
 	static FDCValue FromFloat(float V);
 	static FDCValue FromName(FName V);
 	static FDCValue FromVector(const FVector& V);
+	static FDCValue FromTag(FGameplayTag V);
 
 	// 类型转换 (R3: None -> false/0)
 	bool AsBool() const;
 	float AsFloat() const;
 	int32 AsInt() const;
 	FName AsName() const;
+	FGameplayTag AsTag() const;
 
 	bool IsNone() const { return Type == EDCValueType::None; }
 

@@ -13,7 +13,7 @@ class SAGASTATS_API UDPULogic_TestMixup : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		float GuardLevel = DC->GetFloat(FName("guard_level"));
 		DC->SetBool(FName("Guard"), GuardLevel > 0.f);
@@ -26,7 +26,7 @@ class SAGASTATS_API UDPULogic_TestGuard : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		float GuardLevel = DC->GetFloat(FName("guard_level"));
 		float DmgLevel = DC->GetFloat(FName("DmgLevel"));
@@ -41,7 +41,7 @@ class SAGASTATS_API UDPULogic_TestDeath : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		float HP = DC->GetFloat(FName("CurrentHP"));
 		float Damage = DC->GetFloat(FName("DmgLevel"));
@@ -55,7 +55,7 @@ class SAGASTATS_API UDPULogic_TestHurt : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		DC->SetBool(FName("HurtExecuted"), true);
 	}
@@ -67,7 +67,7 @@ class SAGASTATS_API UDPULogic_TestLightningInAir : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		DC->SetBool(FName("IsLightningInAir"), true);
 	}
@@ -79,7 +79,7 @@ class SAGASTATS_API UDPULogic_TestCollapse : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		DC->SetBool(FName("IsCollapse"), true);
 	}
@@ -91,7 +91,7 @@ class SAGASTATS_API UDPULogic_TestCollapseGuard : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		DC->SetBool(FName("IsCollapse"), true);
 	}
@@ -103,7 +103,7 @@ class SAGASTATS_API UDPULogic_TestCollapseJustGuard : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		DC->SetBool(FName("CollapseJustGuardExecuted"), true);
 	}
@@ -115,7 +115,7 @@ class SAGASTATS_API UDPULogic_TestAttackerBound : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		DC->SetBool(FName("IsBound"), true);
 	}
@@ -127,7 +127,7 @@ class SAGASTATS_API UDPULogic_TestPoison : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		DC->SetBool(FName("IsPoisoned"), true);
 	}
@@ -139,7 +139,7 @@ class SAGASTATS_API UDPULogic_TestToughness : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		DC->SetBool(FName("IsTough"), true);
 	}
@@ -151,7 +151,7 @@ class SAGASTATS_API UDPULogic_TestSuperArmor : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		DC->SetBool(FName("IsInSuperArmor"), true);
 	}
@@ -163,7 +163,7 @@ class SAGASTATS_API UDPULogic_TestLightningOnGround : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual void Execute(UDamageContext* DC) override
+	virtual void Execute_Implementation(UDamageContext* DC) override
 	{
 		DC->SetBool(FName("LightningOnGroundExecuted"), true);
 	}

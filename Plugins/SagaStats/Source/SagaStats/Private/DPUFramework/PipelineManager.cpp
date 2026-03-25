@@ -266,6 +266,31 @@ UDPULogicBase* UPipelineManager::GetOrCreateLogic(TSubclassOf<UDPULogicBase> Log
 // Mermaid DAG 导出
 // ============================================================================
 
+// 预定义的字段颜色调色板（高对比度，适合深色/浅色背景）
+static const TCHAR* FieldColorPalette[] = {
+	TEXT("#e6194b"), // 红
+	TEXT("#3cb44b"), // 绿
+	TEXT("#4363d8"), // 蓝
+	TEXT("#f58231"), // 橙
+	TEXT("#911eb4"), // 紫
+	TEXT("#42d4f4"), // 青
+	TEXT("#f032e6"), // 粉
+	TEXT("#bfef45"), // 黄绿
+	TEXT("#fabed4"), // 浅粉
+	TEXT("#469990"), // 青绿
+	TEXT("#dcbeff"), // 浅紫
+	TEXT("#9a6324"), // 棕
+	TEXT("#fffac8"), // 浅黄
+	TEXT("#800000"), // 暗红
+	TEXT("#aaffc3"), // 薄荷
+	TEXT("#808000"), // 橄榄
+	TEXT("#ffd8b1"), // 杏
+	TEXT("#000075"), // 深蓝
+	TEXT("#a9a9a9"), // 灰
+	TEXT("#e6beff"), // 淡紫
+};
+static const int32 FieldColorPaletteSize = UE_ARRAY_COUNT(FieldColorPalette);
+
 void UPipelineManager::ExportMermaidDAG(
 	const TArray<UDPUDefinition*>& DPUs,
 	const TArray<FDPUExecutionEntry>& ExecutionLog,
@@ -286,6 +311,34 @@ void UPipelineManager::ExportMermaidDAG(
 		for (const FName& Field : DPU->Produces)
 		{
 			ProducerMap.Add(Field, DPU->DPUName);
+		}
+	}
+
+	// 收集所有参与产销关系的 DC 字段，按稳定顺序分配颜色
+	// 遍历顺序：按 DPU 的数组顺序，先 Produces 再 Consumes，保证确定性
+	TMap<FName, FString> FieldColorMap; // 字段名 -> 颜色 hex
+	{
+		TArray<FName> OrderedFields; // 按首次出现顺序排列的字段列表
+		for (const UDPUDefinition* DPU : DPUs)
+		{
+			if (!DPU) continue;
+			for (const FName& F : DPU->Produces)
+			{
+				if (!FieldColorMap.Contains(F))
+				{
+					FieldColorMap.Add(F, FieldColorPalette[OrderedFields.Num() % FieldColorPaletteSize]);
+					OrderedFields.Add(F);
+				}
+			}
+			TArray<FName> Consumed = DPU->GetConsumedFields();
+			for (const FName& F : Consumed)
+			{
+				if (!FieldColorMap.Contains(F))
+				{
+					FieldColorMap.Add(F, FieldColorPalette[OrderedFields.Num() % FieldColorPaletteSize]);
+					OrderedFields.Add(F);
+				}
+			}
 		}
 	}
 
@@ -311,7 +364,7 @@ void UPipelineManager::ExportMermaidDAG(
 	M += FString::Printf(TEXT("    %%%% %s - %s\n\n"), *Label,
 		*FDateTime::Now().ToString());
 
-	// 样式定义
+	// 节点样式定义
 	M += TEXT("    classDef exec fill:#d4edda,stroke:#28a745,color:#000\n");
 	M += TEXT("    classDef skip fill:#e2e3e5,stroke:#6c757d,color:#666\n");
 	M += TEXT("    classDef initCtx fill:#fff3cd,stroke:#ffc107,color:#000\n");
@@ -359,20 +412,38 @@ void UPipelineManager::ExportMermaidDAG(
 			}
 		}
 		// 转义 Mermaid 中的特殊字符
+		// && 中的 & 会被 Mermaid 当作 HTML 实体开始符，破坏后续的 &#9632; 等实体
+		CondText.ReplaceInline(TEXT("&&"), TEXT(" #amp;#amp; "));
+		CondText.ReplaceInline(TEXT("||"), TEXT(" #124;#124; "));
 		CondText.ReplaceInline(TEXT("\""), TEXT("#quot;"));
 
-		// Produces 字段列表
+		// Produces 字段列表：用 <font color='hex'>■</font> 色块标记
 		FString ProducesText;
-		for (const FName& Field : DPU->Produces)
+		if (DPU->Produces.Num() == 0)
 		{
-			if (!ProducesText.IsEmpty()) ProducesText += TEXT(", ");
-			ProducesText += Field.ToString();
+			ProducesText = TEXT("(none)");
 		}
-		if (ProducesText.IsEmpty()) ProducesText = TEXT("(none)");
+		else
+		{
+			for (const FName& Field : DPU->Produces)
+			{
+				if (!ProducesText.IsEmpty()) ProducesText += TEXT("<br/>");
+				FString FieldColor = FieldColorMap.FindRef(Field);
+				if (!FieldColor.IsEmpty())
+				{
+					ProducesText += FString::Printf(TEXT("<font color='%s'>#9632;</font> %s"),
+						*FieldColor, *Field.ToString());
+				}
+				else
+				{
+					ProducesText += Field.ToString();
+				}
+			}
+		}
 
-		// 节点定义：圆角矩形，多行标签
+		// 节点定义
 		M += FString::Printf(
-			TEXT("    %s[\"%s [%s] #%d<br/>Cond: %s<br/>Produces: %s\"]:::%s\n"),
+			TEXT("    %s[\"%s [%s] #%d<br/>Cond: %s<br/>Produces:<br/>%s\"]:::%s\n"),
 			*DPU->DPUName.ToString(),
 			*DPU->DPUName.ToString(),
 			*StatusTag,
@@ -384,72 +455,74 @@ void UPipelineManager::ExportMermaidDAG(
 
 	M += TEXT("\n");
 
+	// 统一的连线索引计数器（Mermaid 按出现顺序从 0 开始编号所有连线）
+	int32 LinkIndex = 0;
+	struct FColoredLink { int32 Index; FString Color; };
+	TArray<FColoredLink> ColoredLinks;
+
 	// 隐藏的执行顺序链：强制 Mermaid 按拓扑排序从左到右排列每个节点
-	// DC_Init ~~~ #0 ~~~ #1 ~~~ #2 ~~~ ... （~~~ 是 Mermaid 的隐藏连线语法）
 	M += TEXT("    %% 执行顺序链（隐藏连线，控制水平布局）\n");
 	if (InitialFields.Num() > 0 && SortResult.SortedDPUs.Num() > 0)
 	{
 		M += FString::Printf(TEXT("    DC_Init ~~~ %s\n"),
 			*SortResult.SortedDPUs[0]->DPUName.ToString());
+		LinkIndex++;
 	}
 	for (int32 i = 0; i + 1 < SortResult.SortedDPUs.Num(); i++)
 	{
 		M += FString::Printf(TEXT("    %s ~~~ %s\n"),
 			*SortResult.SortedDPUs[i]->DPUName.ToString(),
 			*SortResult.SortedDPUs[i + 1]->DPUName.ToString());
+		LinkIndex++;
 	}
 	M += TEXT("\n");
 
-	// 依赖连线：Producer --字段名--> Consumer
+	// 依赖连线：每个字段单独一条连线，用 linkStyle 着色
+	M += TEXT("    %% 产销依赖连线\n");
 	for (const UDPUDefinition* DPU : SortResult.SortedDPUs)
 	{
 		if (!DPU) continue;
 		TArray<FName> ConsumedFields = DPU->GetConsumedFields();
 
-		// 按来源 DPU 分组，合并同一条边上的多个字段名
-		TMap<FName, TArray<FName>> EdgesFromProducer; // 生产者DPU名 -> 字段名列表
-		TArray<FName> InitialFieldEdges; // 来自 DC 初始字段的
-
 		for (const FName& Field : ConsumedFields)
 		{
 			FName* ProducerName = ProducerMap.Find(Field);
+			FString FieldColor = FieldColorMap.FindRef(Field);
+
 			if (ProducerName)
 			{
-				EdgesFromProducer.FindOrAdd(*ProducerName).Add(Field);
+				M += FString::Printf(TEXT("    %s -->|%s| %s\n"),
+					*ProducerName->ToString(), *Field.ToString(), *DPU->DPUName.ToString());
+			}
+			else if (InitialFields.Num() > 0)
+			{
+				M += FString::Printf(TEXT("    DC_Init -->|%s| %s\n"),
+					*Field.ToString(), *DPU->DPUName.ToString());
 			}
 			else
 			{
-				// 来自 DC 初始字段
-				InitialFieldEdges.Add(Field);
+				continue;
 			}
-		}
 
-		// DC 初始字段 -> DPU 的连线
-		if (InitialFieldEdges.Num() > 0 && InitialFields.Num() > 0)
-		{
-			FString EdgeLabel;
-			for (const FName& F : InitialFieldEdges)
+			if (!FieldColor.IsEmpty())
 			{
-				if (!EdgeLabel.IsEmpty()) EdgeLabel += TEXT(", ");
-				EdgeLabel += F.ToString();
+				ColoredLinks.Add({LinkIndex, FieldColor});
 			}
-			M += FString::Printf(TEXT("    DC_Init -->|%s| %s\n"),
-				*EdgeLabel, *DPU->DPUName.ToString());
-		}
-
-		// Producer DPU -> Consumer DPU 的连线
-		for (const auto& Edge : EdgesFromProducer)
-		{
-			FString EdgeLabel;
-			for (const FName& F : Edge.Value)
-			{
-				if (!EdgeLabel.IsEmpty()) EdgeLabel += TEXT(", ");
-				EdgeLabel += F.ToString();
-			}
-			M += FString::Printf(TEXT("    %s -->|%s| %s\n"),
-				*Edge.Key.ToString(), *EdgeLabel, *DPU->DPUName.ToString());
+			LinkIndex++;
 		}
 	}
+
+	M += TEXT("\n");
+
+	// linkStyle 为每条依赖连线着色（索引与上面的输出顺序严格一致）
+	M += TEXT("    %% 连线颜色（每个 DC 字段一种颜色）\n");
+	for (const FColoredLink& Link : ColoredLinks)
+	{
+		M += FString::Printf(TEXT("    linkStyle %d stroke:%s,stroke-width:2px\n"),
+			Link.Index, *Link.Color);
+	}
+
+	M += TEXT("\n");
 
 	// ---- 保存文件 ----
 	FString SafeLabel = Label.Replace(TEXT(" "), TEXT("_")).Replace(TEXT("."), TEXT("_"));

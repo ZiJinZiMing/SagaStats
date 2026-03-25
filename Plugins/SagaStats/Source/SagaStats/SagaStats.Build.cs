@@ -44,6 +44,7 @@ public class SagaStats : ModuleRules
 				"Engine",
 				"Projects",
 				"NetCore",
+				"StructUtils",
 				"GameplayTags",
 				"GameplayTasks",
 				"GameplayAbilities",

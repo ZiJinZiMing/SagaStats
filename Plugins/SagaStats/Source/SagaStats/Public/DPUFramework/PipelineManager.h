@@ -17,15 +17,15 @@ struct SAGASTATS_API FPipelineSortResult
 	GENERATED_BODY()
 
 	/** 按拓扑排序的执行顺序排列的 DPU */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TArray<TObjectPtr<UDPUDefinition>> SortedDPUs;
 
 	/** 如果检测到循环依赖则为 true（Pipeline 无法执行） */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	bool bHasCycle = false;
 
 	/** 检测到的循环依赖的诊断信息 */
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	TArray<FString> CycleInfo;
 };
 
@@ -37,10 +37,10 @@ struct SAGASTATS_API FDPUExecutionEntry
 {
 	GENERATED_BODY()
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	FName DPUName;
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly)
 	bool bExecuted = false; // true = 已执行, false = 已跳过 (Condition 为 false)
 };
 
@@ -62,15 +62,18 @@ public:
 	 * 静态方法，编辑器可以无需实例化管理器直接复用。
 	 * 对于无依赖关系的 DPU，保留原始数组顺序。
 	 */
+	UFUNCTION(BlueprintCallable, Category = "DPU Pipeline", meta = (DisplayName = "Stable Topological Sort"))
 	static FPipelineSortResult StableTopologicalSort(const TArray<UDPUDefinition*>& DPUs);
 
 	/**
 	 * 执行 Pipeline：排序 -> 评估条件 -> 执行逻辑。
 	 * 返回执行日志。
 	 */
+	UFUNCTION(BlueprintCallable, Category = "DPU Pipeline")
 	TArray<FDPUExecutionEntry> ExecutePipeline(const TArray<UDPUDefinition*>& ActiveDPUs, UDamageContext* DC);
 
 	/** 便捷方法：从 PipelineAsset 执行。 */
+	UFUNCTION(BlueprintCallable, Category = "DPU Pipeline")
 	TArray<FDPUExecutionEntry> ExecuteFromAsset(UPipelineAsset* Asset, UDamageContext* DC);
 
 	// === Mermaid DAG 导出 ===
