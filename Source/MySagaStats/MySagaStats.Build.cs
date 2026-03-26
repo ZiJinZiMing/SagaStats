@@ -17,7 +17,9 @@ public class MySagaStats : ModuleRules
 			"AIModule",
 			"StateTreeModule",
 			"GameplayStateTreeModule",
-			"UMG",
+			"GameplayTags",
+			"GameplayTasks",
+			"GameplayAbilities",
 			"Slate"
 		});
 
