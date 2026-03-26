@@ -1,7 +1,6 @@
 // StringConditionExpression.cpp — 布尔表达式的递归下降解析器
 #include "DPUFramework/StringConditionExpression.h"
 #include "DPUFramework/DamageContext.h"
-#include "GameplayTagContainer.h"
 
 // ============================================================================
 // 词法单元类型
@@ -19,10 +18,6 @@ namespace DPUCondition
 		Not,       // !
 		Eq,        // ==
 		Neq,       // !=
-		Gt,        // >
-		Lt,        // <
-		Gte,       // >=
-		Lte,       // <=
 		LParen,    // (
 		RParen,    // )
 		End
@@ -54,7 +49,7 @@ namespace DPUCondition
 				continue;
 			}
 
-			// 双字符运算符（优先匹配，避免 >= 被拆成 > 和 =）
+			// 双字符运算符
 			if (Pos + 1 < Len)
 			{
 				FString TwoChar = Expr.Mid(Pos, 2);
@@ -62,14 +57,10 @@ namespace DPUCondition
 				if (TwoChar == TEXT("||")) { Tokens.Add({ETokenType::Or, TwoChar}); Pos += 2; continue; }
 				if (TwoChar == TEXT("==")) { Tokens.Add({ETokenType::Eq, TwoChar}); Pos += 2; continue; }
 				if (TwoChar == TEXT("!=")) { Tokens.Add({ETokenType::Neq, TwoChar}); Pos += 2; continue; }
-				if (TwoChar == TEXT(">=")) { Tokens.Add({ETokenType::Gte, TwoChar}); Pos += 2; continue; }
-				if (TwoChar == TEXT("<=")) { Tokens.Add({ETokenType::Lte, TwoChar}); Pos += 2; continue; }
 			}
 
 			// 单字符运算符
 			if (Ch == '!') { Tokens.Add({ETokenType::Not, TEXT("!")}); Pos++; continue; }
-			if (Ch == '>') { Tokens.Add({ETokenType::Gt, TEXT(">")}); Pos++; continue; }
-			if (Ch == '<') { Tokens.Add({ETokenType::Lt, TEXT("<")}); Pos++; continue; }
 			if (Ch == '(') { Tokens.Add({ETokenType::LParen, TEXT("(")}); Pos++; continue; }
 			if (Ch == ')') { Tokens.Add({ETokenType::RParen, TEXT(")")}); Pos++; continue; }
 
@@ -116,57 +107,6 @@ namespace DPUCondition
 
 		Tokens.Add({ETokenType::End, TEXT("")});
 		return Tokens;
-	}
-
-	// ============================================================================
-	// 辅助：判断 Token 是否为比较运算符
-	// ============================================================================
-	static bool IsCompareOp(ETokenType Type)
-	{
-		return Type == ETokenType::Eq || Type == ETokenType::Neq
-			|| Type == ETokenType::Gt || Type == ETokenType::Lt
-			|| Type == ETokenType::Gte || Type == ETokenType::Lte;
-	}
-
-	// ============================================================================
-	// 类型感知比较
-	// ============================================================================
-
-	/** 相等比较：Bool/Name/Tag 做类型感知比较，其余走 AsFloat() */
-	static bool CompareEqual(const FDCValue& L, const FDCValue& R)
-	{
-		// 两侧都是 Bool → 布尔比较
-		if (L.Type == EDCValueType::Bool && R.Type == EDCValueType::Bool)
-		{
-			return L.BoolValue == R.BoolValue;
-		}
-		// 两侧都是 Name → 名称比较
-		if (L.Type == EDCValueType::Name && R.Type == EDCValueType::Name)
-		{
-			return L.NameValue == R.NameValue;
-		}
-		// 任一侧是 Tag → Tag 比较（MatchesTagExact）
-		if (L.Type == EDCValueType::Tag || R.Type == EDCValueType::Tag)
-		{
-			return L.AsTag().MatchesTagExact(R.AsTag());
-		}
-		// 其余情况（含 None）→ 数值比较
-		return FMath::IsNearlyEqual(L.AsFloat(), R.AsFloat());
-	}
-
-	/** 数值比较（>, <, >=, <=）：统一走 AsFloat() */
-	static bool CompareNumeric(const FDCValue& L, const FDCValue& R, ETokenType Op)
-	{
-		const float LF = L.AsFloat();
-		const float RF = R.AsFloat();
-		switch (Op)
-		{
-		case ETokenType::Gt:  return LF > RF;
-		case ETokenType::Lt:  return LF < RF;
-		case ETokenType::Gte: return LF >= RF || FMath::IsNearlyEqual(LF, RF);
-		case ETokenType::Lte: return LF <= RF || FMath::IsNearlyEqual(LF, RF);
-		default:              return false;
-		}
 	}
 
 	// ============================================================================
@@ -220,36 +160,6 @@ namespace DPUCondition
 			return ParsePrimary();
 		}
 
-		/** 解析右侧值：标识符（从DC读取）、布尔字面量、数字字面量 */
-		FDCValue ParseValue()
-		{
-			if (Current().Type == ETokenType::True)
-			{
-				Advance();
-				return FDCValue::FromBool(true);
-			}
-			if (Current().Type == ETokenType::False)
-			{
-				Advance();
-				return FDCValue::FromBool(false);
-			}
-			if (Current().Type == ETokenType::Number)
-			{
-				FDCValue Val = FDCValue::FromFloat(FCString::Atof(*Current().Value));
-				Advance();
-				return Val;
-			}
-			if (Current().Type == ETokenType::Identifier)
-			{
-				FDCValue Val = DC ? DC->Get(FName(*Current().Value)) : FDCValue();
-				Advance();
-				return Val;
-			}
-			// 兜底
-			Advance();
-			return FDCValue();
-		}
-
 		bool ParsePrimary()
 		{
 			// 括号表达式
@@ -276,26 +186,42 @@ namespace DPUCondition
 				return false;
 			}
 
-			// 标识符 — 后面可能跟着比较运算符
+			// 标识符 — 后面可能跟着 == 或 !=
 			if (Current().Type == ETokenType::Identifier)
 			{
 				FDCValue LeftVal = DC ? DC->Get(FName(*Current().Value)) : FDCValue();
 				Advance();
 
 				// 检查是否有比较运算符
-				if (IsCompareOp(Current().Type))
+				if (Current().Type == ETokenType::Eq || Current().Type == ETokenType::Neq)
 				{
-					ETokenType Op = Current().Type;
+					bool bIsEq = (Current().Type == ETokenType::Eq);
 					Advance();
 
-					FDCValue RightVal = ParseValue();
-
-					switch (Op)
+					FDCValue RightVal;
+					if (Current().Type == ETokenType::True)
 					{
-					case ETokenType::Eq:  return CompareEqual(LeftVal, RightVal);
-					case ETokenType::Neq: return !CompareEqual(LeftVal, RightVal);
-					default:              return CompareNumeric(LeftVal, RightVal, Op);
+						RightVal = FDCValue::FromBool(true);
+						Advance();
 					}
+					else if (Current().Type == ETokenType::False)
+					{
+						RightVal = FDCValue::FromBool(false);
+						Advance();
+					}
+					else if (Current().Type == ETokenType::Number)
+					{
+						RightVal = FDCValue::FromFloat(FCString::Atof(*Current().Value));
+						Advance();
+					}
+					else if (Current().Type == ETokenType::Identifier)
+					{
+						RightVal = DC ? DC->Get(FName(*Current().Value)) : FDCValue();
+						Advance();
+					}
+
+					bool bEqual = (LeftVal.AsBool() == RightVal.AsBool());
+					return bIsEq ? bEqual : !bEqual;
 				}
 
 				// 裸标识符 — 作为布尔值求值

@@ -368,6 +368,7 @@ void UPipelineManager::ExportMermaidDAG(
 	M += TEXT("    classDef exec fill:#d4edda,stroke:#28a745,color:#000\n");
 	M += TEXT("    classDef skip fill:#e2e3e5,stroke:#6c757d,color:#666\n");
 	M += TEXT("    classDef initCtx fill:#fff3cd,stroke:#ffc107,color:#000\n");
+	M += TEXT("    classDef finalCtx fill:#cce5ff,stroke:#004085,color:#000\n");
 	M += TEXT("\n");
 
 	// DC 初始字段节点
@@ -392,10 +393,9 @@ void UPipelineManager::ExportMermaidDAG(
 		const UDPUDefinition* DPU = SortResult.SortedDPUs[i];
 		if (!DPU) continue;
 
-		// 执行状态
+		// 执行状态（用节点颜色区分：绿色=执行，灰色=跳过）
 		const bool* bExec = ExecStatusMap.Find(DPU->DPUName);
 		bool bExecuted = bExec ? *bExec : false;
-		FString StatusTag = bExecuted ? TEXT("EXEC") : TEXT("SKIP");
 		FString StyleClass = bExecuted ? TEXT("exec") : TEXT("skip");
 
 		// Condition 表达式文本
@@ -441,12 +441,11 @@ void UPipelineManager::ExportMermaidDAG(
 			}
 		}
 
-		// 节点定义
+		// 节点定义（颜色区分执行状态，不再用文字标签）
 		M += FString::Printf(
-			TEXT("    %s[\"%s [%s] #%d<br/>Cond: %s<br/>Produces:<br/>%s\"]:::%s\n"),
+			TEXT("    %s[\"%s #%d<br/>Cond: %s<br/>Produces:<br/>%s\"]:::%s\n"),
 			*DPU->DPUName.ToString(),
 			*DPU->DPUName.ToString(),
-			*StatusTag,
 			i,
 			*CondText,
 			*ProducesText,
@@ -473,6 +472,13 @@ void UPipelineManager::ExportMermaidDAG(
 		M += FString::Printf(TEXT("    %s ~~~ %s\n"),
 			*SortResult.SortedDPUs[i]->DPUName.ToString(),
 			*SortResult.SortedDPUs[i + 1]->DPUName.ToString());
+		LinkIndex++;
+	}
+	// 最后一个 DPU 连接到 DC_Final
+	if (SortResult.SortedDPUs.Num() > 0)
+	{
+		M += FString::Printf(TEXT("    %s ~~~ DC_Final\n"),
+			*SortResult.SortedDPUs.Last()->DPUName.ToString());
 		LinkIndex++;
 	}
 	M += TEXT("\n");
@@ -520,6 +526,31 @@ void UPipelineManager::ExportMermaidDAG(
 	{
 		M += FString::Printf(TEXT("    linkStyle %d stroke:%s,stroke-width:2px\n"),
 			Link.Index, *Link.Color);
+	}
+
+	M += TEXT("\n");
+
+	// DC Final 节点：展示管线执行结束后 DC 中所有 DPU 产出的字段
+	if (DC)
+	{
+		FString FinalLines;
+		for (const auto& Pair : DC->GetAllFields())
+		{
+			// 只显示 DPU 产出的字段（排除初始上下文字段）
+			if (!DC->GetContextFieldNames().Contains(Pair.Key))
+			{
+				if (!FinalLines.IsEmpty()) FinalLines += TEXT("<br/>");
+				FinalLines += FString::Printf(TEXT("%s = %s"), *Pair.Key.ToString(), *Pair.Value.ToString());
+			}
+		}
+		if (!FinalLines.IsEmpty())
+		{
+			M += FString::Printf(TEXT("    DC_Final[\"<b>DC Final</b><br/>%s\"]:::finalCtx\n"), *FinalLines);
+		}
+		else
+		{
+			M += TEXT("    DC_Final[\"<b>DC Final</b><br/>(empty)\"]:::finalCtx\n");
+		}
 	}
 
 	M += TEXT("\n");

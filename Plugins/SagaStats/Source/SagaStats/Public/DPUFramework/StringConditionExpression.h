@@ -10,17 +10,15 @@
  * 解析并求值布尔表达式，如 "Guard && !IsLightningInAir"。
  *
  * 文法:
- *   Expr       -> OrExpr
- *   OrExpr     -> AndExpr ( "||" AndExpr )*
- *   AndExpr    -> UnaryExpr ( "&&" UnaryExpr )*
- *   UnaryExpr  -> "!" UnaryExpr | Primary
- *   Primary    -> "(" Expr ")" | Identifier CompareExpr? | "true" | "false"
- *   CompareExpr-> ("==" | "!=" | ">" | "<" | ">=" | "<=") Value
- *   Value      -> Identifier | "true" | "false" | Number
+ *   Expr      -> OrExpr
+ *   OrExpr    -> AndExpr ( "||" AndExpr )*
+ *   AndExpr   -> UnaryExpr ( "&&" UnaryExpr )*
+ *   UnaryExpr -> "!" UnaryExpr | Primary
+ *   Primary   -> "(" Expr ")" | Identifier ( ("==" | "!=") Value )? | "true" | "false"
+ *   Value     -> Identifier | "true" | "false" | Number
  *
- * 标识符通过 DC->Get(FName) 解析为 DC 字段值。
- * 裸标识符按 AsBool() 求值。
- * 比较运算符按 AsFloat() 做数值比较（== 和 != 对 Bool/Name 做类型感知比较）。
+ * 标识符通过 DC->Get(FName).AsBool() 解析为 DC 字段名。
+ * 对于 == / != 比较，两侧均被解析后进行比较。
  */
 UCLASS(BlueprintType)
 class SAGASTATS_API UStringConditionExpression : public UConditionExpression
@@ -28,7 +26,7 @@ class SAGASTATS_API UStringConditionExpression : public UConditionExpression
 	GENERATED_BODY()
 
 public:
-	/** 条件表达式字符串，例如 "Guard && !IsLightningInAir" 或 "guard_level >= 3" */
+	/** 条件表达式字符串，例如 "Guard && !IsLightningInAir" */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Expression;
 

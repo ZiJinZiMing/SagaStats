@@ -25,7 +25,8 @@ void UDamageContext::ExpandStructToFields(const FInstancedStruct& Struct)
 	for (TFieldIterator<FProperty> It(ScriptStruct); It; ++It)
 	{
 		const FProperty* Prop = *It;
-		const FName FieldName = Prop->GetFName();
+		// GetAuthoredName() 返回策划在编辑器中定义的原始属性名（不含蓝图 GUID 后缀）
+		const FName FieldName = FName(*Prop->GetAuthoredName());
 
 		if (const FBoolProperty* BoolProp = CastField<FBoolProperty>(Prop))
 		{
