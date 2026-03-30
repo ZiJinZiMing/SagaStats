@@ -4,12 +4,12 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "DPUFramework/DPULogicBase.h"
-#include "DPUFramework/ConditionExpression.h"
+#include "DPUFramework/ConditionNode.h"
 #include "DPUDefinition.generated.h"
 
 /**
  * UDPUDefinition — DPU 的静态定义。
- * 存储 Produces 声明、Condition（装配式，R4）、逻辑类引用、优先级。
+ * 存储 Produces 声明（Fact Key 列表）、Condition 条件树、逻辑类引用、优先级。
  * 可在编辑器中创建为 DataAsset，也可在运行时构造。
  */
 UCLASS(BlueprintType)
@@ -26,13 +26,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Description;
 
-	/** 此 DPU 写入的 DC 字段（Produces 声明，R5） */
+	/** 此 DPU 写入的 DC 字段（Produces Fact Key 列表，R5） */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<FName> Produces;
 
-	/** Condition 门控 (R4: 装配到 DPU 上，可为空 = 始终执行) */
+	/** Condition 条件树（R4: 装配到 DPU 上，可为空 = 始终执行） */
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite)
-	TObjectPtr<UConditionExpression> Condition;
+	TObjectPtr<UConditionNode> Condition;
 
 	/** 实现机制的逻辑类（UDPULogicBase 的子类） */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -42,6 +42,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 BasePriority = 0;
 
-	/** 从 Condition 中提取消费的 DC 字段名（用于拓扑排序） */
-	TArray<FName> GetConsumedFields() const;
+	/** 从 Condition 条件树中提取消费的 Fact Key（用于拓扑排序） */
+	TArray<FName> GetConsumedFacts() const;
 };

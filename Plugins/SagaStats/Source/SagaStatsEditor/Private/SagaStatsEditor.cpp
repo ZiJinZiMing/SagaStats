@@ -13,6 +13,7 @@
 #include "AssetTypes/SGAssetTypeActions_AttributeSet.h"
 #include "AttributeReferenceViewer/SGAttributeListReferenceViewer.h"
 #include "Details/SGAttributeSetDetails.h"
+#include "Details/SGPipelineAssetDetails.h"
 #include "Details/SGAttributeDataClampedDetails.h"
 #include "Details/SGGameplayAttributeDataDetails.h"
 #include "Details/SGGameplayAttributeDetails.h"
@@ -63,6 +64,7 @@ void FSagaStatsEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("SGClampedGameplayAttributeData"));
 
 		PropertyModule.UnregisterCustomClassLayout(TEXT("SGAttributeSet"));
+		PropertyModule.UnregisterCustomClassLayout(TEXT("PipelineAsset"));
 	}
 
 	// Unregister asset type actions
@@ -136,6 +138,7 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SGClampedGameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSGAttributeDataClampedDetails::MakeInstance));
 		
 		PropertyModule.RegisterCustomClassLayout(TEXT("SGAttributeSet"), FOnGetDetailCustomizationInstance::CreateStatic(&FSGAttributeSetDetails::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(TEXT("PipelineAsset"), FOnGetDetailCustomizationInstance::CreateStatic(&FSGPipelineAssetDetails::MakeInstance));
 
 		// Asset Types
 		{

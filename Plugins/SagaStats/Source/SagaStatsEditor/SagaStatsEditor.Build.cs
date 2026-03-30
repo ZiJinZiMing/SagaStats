@@ -14,6 +14,7 @@ public class SagaStatsEditor : ModuleRules
 				"Core",
 				"AssetTools",
 				"SagaStats",
+				"StructUtils",
 			}
 		);
 

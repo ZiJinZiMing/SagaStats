@@ -1,27 +1,44 @@
-// DPUPipelineTestActor.cpp — DPU Pipeline 可视化运行时测试 Actor
+// DPUPipelineTestActor.cpp — v4.4 Fact 版：真正的 Fact 结构体 + 领域方法 + 条件树
 #include "DPUFramework/DPUPipelineTestActor.h"
 #include "DPUFramework/DamageContext.h"
-#include "DPUFramework/StringConditionExpression.h"
+#include "DPUFramework/ConditionNode.h"
 #include "DPUFramework/DPUTestLogics.h"
 #include "SagaStatsLog.h"
-#include "Engine/Engine.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // ============================================================================
-// 辅助方法：创建 DPU 定义
+// 辅助：构建条件树节点
 // ============================================================================
-static UDPUDefinition* MakeRTDPU(
-	UObject* Outer, FName Name, const FString& CondExpr,
+
+static UConditionNode_FactQuery* MakeFactQuery(UObject* Outer, FName FactKey, FName MethodName = NAME_None, bool bReverse = false)
+{
+	UConditionNode_FactQuery* Node = NewObject<UConditionNode_FactQuery>(Outer);
+	Node->FactKey = FactKey;
+	Node->MethodName = MethodName;
+	Node->bReverse = bReverse;
+	return Node;
+}
+
+static UConditionNode_And* MakeAnd(UObject* Outer, const TArray<UConditionNode*>& Children, bool bReverse = false)
+{
+	UConditionNode_And* Node = NewObject<UConditionNode_And>(Outer);
+	for (UConditionNode* Child : Children)
+	{
+		Node->Children.Add(Child);
+	}
+	Node->bReverse = bReverse;
+	return Node;
+}
+
+static UDPUDefinition* MakeDPU(
+	UObject* Outer, FName Name, UConditionNode* Condition,
 	const TArray<FName>& Produces, TSubclassOf<UDPULogicBase> Logic)
 {
 	UDPUDefinition* Def = NewObject<UDPUDefinition>(Outer);
 	Def->DPUName = Name;
 	Def->Produces = Produces;
 	Def->LogicClass = Logic;
-	if (!CondExpr.IsEmpty())
-	{
-		Def->Condition = UStringConditionExpression::Create(Def, CondExpr);
-	}
+	Def->Condition = Condition;
 	return Def;
 }
 
@@ -47,42 +64,131 @@ void ADPUPipelineTestActor::BeginPlay()
 
 void ADPUPipelineTestActor::BuildSekiroPipeline()
 {
-	PipelineManager = NewObject<UPipelineManager>(this);
+	using namespace SekiroFactKeys;
 
-	SekiroDPUs.Empty();
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_Mixup", "",
-		{"Guard"}, UDPULogic_TestMixup::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_Guard", "Guard && !IsLightningInAir",
-		{"IsJustGuard", "GuardSuccess"}, UDPULogic_TestGuard::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_Death", "!(Guard && GuardSuccess) && !IsLightningInAir",
-		{"IsDeath"}, UDPULogic_TestDeath::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_Collapse", "!(Guard && GuardSuccess) && !IsLightningInAir",
-		{"IsCollapse"}, UDPULogic_TestCollapse::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_Hurt", "!(Guard && GuardSuccess) && !IsLightningInAir",
-		{"HurtExecuted"}, UDPULogic_TestHurt::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_CollapseGuard", "GuardSuccess && !IsJustGuard && !IsLightningInAir",
-		{"IsCollapse"}, UDPULogic_TestCollapseGuard::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_CollapseJustGuard", "GuardSuccess && IsJustGuard && !IsLightningInAir",
-		{}, UDPULogic_TestCollapseJustGuard::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_AttackerBound", "GuardSuccess && IsJustGuard && !IsLightningInAir",
-		{"IsBound"}, UDPULogic_TestAttackerBound::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_Poison", "!(IsJustGuard && IsPlayer)",
-		{"IsPoisoned"}, UDPULogic_TestPoison::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_Toughness", "!(Guard && GuardSuccess) && !IsLightningInAir",
-		{"IsTough"}, UDPULogic_TestToughness::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_SuperArmor", "!(Guard && GuardSuccess) && !IsLightningInAir",
-		{"IsInSuperArmor"}, UDPULogic_TestSuperArmor::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_LightningOnGround", "Lightning && !IsInAir",
-		{}, UDPULogic_TestLightningOnGround::StaticClass()));
-	SekiroDPUs.Add(MakeRTDPU(this, "DPU_LightningInAir", "Lightning && IsInAir",
-		{"IsLightningInAir"}, UDPULogic_TestLightningInAir::StaticClass()));
+	Pipeline = NewObject<UPipelineAsset>(this);
+	Pipeline->PipelineName = FName("SekiroMVPv4");
+	Pipeline->bAutoExportMermaid = true;
 
-	PrintToScreen(FString::Printf(TEXT("=== Sekiro MVP v4 Pipeline Built: %d DPUs ==="), SekiroDPUs.Num()), FColor::Cyan);
+	// ================================================================
+	// DPU_Mixup：无 Condition
+	// Produces: MixupResult
+	// ================================================================
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_Mixup", nullptr,
+		{MixupResult}, UDPULogic_TestMixup::StaticClass()));
 
-	// 打印拓扑排序结果
-	TArray<UDPUDefinition*> RawPtrs;
-	for (auto& D : SekiroDPUs) RawPtrs.Add(D.Get());
-	FPipelineSortResult SortResult = UPipelineManager::StableTopologicalSort(RawPtrs);
+	// ================================================================
+	// DPU_Guard: MixupResult.IsGuard && !LightningInAirResult
+	// Produces: GuardResult
+	// ================================================================
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_Guard",
+		MakeAnd(this, {
+			MakeFactQuery(this, MixupResult, FName("IsGuard")),
+			MakeFactQuery(this, LightningInAirResult, NAME_None, true) // !信号
+		}),
+		{GuardResult}, UDPULogic_TestGuard::StaticClass()));
+
+	// ================================================================
+	// 共用条件模式：!(MixupResult.IsGuard && GuardResult.IsGuardSuccess) && !LightningInAirResult
+	// 用于 Death, Collapse, Hurt, Toughness, SuperArmor
+	// ================================================================
+	auto MakeHurtCondition = [this]() -> UConditionNode*
+	{
+		return MakeAnd(this, {
+			MakeAnd(this, {
+				MakeFactQuery(this, MixupResult, FName("IsGuard")),
+				MakeFactQuery(this, GuardResult, FName("IsGuardSuccess"))
+			}, true), // !(IsGuard && IsGuardSuccess)
+			MakeFactQuery(this, LightningInAirResult, NAME_None, true) // !LightningInAirResult
+		});
+	};
+
+	// DPU_Death
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_Death", MakeHurtCondition(),
+		{DeathResult}, UDPULogic_TestDeath::StaticClass()));
+
+	// DPU_Collapse
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_Collapse", MakeHurtCondition(),
+		{CollapseResult}, UDPULogic_TestCollapse::StaticClass()));
+
+	// DPU_Hurt
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_Hurt", MakeHurtCondition(),
+		{HurtResult}, UDPULogic_TestHurt::StaticClass()));
+
+	// ================================================================
+	// DPU_CollapseGuard: GuardResult.IsGuardSuccess && !GuardResult.IsJustGuard && !LightningInAirResult
+	// ================================================================
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_CollapseGuard",
+		MakeAnd(this, {
+			MakeFactQuery(this, GuardResult, FName("IsGuardSuccess")),
+			MakeFactQuery(this, GuardResult, FName("IsJustGuard"), true), // !IsJustGuard
+			MakeFactQuery(this, LightningInAirResult, NAME_None, true)
+		}),
+		{CollapseResult}, UDPULogic_TestCollapseGuard::StaticClass()));
+
+	// ================================================================
+	// DPU_CollapseJustGuard: GuardResult.IsGuardSuccess && GuardResult.IsJustGuard && !LightningInAirResult
+	// ================================================================
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_CollapseJustGuard",
+		MakeAnd(this, {
+			MakeFactQuery(this, GuardResult, FName("IsGuardSuccess")),
+			MakeFactQuery(this, GuardResult, FName("IsJustGuard")),
+			MakeFactQuery(this, LightningInAirResult, NAME_None, true)
+		}),
+		{CollapseJustGuardResult}, UDPULogic_TestCollapseJustGuard::StaticClass()));
+
+	// ================================================================
+	// DPU_AttackerBound: GuardResult.IsGuardSuccess && GuardResult.IsJustGuard && !LightningInAirResult
+	// ================================================================
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_AttackerBound",
+		MakeAnd(this, {
+			MakeFactQuery(this, GuardResult, FName("IsGuardSuccess")),
+			MakeFactQuery(this, GuardResult, FName("IsJustGuard")),
+			MakeFactQuery(this, LightningInAirResult, NAME_None, true)
+		}),
+		{AttackerBoundResult}, UDPULogic_TestAttackerBound::StaticClass()));
+
+	// ================================================================
+	// DPU_Poison: !(GuardResult.IsJustGuard && IsPlayer 上下文)
+	// 注：IsPlayer 是事件上下文字段（无 DPU 生产者），不参与 DAG
+	// 简化为：!GuardResult.IsJustGuard（IsPlayer 条件在 CanActive 中处理，现阶段省略）
+	// ================================================================
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_Poison",
+		MakeFactQuery(this, GuardResult, FName("IsJustGuard"), true), // !IsJustGuard
+		{PoisonResult}, UDPULogic_TestPoison::StaticClass()));
+
+	// DPU_Toughness
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_Toughness", MakeHurtCondition(),
+		{ToughnessResult}, UDPULogic_TestToughness::StaticClass()));
+
+	// DPU_SuperArmor
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_SuperArmor", MakeHurtCondition(),
+		{SuperArmorResult}, UDPULogic_TestSuperArmor::StaticClass()));
+
+	// ================================================================
+	// DPU_LightningOnGround: DC 上下文 Lightning=true && !IsInAir
+	// Lightning 和 IsInAir 是事件上下文字段，用标量兼容接口检查
+	// 这里用 FactQuery 信号检查：Lightning 和 IsInAir 是 SetBool 写入的标量
+	// ================================================================
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_LightningOnGround",
+		MakeAnd(this, {
+			MakeFactQuery(this, FName("Lightning")), // DC 初始字段，信号检查
+			MakeFactQuery(this, FName("IsInAir"), NAME_None, true)
+		}),
+		{LightningOnGroundResult}, UDPULogic_TestLightningOnGround::StaticClass()));
+
+	// DPU_LightningInAir: Lightning && IsInAir
+	Pipeline->DPUDefinitions.Add(MakeDPU(this, "DPU_LightningInAir",
+		MakeAnd(this, {
+			MakeFactQuery(this, FName("Lightning")),
+			MakeFactQuery(this, FName("IsInAir"))
+		}),
+		{LightningInAirResult}, UDPULogic_TestLightningInAir::StaticClass()));
+
+	// Build 烘焙
+	FPipelineSortResult SortResult = Pipeline->Build();
+
+	PrintToScreen(FString::Printf(TEXT("=== Sekiro MVP v4 Fact Pipeline Built: %d DPUs ==="), Pipeline->DPUDefinitions.Num()), FColor::Cyan);
 
 	FString SortOrder;
 	for (int32 i = 0; i < SortResult.SortedDPUs.Num(); i++)
@@ -95,7 +201,6 @@ void ADPUPipelineTestActor::BuildSekiroPipeline()
 
 void ADPUPipelineTestActor::RunAllScenarios()
 {
-	PrintToScreen(TEXT(""), FColor::White);
 	PrintToScreen(TEXT("========================================"), FColor::Cyan);
 	PrintToScreen(TEXT("  Running All 5 Sekiro Test Scenarios"), FColor::Cyan);
 	PrintToScreen(TEXT("========================================"), FColor::Cyan);
@@ -123,107 +228,78 @@ void ADPUPipelineTestActor::RunScenario(int32 ScenarioIndex)
 }
 
 // ============================================================================
-// 场景 1：普通斩击命中 — 无格挡，无雷电
+// 场景实现
 // ============================================================================
+
 void ADPUPipelineTestActor::RunScenario_NormalHit()
 {
-	PipelineManager->ScenarioLabel = TEXT("1.NormalSlashHit");
-
+	Pipeline->ScenarioLabel = TEXT("1.NormalSlashHit");
 	UDamageContext* DC = NewObject<UDamageContext>(this);
 	DC->SetFloat(FName("DmgLevel"), 3.0f);
 	DC->SetFloat(FName("CurrentHP"), 100.0f);
-	// guard_level=0 -> Mixup 设置 Guard=false
+	// guard_level=0 → Mixup 产出 bIsGuard=false
 
-	TArray<UDPUDefinition*> RawPtrs;
-	for (auto& D : SekiroDPUs) RawPtrs.Add(D.Get());
-
-	TArray<FDPUExecutionEntry> Log = PipelineManager->ExecutePipeline(RawPtrs, DC);
+	TArray<FDPUExecutionEntry> Log = Pipeline->Execute(DC);
 	PrintScenarioResult(TEXT("1. Normal Slash Hit"), DC, Log);
 }
 
-// ============================================================================
-// 场景 2：格挡（非弹刀）
-// ============================================================================
 void ADPUPipelineTestActor::RunScenario_Guard()
 {
-	PipelineManager->ScenarioLabel = TEXT("2.Guard");
+	Pipeline->ScenarioLabel = TEXT("2.Guard");
 	UDamageContext* DC = NewObject<UDamageContext>(this);
 	DC->SetFloat(FName("DmgLevel"), 3.0f);
-	DC->SetFloat(FName("guard_level"), 3.0f); // == DmgLevel -> 格挡成功但非弹刀
+	DC->SetFloat(FName("guard_level"), 3.0f); // == DmgLevel → 格挡但非弹刀
 	DC->SetFloat(FName("CurrentHP"), 100.0f);
 
-	TArray<UDPUDefinition*> RawPtrs;
-	for (auto& D : SekiroDPUs) RawPtrs.Add(D.Get());
-
-	TArray<FDPUExecutionEntry> Log = PipelineManager->ExecutePipeline(RawPtrs, DC);
+	TArray<FDPUExecutionEntry> Log = Pipeline->Execute(DC);
 	PrintScenarioResult(TEXT("2. Guard (non-JustGuard)"), DC, Log);
 }
 
-// ============================================================================
-// 场景 3：弹刀 (JustGuard)
-// ============================================================================
 void ADPUPipelineTestActor::RunScenario_JustGuard()
 {
-	PipelineManager->ScenarioLabel = TEXT("3.JustGuard");
+	Pipeline->ScenarioLabel = TEXT("3.JustGuard");
 	UDamageContext* DC = NewObject<UDamageContext>(this);
 	DC->SetFloat(FName("DmgLevel"), 3.0f);
-	DC->SetFloat(FName("guard_level"), 5.0f); // > DmgLevel -> 触发弹刀
+	DC->SetFloat(FName("guard_level"), 5.0f); // > DmgLevel → 弹刀
 	DC->SetFloat(FName("CurrentHP"), 100.0f);
 	DC->SetBool(FName("IsPlayer"), true);
 
-	TArray<UDPUDefinition*> RawPtrs;
-	for (auto& D : SekiroDPUs) RawPtrs.Add(D.Get());
-
-	TArray<FDPUExecutionEntry> Log = PipelineManager->ExecutePipeline(RawPtrs, DC);
+	TArray<FDPUExecutionEntry> Log = Pipeline->Execute(DC);
 	PrintScenarioResult(TEXT("3. JustGuard (Deflect)"), DC, Log);
 }
 
-// ============================================================================
-// 场景 4：地面雷电
-// ============================================================================
 void ADPUPipelineTestActor::RunScenario_LightningGround()
 {
-	PipelineManager->ScenarioLabel = TEXT("4.LightningGround");
+	Pipeline->ScenarioLabel = TEXT("4.LightningGround");
 	UDamageContext* DC = NewObject<UDamageContext>(this);
 	DC->SetBool(FName("Lightning"), true);
 	DC->SetBool(FName("IsInAir"), false);
 	DC->SetFloat(FName("DmgLevel"), 3.0f);
 	DC->SetFloat(FName("CurrentHP"), 100.0f);
 
-	TArray<UDPUDefinition*> RawPtrs;
-	for (auto& D : SekiroDPUs) RawPtrs.Add(D.Get());
-
-	TArray<FDPUExecutionEntry> Log = PipelineManager->ExecutePipeline(RawPtrs, DC);
+	TArray<FDPUExecutionEntry> Log = Pipeline->Execute(DC);
 	PrintScenarioResult(TEXT("4. Lightning on Ground"), DC, Log);
 }
 
-// ============================================================================
-// 场景 5：空中接雷
-// ============================================================================
 void ADPUPipelineTestActor::RunScenario_LightningInAir()
 {
-	PipelineManager->ScenarioLabel = TEXT("5.LightningInAir");
+	Pipeline->ScenarioLabel = TEXT("5.LightningInAir");
 	UDamageContext* DC = NewObject<UDamageContext>(this);
 	DC->SetBool(FName("Lightning"), true);
 	DC->SetBool(FName("IsInAir"), true);
 	DC->SetFloat(FName("DmgLevel"), 3.0f);
 	DC->SetFloat(FName("CurrentHP"), 100.0f);
 
-	TArray<UDPUDefinition*> RawPtrs;
-	for (auto& D : SekiroDPUs) RawPtrs.Add(D.Get());
-
-	TArray<FDPUExecutionEntry> Log = PipelineManager->ExecutePipeline(RawPtrs, DC);
+	TArray<FDPUExecutionEntry> Log = Pipeline->Execute(DC);
 	PrintScenarioResult(TEXT("5. Lightning in Air"), DC, Log);
 }
 
 // ============================================================================
-// 屏幕输出辅助方法
+// 输出
 // ============================================================================
 
 void ADPUPipelineTestActor::PrintToScreen(const FString& Message, FColor Color) const
 {
-	// 同时输出到：屏幕（Viewport）+ Output Log 控制台
-	// PrintString 参数: bPrintToScreen=true, bPrintToLog=true
 	UKismetSystemLibrary::PrintString(this, Message, true, true, Color, ScreenMessageDuration);
 }
 
@@ -234,7 +310,6 @@ void ADPUPipelineTestActor::PrintScenarioResult(
 	PrintToScreen(TEXT(""), FColor::White);
 	PrintToScreen(FString::Printf(TEXT("--- %s ---"), *ScenarioName), FColor::Green);
 
-	// 执行状态
 	for (const FDPUExecutionEntry& Entry : Log)
 	{
 		FString Status = Entry.bExecuted ? TEXT("[EXEC]") : TEXT("[SKIP]");
@@ -242,17 +317,32 @@ void ADPUPipelineTestActor::PrintScenarioResult(
 		PrintToScreen(FString::Printf(TEXT("  %s %s"), *Status, *Entry.DPUName.ToString()), Color);
 	}
 
-	// 关键 DC 结果
-	PrintToScreen(TEXT("  DC Results:"), FColor::Yellow);
-	for (const auto& Pair : DC->GetAllFields())
+	// DC 结果：显示 Fact 的存在性和关键字段
+	PrintToScreen(TEXT("  DC Facts:"), FColor::Yellow);
+	for (const auto& Pair : DC->GetAllFacts())
 	{
-		// 仅显示 DPU 产出的字段（跳过 float 类型的初始上下文）
-		const FDCValue& Val = Pair.Value;
-		if (Val.Type == EDCValueType::Bool)
+		if (DC->GetContextFieldNames().Contains(Pair.Key)) continue;
+
+		FString ValueStr;
+		if (!Pair.Value.IsValid())
 		{
-			FColor ValColor = Val.BoolValue ? FColor::Green : FColor::Red;
-			PrintToScreen(FString::Printf(TEXT("    %s = %s"),
-				*Pair.Key.ToString(), *Val.ToString()), ValColor);
+			ValueStr = TEXT("(invalid)");
 		}
+		else if (const UScriptStruct* Struct = Pair.Value.GetScriptStruct())
+		{
+			// 信号 Fact：空结构体 → 显示 "signal"
+			if (Struct->GetPropertiesSize() == Struct->GetMinAlignment()) // 无自有字段
+			{
+				ValueStr = TEXT("(signal)");
+			}
+			else
+			{
+				// 复杂 Fact：用 DumpToString 显示内部字段
+				ValueStr = FString::Printf(TEXT("[%s]"), *Struct->GetName());
+			}
+		}
+
+		FColor ValColor = DC->HasFact(Pair.Key) ? FColor::Green : FColor::Red;
+		PrintToScreen(FString::Printf(TEXT("    %s = %s"), *Pair.Key.ToString(), *ValueStr), ValColor);
 	}
 }
