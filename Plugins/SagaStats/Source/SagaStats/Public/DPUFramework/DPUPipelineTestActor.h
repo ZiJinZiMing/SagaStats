@@ -31,6 +31,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "DPU Test")
 	void RunAllScenarios();
 
+
+	UPROPERTY(EditAnywhere)
+	UScriptStruct* FactType;  
 protected:
 	virtual void BeginPlay() override;
 

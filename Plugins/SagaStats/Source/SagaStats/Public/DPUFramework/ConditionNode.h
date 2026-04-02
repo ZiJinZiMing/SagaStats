@@ -1,71 +1,53 @@
-// ConditionNode.h — 条件树节点层级（复用 AIToken Predicate 模式）
+// ConditionNode.h — 条件树节点层级（v4.6: 按 DPU 分子类，领域方法为 UFUNCTION）
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DPUFramework/SekiroFacts.h"
 #include "ConditionNode.generated.h"
 
 class UDamageContext;
-
-// ============================================================================
-// 比较运算符枚举
-// ============================================================================
-
-UENUM(BlueprintType)
-enum class ECompareOp : uint8
-{
-	Equal,
-	NotEqual,
-	Less,
-	LessEqual,
-	Greater,
-	GreaterEqual
-};
+class UDPUDefinition;
 
 // ============================================================================
 // UConditionNode 基类
 // ============================================================================
 
-/**
- * UConditionNode — 条件树节点基类。
- *
- * 模式来源：AIToken 插件的 Predicate 系统。
- * DefaultToInstanced + EditInlineNew 实现属性面板内联嵌套编辑。
- * bReverse 取反开关在基类统一处理，子类只需实现 Evaluate()。
- *
- * 子类：And / Or / FactQuery / Compare
- */
 UCLASS(Abstract, DefaultToInstanced, EditInlineNew, Blueprintable, CollapseCategories)
 class SAGASTATS_API UConditionNode : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	/** 取反开关：true 时 EvaluateCondition 返回 !Evaluate() 的结果 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Condition")
 	bool bReverse = false;
 
-	/**
-	 * 公开入口——调用 Evaluate() 并应用 bReverse。
-	 * PipelineAsset 和 DPUDefinition 应调用此方法，而非直接调用 Evaluate()。
-	 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Condition")
 	bool EvaluateCondition(const UDamageContext* DC) const;
 
-	/** 子类实现：评估条件，返回原始结果（不含 bReverse） */
 	virtual bool Evaluate(const UDamageContext* DC) const
 		PURE_VIRTUAL(UConditionNode::Evaluate, return true;);
 
-	/** 递归收集本节点引用的所有 Fact Key（用于拓扑排序的产销匹配） */
+	/** v4.6: 递归收集依赖的 DPU 名列表 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Condition")
-	virtual TArray<FName> GetConsumedFacts() const { return {}; }
+	virtual TArray<FName> GetConsumedDPUs() const { return {}; }
 
-	/** 人类可读的条件描述（Mermaid 导出用） */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Condition")
 	virtual FString GetDisplayString() const { return TEXT("(base)"); }
+
+	/** v4.6: 子类绑定的 Fact 类型（叶子节点返回具体类型，复合节点返回 nullptr） */
+	virtual UScriptStruct* GetConsumedFactType() const { return nullptr; }
+
+	/** v4.6: 子类硬编码的生产者 DPU 名（叶子节点返回具体名，复合节点返回 None） */
+	virtual FName GetExpectedProducerDPUName() const { return NAME_None; }
+
+	/** Build 时由 PipelineAsset 调用，解析并缓存生产者 DPU 名 */
+	FName ResolvedProducerDPU;
+
+	virtual void ResolveProducer(const TMap<UScriptStruct*, FName>& FactTypeToProducerMap);
 };
 
 // ============================================================================
-// UConditionNode_And — 所有子节点为 true 才 true
+// UConditionNode_And
 // ============================================================================
 
 UCLASS(BlueprintType, meta = (DisplayName = "AND"))
@@ -78,12 +60,13 @@ public:
 	TArray<TObjectPtr<UConditionNode>> Children;
 
 	virtual bool Evaluate(const UDamageContext* DC) const override;
-	virtual TArray<FName> GetConsumedFacts() const override;
+	virtual TArray<FName> GetConsumedDPUs() const override;
 	virtual FString GetDisplayString() const override;
+	virtual void ResolveProducer(const TMap<UScriptStruct*, FName>& FactTypeToProducerMap) override;
 };
 
 // ============================================================================
-// UConditionNode_Or — 任一子节点为 true 即 true
+// UConditionNode_Or
 // ============================================================================
 
 UCLASS(BlueprintType, meta = (DisplayName = "OR"))
@@ -96,90 +79,216 @@ public:
 	TArray<TObjectPtr<UConditionNode>> Children;
 
 	virtual bool Evaluate(const UDamageContext* DC) const override;
-	virtual TArray<FName> GetConsumedFacts() const override;
+	virtual TArray<FName> GetConsumedDPUs() const override;
 	virtual FString GetDisplayString() const override;
+	virtual void ResolveProducer(const TMap<UScriptStruct*, FName>& FactTypeToProducerMap) override;
 };
 
 // ============================================================================
-// UConditionNode_FactQuery — 通过 FactMethodRegistry 调用领域方法
+// UConditionNode_ContextCheck — 事件上下文字段检查（非 DPU 依赖）
 // ============================================================================
 
-/**
- * 引用 Fact 的领域方法。
- * FactKey 对应 DC 中的 Fact Key。
- * MethodName 对应 FactMethodRegistry 中注册的方法名。
- * MethodName 为 None 时视为信号 Fact 检查（存在即 true）。
- */
-UCLASS(BlueprintType, meta = (DisplayName = "Fact Query"))
-class SAGASTATS_API UConditionNode_FactQuery : public UConditionNode
+UCLASS(BlueprintType, meta = (DisplayName = "Context Check"))
+class SAGASTATS_API UConditionNode_ContextCheck : public UConditionNode
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Condition", meta = (GetOptions = "GetFactKeyOptions"))
-	FName FactKey;
+	UPROPERTY(EditAnywhere, Category = "Condition")
+	FName ContextKey;
 
+	virtual bool Evaluate(const UDamageContext* DC) const override;
+	virtual TArray<FName> GetConsumedDPUs() const override { return {}; }
+	virtual FString GetDisplayString() const override;
+};
+
+// ============================================================================
+// UConditionNode_DPUBase — 按 DPU 分的条件节点中间基类
+// ============================================================================
+
+/**
+ * v4.6: 每个 DPU 对应一个 ConditionNode 子类。
+ * 领域方法直接定义为 UFUNCTION，通过 UE 反射自动发现。
+ * MethodName 属性选择调用哪个方法，None = 信号 Fact 检查（存在即 true）。
+ */
+UCLASS(Abstract, BlueprintType)
+class SAGASTATS_API UConditionNode_DPUBase : public UConditionNode
+{
+	GENERATED_BODY()
+
+public:
+	/** 领域方法名（None = 信号检查，存在即 true） */
 	UPROPERTY(EditAnywhere, Category = "Condition", meta = (GetOptions = "GetMethodOptions"))
 	FName MethodName;
 
 	virtual bool Evaluate(const UDamageContext* DC) const override;
-	virtual TArray<FName> GetConsumedFacts() const override;
+	virtual TArray<FName> GetConsumedDPUs() const override;
 	virtual FString GetDisplayString() const override;
 
-	/** 编辑器下拉：返回所有已注册的 Fact Key */
-	UFUNCTION()
-	TArray<FString> GetFactKeyOptions() const;
-
-	/** 编辑器联动下拉：返回当前 FactKey 对应类型的已注册领域方法 */
+	/** UE 反射自动发现子类上的领域方法（UFUNCTION），填充下拉 */
 	UFUNCTION()
 	TArray<FString> GetMethodOptions() const;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
+
+protected:
+	/** 通过 ProcessEvent 调用命名的领域方法 */
+	bool CallDomainMethod(const UDamageContext* DC) const;
+
+	/** 判断一个 UFunction 是否是合法的领域方法候选 */
+	static bool IsValidDomainMethod(const UFunction* Func, const UClass* LeafClass);
 };
 
 // ============================================================================
-// UConditionNode_Compare — Fact 数据字段数值比较
+// Per-DPU ConditionNode 子类 — 复杂 Fact（带领域方法）
 // ============================================================================
 
-/**
- * 对 Fact 内部字段做数值比较。
- * 通过 UE5 属性反射访问 FieldName 对应的字段值。
- * FieldName 为空时对整个 Fact 做布尔求值（HasFact）。
- */
-UCLASS(BlueprintType, meta = (DisplayName = "Compare"))
-class SAGASTATS_API UConditionNode_Compare : public UConditionNode
+// --- Mixup ---
+UCLASS(BlueprintType, meta = (DisplayName = "Mixup"))
+class SAGASTATS_API UConditionNode_Mixup : public UConditionNode_DPUBase
 {
 	GENERATED_BODY()
-
 public:
-	UPROPERTY(EditAnywhere, Category = "Condition", meta = (GetOptions = "GetFactKeyOptions"))
-	FName FactKey;
+	virtual UScriptStruct* GetConsumedFactType() const override { return FMixupResult::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("Mixup"); }
 
-	/** Fact 内部的字段名。空 = 对 Fact 整体布尔求值。 */
-	UPROPERTY(EditAnywhere, Category = "Condition", meta = (GetOptions = "GetFieldOptions"))
-	FName FieldName;
+	UFUNCTION() bool IsGuard(const UDamageContext* DC) const;
+	UFUNCTION() bool IsJustGuard(const UDamageContext* DC) const;
+	UFUNCTION() bool IsGuardSuccess(const UDamageContext* DC) const;
+};
 
-	UPROPERTY(EditAnywhere, Category = "Condition")
-	ECompareOp Operator = ECompareOp::Equal;
+// --- Guard ---
+UCLASS(BlueprintType, meta = (DisplayName = "Guard"))
+class SAGASTATS_API UConditionNode_Guard : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FGuardResult::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("Guard"); }
 
-	UPROPERTY(EditAnywhere, Category = "Condition")
-	float Value = 0.f;
+	UFUNCTION() bool IsGuardSuccess(const UDamageContext* DC) const;
+	UFUNCTION() bool IsJustGuard(const UDamageContext* DC) const;
+};
 
-	virtual bool Evaluate(const UDamageContext* DC) const override;
-	virtual TArray<FName> GetConsumedFacts() const override;
-	virtual FString GetDisplayString() const override;
+// --- Hurt ---
+UCLASS(BlueprintType, meta = (DisplayName = "Hurt"))
+class SAGASTATS_API UConditionNode_Hurt : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FHurtResult::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("Hurt"); }
 
-	/** 编辑器下拉：返回所有已注册的 Fact Key */
-	UFUNCTION()
-	TArray<FString> GetFactKeyOptions() const;
+	UFUNCTION() bool IsHurt(const UDamageContext* DC) const;
+};
 
-	/** 编辑器联动下拉：返回当前 FactKey 对应 Fact 类型的数值字段 */
-	UFUNCTION()
-	TArray<FString> GetFieldOptions() const;
+// --- Death ---
+UCLASS(BlueprintType, meta = (DisplayName = "Death"))
+class SAGASTATS_API UConditionNode_Death : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FDeathResult::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("Death"); }
 
-#if WITH_EDITOR
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-#endif
+	UFUNCTION() bool IsDead(const UDamageContext* DC) const;
+};
+
+// --- Collapse ---
+UCLASS(BlueprintType, meta = (DisplayName = "Collapse"))
+class SAGASTATS_API UConditionNode_Collapse : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FCollapseResult::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("Collapse"); }
+
+	UFUNCTION() bool IsCollapse(const UDamageContext* DC) const;
+};
+
+// --- CollapseGuard（和 Collapse 共享 FCollapseResult，但绑定不同 DPU） ---
+UCLASS(BlueprintType, meta = (DisplayName = "CollapseGuard"))
+class SAGASTATS_API UConditionNode_CollapseGuard : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FCollapseResult::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("CollapseGuard"); }
+
+	UFUNCTION() bool IsCollapse(const UDamageContext* DC) const;
+};
+
+// --- Poison ---
+UCLASS(BlueprintType, meta = (DisplayName = "Poison"))
+class SAGASTATS_API UConditionNode_Poison : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FPoisonResult::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("Poison"); }
+
+	UFUNCTION() bool IsPoisoned(const UDamageContext* DC) const;
+};
+
+// --- AttackerBound ---
+UCLASS(BlueprintType, meta = (DisplayName = "AttackerBound"))
+class SAGASTATS_API UConditionNode_AttackerBound : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FAttackerBoundResult::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("AttackerBound"); }
+
+	UFUNCTION() bool IsBound(const UDamageContext* DC) const;
+};
+
+// ============================================================================
+// Per-DPU ConditionNode 子类 — 信号 Fact（无领域方法，存在即 true）
+// ============================================================================
+
+UCLASS(BlueprintType, meta = (DisplayName = "LightningInAir"))
+class SAGASTATS_API UConditionNode_LightningInAir : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FLightningInAirSignal::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("LightningInAir"); }
+};
+
+UCLASS(BlueprintType, meta = (DisplayName = "LightningOnGround"))
+class SAGASTATS_API UConditionNode_LightningOnGround : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FLightningOnGroundSignal::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("LightningOnGround"); }
+};
+
+UCLASS(BlueprintType, meta = (DisplayName = "Toughness"))
+class SAGASTATS_API UConditionNode_Toughness : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FToughnessSignal::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("Toughness"); }
+};
+
+UCLASS(BlueprintType, meta = (DisplayName = "SuperArmor"))
+class SAGASTATS_API UConditionNode_SuperArmor : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FSuperArmorSignal::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("SuperArmor"); }
+};
+
+UCLASS(BlueprintType, meta = (DisplayName = "CollapseJustGuard"))
+class SAGASTATS_API UConditionNode_CollapseJustGuard : public UConditionNode_DPUBase
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FCollapseJustGuardSignal::StaticStruct(); }
+	virtual FName GetExpectedProducerDPUName() const override { return FName("CollapseJustGuard"); }
 };

@@ -1,11 +1,11 @@
 // DPUDefinition.cpp
 #include "DPUFramework/DPUDefinition.h"
 
-TArray<FName> UDPUDefinition::GetConsumedFacts() const
+TArray<FName> UDPUDefinition::GetConsumedDPUs() const
 {
 	if (Condition)
 	{
-		return Condition->GetConsumedFacts();
+		return Condition->GetConsumedDPUs();
 	}
 	return {};
 }

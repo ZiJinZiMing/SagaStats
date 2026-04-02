@@ -80,22 +80,6 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DamageContext|Facts")
 	bool HasFact(FName Key) const;
 
-	/**
-	 * 调用 FactMethodRegistry 评估 Fact 领域方法。
-	 * Fact 不存在 → 返回 false（R3）。
-	 * MethodName 为 None → 信号 Fact 检查（存在即 true）。
-	 */
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DamageContext|Facts")
-	bool EvaluateFactMethod(FName FactKey, FName MethodName) const;
-
-	/**
-	 * 通过属性反射读取 Fact 内部字段的 float 值。
-	 * 用于 ConditionNode_Compare 节点。
-	 * Fact 不存在或字段不存在 → 返回 0.f。
-	 * FieldName 为空 → 尝试对包装器 Fact 取标量值。
-	 */
-	float GetFactFieldAsFloat(FName FactKey, FName FieldName) const;
-
 	/** 获取所有 Fact（包含上下文展开的和 DPU 产出的） */
 	const TMap<FName, FInstancedStruct>& GetAllFacts() const { return Facts; }
 

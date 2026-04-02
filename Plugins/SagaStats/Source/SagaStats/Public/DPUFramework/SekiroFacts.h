@@ -1,12 +1,9 @@
-// SekiroFacts.h — 只狼 MVP 的 Fact 结构体定义
-// 复杂 Fact：多字段 + 领域方法（通过 FactMethodRegistry 注册）
-// 信号 Fact：空结构体，存在即 true
+// SekiroFacts.h — 只狼 MVP 的 Fact 结构体定义（纯数据）
+// v4.6: 领域方法定义在 ConditionNode 子类上（ConditionNode.h），Fact 结构体只含数据字段。
 #pragma once
 
 #include "CoreMinimal.h"
 #include "SekiroFacts.generated.h"
-
-class UFactMethodRegistry;
 
 // ============================================================================
 // 复杂 Fact
@@ -153,9 +150,4 @@ struct SAGASTATS_API FCollapseJustGuardSignal
 	GENERATED_BODY()
 };
 
-// ============================================================================
-// 领域方法注册函数
-// ============================================================================
-
-/** 在 FactMethodRegistry 上注册只狼 MVP 所有 Fact 的领域方法 */
-void RegisterSekiroFactMethods(UFactMethodRegistry* Registry);
+// v4.6: 领域方法定义在 ConditionNode 子类上（ConditionNode.h），不再需要全局注册函数。

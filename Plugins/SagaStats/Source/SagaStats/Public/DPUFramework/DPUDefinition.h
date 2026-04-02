@@ -9,8 +9,9 @@
 
 /**
  * UDPUDefinition — DPU 的静态定义。
- * 存储 Produces 声明（Fact Key 列表）、Condition 条件树、逻辑类引用、优先级。
- * 可在编辑器中创建为 DataAsset，也可在运行时构造。
+ *
+ * v4.5: DPU 身份标识（DPUName）同时用于 DC 中 Fact 索引和 Condition 中的引用。
+ * Produces 声明单个 Fact 类型（UScriptStruct*），不再是 Fact Key 列表。
  */
 UCLASS(BlueprintType)
 class SAGASTATS_API UDPUDefinition : public UDataAsset
@@ -18,7 +19,7 @@ class SAGASTATS_API UDPUDefinition : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	/** 标识此 DPU 的唯一名称 */
+	/** DPU 身份标识——同时用于 DC 中 Fact 索引和 Condition 中的引用 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName DPUName;
 
@@ -26,9 +27,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Description;
 
-	/** 此 DPU 写入的 DC 字段（Produces Fact Key 列表，R5） */
+	/** 此 DPU 产出的 Fact 类型（v4.5: 每个 DPU 产出一个 Fact） */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TArray<FName> Produces;
+	TObjectPtr<UScriptStruct> ProducesFactType;
 
 	/** Condition 条件树（R4: 装配到 DPU 上，可为空 = 始终执行） */
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite)
@@ -38,10 +39,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UDPULogicBase> LogicClass;
 
-	/** 表现层选择的基础优先级（Phase 1.5 将使用此值） */
+	/** 表现层选择的基础优先级 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int32 BasePriority = 0;
+	float BasePriority = 0.f;
 
-	/** 从 Condition 条件树中提取消费的 Fact Key（用于拓扑排序） */
-	TArray<FName> GetConsumedFacts() const;
+	/** 从 Condition 条件树中提取依赖的 DPU 名列表（用于拓扑排序） */
+	TArray<FName> GetConsumedDPUs() const;
 };

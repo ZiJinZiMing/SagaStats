@@ -50,15 +50,12 @@ FPipelineSortResult UPipelineAsset::StableTopologicalSort(const TArray<UDPUDefin
 		OriginalIndex.Add(DPUs[i], i);
 	}
 
-	// 2. 构建生产者映射：Fact Key -> 生产者 DPU
+	// 2. 构建生产者映射：DPU Name -> DPU（v4.5: DPU 自身就是 Fact 的身份）
 	TMap<FName, UDPUDefinition*> ProducerMap;
 	for (UDPUDefinition* DPU : DPUs)
 	{
 		if (!DPU) continue;
-		for (const FName& Field : DPU->Produces)
-		{
-			ProducerMap.Add(Field, DPU);
-		}
+		ProducerMap.Add(DPU->DPUName, DPU);
 	}
 
 	// 3. 构建依赖图
@@ -77,7 +74,7 @@ FPipelineSortResult UPipelineAsset::StableTopologicalSort(const TArray<UDPUDefin
 	for (UDPUDefinition* DPU : DPUs)
 	{
 		if (!DPU) continue;
-		TArray<FName> ConsumedFacts = DPU->GetConsumedFacts();
+		TArray<FName> ConsumedFacts = DPU->GetConsumedDPUs();
 		for (const FName& Fact : ConsumedFacts)
 		{
 			UDPUDefinition** ProducerPtr = ProducerMap.Find(Fact);
@@ -186,6 +183,26 @@ FPipelineSortResult UPipelineAsset::Build()
 
 	bIsBaked = !Result.bHasCycle;
 
+	// v4.6: 解析条件树中 ConditionNode 子类的 ResolvedProducerDPU
+	if (bIsBaked)
+	{
+		TMap<UScriptStruct*, FName> FactTypeToProducerMap;
+		for (const auto& DPU : SortedDPUs)
+		{
+			if (DPU && DPU->ProducesFactType)
+			{
+				FactTypeToProducerMap.Add(DPU->ProducesFactType, DPU->DPUName);
+			}
+		}
+		for (const auto& DPU : SortedDPUs)
+		{
+			if (DPU && DPU->Condition)
+			{
+				DPU->Condition->ResolveProducer(FactTypeToProducerMap);
+			}
+		}
+	}
+
 	if (Result.bHasCycle)
 	{
 		UE_LOG(LogSagaStats, Error, TEXT("Pipeline Build 检测到循环依赖:"));
@@ -246,13 +263,17 @@ TArray<FDPUExecutionEntry> UPipelineAsset::Execute(UDamageContext* DC)
 			}
 		}
 
-		// 执行逻辑
+		// 执行逻辑：DPU 返回 Fact，PipelineAsset 以 DPU 名写入 DC
 		if (DPU->LogicClass)
 		{
 			UDPULogicBase* Logic = GetOrCreateLogic(DPU->LogicClass);
 			if (Logic)
 			{
-				Logic->Execute(DC);
+				FInstancedStruct Fact = Logic->Execute(DC);
+				if (Fact.IsValid())
+				{
+					DC->SetFactGeneric(DPU->DPUName, Fact);
+				}
 			}
 		}
 
@@ -310,40 +331,25 @@ void UPipelineAsset::ExportMermaidDAG(
 		ExecStatusMap.Add(Entry.DPUName, Entry.bExecuted);
 	}
 
-	// 生产者映射
+	// v4.5: 生产者映射——DPU Name → DPU Name（每个 DPU 自身就是生产者标识）
 	TMap<FName, FName> ProducerMap;
 	for (const auto& DPU : SortedDPUs)
 	{
 		if (!DPU) continue;
-		for (const FName& Field : DPU->Produces)
-		{
-			ProducerMap.Add(Field, DPU->DPUName);
-		}
+		ProducerMap.Add(DPU->DPUName, DPU->DPUName);
 	}
 
-	// 字段颜色分配
-	TMap<FName, FString> FieldColorMap;
+	// DPU 间依赖的颜色分配（以 DPU Name 为单位着色）
+	TMap<FName, FString> DPUColorMap;
 	{
-		TArray<FName> OrderedFields;
+		TArray<FName> OrderedDPUs;
 		for (const auto& DPU : SortedDPUs)
 		{
 			if (!DPU) continue;
-			for (const FName& F : DPU->Produces)
+			if (!DPUColorMap.Contains(DPU->DPUName))
 			{
-				if (!FieldColorMap.Contains(F))
-				{
-					FieldColorMap.Add(F, FieldColorPalette[OrderedFields.Num() % FieldColorPaletteSize]);
-					OrderedFields.Add(F);
-				}
-			}
-			TArray<FName> Consumed = DPU->GetConsumedFacts();
-			for (const FName& F : Consumed)
-			{
-				if (!FieldColorMap.Contains(F))
-				{
-					FieldColorMap.Add(F, FieldColorPalette[OrderedFields.Num() % FieldColorPaletteSize]);
-					OrderedFields.Add(F);
-				}
+				DPUColorMap.Add(DPU->DPUName, FieldColorPalette[OrderedDPUs.Num() % FieldColorPaletteSize]);
+				OrderedDPUs.Add(DPU->DPUName);
 			}
 		}
 	}
@@ -425,28 +431,24 @@ void UPipelineAsset::ExportMermaidDAG(
 		CondText.ReplaceInline(TEXT("||"), TEXT(" #124;#124; "));
 		CondText.ReplaceInline(TEXT("\""), TEXT("#quot;"));
 
-		// Produces 色块
+		// v4.5: Produces 显示 Fact 类型名
 		FString ProducesText;
-		if (DPU->Produces.Num() == 0)
+		if (DPU->ProducesFactType)
 		{
-			ProducesText = TEXT("(none)");
+			FString TypeColor = DPUColorMap.FindRef(DPU->DPUName);
+			if (!TypeColor.IsEmpty())
+			{
+				ProducesText = FString::Printf(TEXT("<font color='%s'>#9632;</font> %s"),
+					*TypeColor, *DPU->ProducesFactType->GetName());
+			}
+			else
+			{
+				ProducesText = DPU->ProducesFactType->GetName();
+			}
 		}
 		else
 		{
-			for (const FName& Field : DPU->Produces)
-			{
-				if (!ProducesText.IsEmpty()) ProducesText += TEXT("<br/>");
-				FString FieldColor = FieldColorMap.FindRef(Field);
-				if (!FieldColor.IsEmpty())
-				{
-					ProducesText += FString::Printf(TEXT("<font color='%s'>#9632;</font> %s"),
-						*FieldColor, *Field.ToString());
-				}
-				else
-				{
-					ProducesText += Field.ToString();
-				}
-			}
+			ProducesText = TEXT("(none)");
 		}
 
 		M += FString::Printf(
@@ -485,12 +487,12 @@ void UPipelineAsset::ExportMermaidDAG(
 	for (const auto& DPU : SortedDPUs)
 	{
 		if (!DPU) continue;
-		TArray<FName> ConsumedFacts = DPU->GetConsumedFacts();
+		TArray<FName> ConsumedFacts = DPU->GetConsumedDPUs();
 
 		for (const FName& Fact : ConsumedFacts)
 		{
 			FName* ProducerName = ProducerMap.Find(Fact);
-			FString FieldColor = FieldColorMap.FindRef(Fact);
+			FString FieldColor = DPUColorMap.FindRef(Fact);
 
 			if (ProducerName)
 			{
