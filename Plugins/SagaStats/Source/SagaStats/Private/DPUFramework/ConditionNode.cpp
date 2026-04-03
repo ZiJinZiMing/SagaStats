@@ -1,4 +1,5 @@
-// ConditionNode.cpp — 条件树节点实现（v4.6: 按 DPU 分子类，领域方法为 UFUNCTION）
+// ConditionNode.cpp — 条件树框架核心实现
+// Per-DPU 子类的领域方法实现在 Sekiro/ 子目录的各 DPU .cpp 文件中。
 #include "DPUFramework/ConditionNode.h"
 #include "DPUFramework/DamageContext.h"
 #include "SagaStatsLog.h"
@@ -15,10 +16,13 @@ bool UConditionNode::EvaluateCondition(const UDamageContext* DC) const
 
 void UConditionNode::ResolveProducer(const TMap<UScriptStruct*, FName>& FactTypeToProducerMap)
 {
-	FName Expected = GetExpectedProducerDPUName();
-	if (!Expected.IsNone())
+	UScriptStruct* FactType = GetConsumedFactType();
+	if (FactType)
 	{
-		ResolvedProducerDPU = Expected;
+		if (const FName* Found = FactTypeToProducerMap.Find(FactType))
+		{
+			ResolvedProducerDPU = *Found;
+		}
 	}
 }
 
@@ -65,9 +69,7 @@ FString UConditionNode_And::GetDisplayString() const
 void UConditionNode_And::ResolveProducer(const TMap<UScriptStruct*, FName>& Map)
 {
 	for (auto& Child : Children)
-	{
 		if (Child) Child->ResolveProducer(Map);
-	}
 }
 
 // ============================================================================
@@ -113,9 +115,7 @@ FString UConditionNode_Or::GetDisplayString() const
 void UConditionNode_Or::ResolveProducer(const TMap<UScriptStruct*, FName>& Map)
 {
 	for (auto& Child : Children)
-	{
 		if (Child) Child->ResolveProducer(Map);
-	}
 }
 
 // ============================================================================
@@ -141,29 +141,25 @@ bool UConditionNode_DPUBase::Evaluate(const UDamageContext* DC) const
 {
 	if (!DC || ResolvedProducerDPU.IsNone()) return false;
 
-	// 信号检查：MethodName 为 None → 存在即 true
 	if (MethodName.IsNone())
 	{
 		return DC->HasFact(ResolvedProducerDPU);
 	}
 
-	// 生产者的 Fact 是否存在
 	if (!DC->HasFact(ResolvedProducerDPU)) return false;
 
-	// 调用命名的领域方法
 	return CallDomainMethod(DC);
 }
 
 TArray<FName> UConditionNode_DPUBase::GetConsumedDPUs() const
 {
-	FName Producer = GetExpectedProducerDPUName();
-	if (!Producer.IsNone()) return {Producer};
+	if (!ResolvedProducerDPU.IsNone()) return {ResolvedProducerDPU};
 	return {};
 }
 
 FString UConditionNode_DPUBase::GetDisplayString() const
 {
-	FString DPUStr = GetExpectedProducerDPUName().ToString();
+	FString DPUStr = ResolvedProducerDPU.IsNone() ? GetClass()->GetName() : ResolvedProducerDPU.ToString();
 	if (MethodName.IsNone()) return DPUStr;
 	return FString::Printf(TEXT("%s.%s"), *DPUStr, *MethodName.ToString());
 }
@@ -178,28 +174,25 @@ bool UConditionNode_DPUBase::CallDomainMethod(const UDamageContext* DC) const
 		return false;
 	}
 
-	// 领域方法签名：bool MethodName(const UDamageContext*) const
-	struct FParams
-	{
-		const UDamageContext* DC;
-		bool ReturnValue;
-	};
-	FParams Params{DC, false};
+	struct FBoolParams { const UDamageContext* DC; bool ReturnValue; };
+	FBoolParams Params{DC, false};
 	const_cast<UConditionNode_DPUBase*>(this)->ProcessEvent(Func, &Params);
 	return Params.ReturnValue;
 }
 
-bool UConditionNode_DPUBase::IsValidDomainMethod(const UFunction* Func, const UClass* LeafClass)
+bool UConditionNode_DPUBase::IsValidDomainMethod(const UFunction* Func)
 {
-	if (!Func || !LeafClass) return false;
+	if (!Func) return false;
 
-	// 必须定义在叶子类上（不是 DPUBase 或更上层）
-	if (Func->GetOwnerClass() != LeafClass) return false;
+	// 领域方法必须定义在 DPUBase 的具体子类上（排除 DPUBase 本身及其父类的所有函数）
+	const UClass* Owner = Func->GetOwnerClass();
+	if (!Owner || !Owner->IsChildOf(UConditionNode_DPUBase::StaticClass())
+		|| Owner == UConditionNode_DPUBase::StaticClass())
+	{
+		return false;
+	}
 
-	// 必须是 UFUNCTION
-	if (!Func->HasAnyFunctionFlags(FUNC_Native | FUNC_BlueprintCallable | FUNC_Final)) return false;
-
-	// 排除 UE 内部函数
+	// 排除 Blueprint 内部函数
 	if (Func->GetName().StartsWith(TEXT("ExecuteUbergraph"))) return false;
 
 	return true;
@@ -208,99 +201,15 @@ bool UConditionNode_DPUBase::IsValidDomainMethod(const UFunction* Func, const UC
 TArray<FString> UConditionNode_DPUBase::GetMethodOptions() const
 {
 	TArray<FString> Result;
-	Result.Add(TEXT("None")); // 信号检查
+	Result.Add(TEXT("None"));
 
-	const UClass* LeafClass = GetClass();
-	for (TFieldIterator<UFunction> It(LeafClass); It; ++It)
+	const UClass* ClassToScan = GetClass();
+	for (TFieldIterator<UFunction> It(ClassToScan); It; ++It)
 	{
-		if (IsValidDomainMethod(*It, LeafClass))
+		if (IsValidDomainMethod(*It))
 		{
 			Result.Add(It->GetName());
 		}
 	}
 	return Result;
-}
-
-#if WITH_EDITOR
-void UConditionNode_DPUBase::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
-{
-	Super::PostEditChangeProperty(PropertyChangedEvent);
-	// SourceDPU 概念在 v4.6 中不存在——子类本身就是绑定
-	// 这里暂无需重置 MethodName（切换子类类型时 UE 会重新创建对象）
-}
-#endif
-
-// ============================================================================
-// Per-DPU 领域方法实现
-// ============================================================================
-
-// --- Mixup ---
-bool UConditionNode_Mixup::IsGuard(const UDamageContext* DC) const
-{
-	const FMixupResult* F = DC->GetFact<FMixupResult>(ResolvedProducerDPU);
-	return F ? F->bIsGuard : false;
-}
-bool UConditionNode_Mixup::IsJustGuard(const UDamageContext* DC) const
-{
-	const FMixupResult* F = DC->GetFact<FMixupResult>(ResolvedProducerDPU);
-	return F ? F->bIsJustGuard : false;
-}
-bool UConditionNode_Mixup::IsGuardSuccess(const UDamageContext* DC) const
-{
-	const FMixupResult* F = DC->GetFact<FMixupResult>(ResolvedProducerDPU);
-	return F ? F->bIsGuard : false; // 格挡成功 = 格挡触发
-}
-
-// --- Guard ---
-bool UConditionNode_Guard::IsGuardSuccess(const UDamageContext* DC) const
-{
-	const FGuardResult* F = DC->GetFact<FGuardResult>(ResolvedProducerDPU);
-	return F ? F->bGuardSuccess : false;
-}
-bool UConditionNode_Guard::IsJustGuard(const UDamageContext* DC) const
-{
-	const FGuardResult* F = DC->GetFact<FGuardResult>(ResolvedProducerDPU);
-	return F ? F->bIsJustGuard : false;
-}
-
-// --- Hurt ---
-bool UConditionNode_Hurt::IsHurt(const UDamageContext* DC) const
-{
-	const FHurtResult* F = DC->GetFact<FHurtResult>(ResolvedProducerDPU);
-	return F ? F->bIsHurt : false;
-}
-
-// --- Death ---
-bool UConditionNode_Death::IsDead(const UDamageContext* DC) const
-{
-	const FDeathResult* F = DC->GetFact<FDeathResult>(ResolvedProducerDPU);
-	return F ? F->bIsDead : false;
-}
-
-// --- Collapse ---
-bool UConditionNode_Collapse::IsCollapse(const UDamageContext* DC) const
-{
-	const FCollapseResult* F = DC->GetFact<FCollapseResult>(ResolvedProducerDPU);
-	return F ? F->bIsCollapse : false;
-}
-
-// --- CollapseGuard ---
-bool UConditionNode_CollapseGuard::IsCollapse(const UDamageContext* DC) const
-{
-	const FCollapseResult* F = DC->GetFact<FCollapseResult>(ResolvedProducerDPU);
-	return F ? F->bIsCollapse : false;
-}
-
-// --- Poison ---
-bool UConditionNode_Poison::IsPoisoned(const UDamageContext* DC) const
-{
-	const FPoisonResult* F = DC->GetFact<FPoisonResult>(ResolvedProducerDPU);
-	return F ? F->bIsPoisoned : false;
-}
-
-// --- AttackerBound ---
-bool UConditionNode_AttackerBound::IsBound(const UDamageContext* DC) const
-{
-	const FAttackerBoundResult* F = DC->GetFact<FAttackerBoundResult>(ResolvedProducerDPU);
-	return F ? F->bIsBound : false;
 }

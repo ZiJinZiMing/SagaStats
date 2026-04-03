@@ -173,6 +173,61 @@ FPipelineSortResult UPipelineAsset::Build()
 		if (Def) RawPtrs.Add(Def.Get());
 	}
 
+	// ---- DEBUG: FactTypeToProducerMap ----
+	TMap<UScriptStruct*, FName> FactTypeToProducerMap;
+	for (const auto& DPU : RawPtrs)
+	{
+		if (DPU && DPU->ProducesFactType)
+		{
+			FactTypeToProducerMap.Add(DPU->ProducesFactType, DPU->DPUName);
+			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG] FactTypeToProducerMap: %s -> %s"),
+				*DPU->ProducesFactType->GetName(), *DPU->DPUName.ToString());
+		}
+		else if (DPU)
+		{
+			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG] DPU %s: ProducesFactType = nullptr"),
+				*DPU->DPUName.ToString());
+		}
+	}
+
+	// 先解析 ResolvedProducerDPU——拓扑排序的 GetConsumedDPUs() 依赖此信息
+	for (const auto& DPU : RawPtrs)
+	{
+		if (DPU && DPU->Condition)
+		{
+			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG] DPU %s: Condition class = %s"),
+				*DPU->DPUName.ToString(), *DPU->Condition->GetClass()->GetName());
+
+			// 检查条件树叶子节点的 GetConsumedFactType
+			UScriptStruct* FactType = DPU->Condition->GetConsumedFactType();
+			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG]   GetConsumedFactType = %s"),
+				FactType ? *FactType->GetName() : TEXT("nullptr"));
+
+			DPU->Condition->ResolveProducer(FactTypeToProducerMap);
+
+			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG]   After ResolveProducer: ResolvedProducerDPU = %s"),
+				*DPU->Condition->ResolvedProducerDPU.ToString());
+
+			TArray<FName> Consumed = DPU->GetConsumedDPUs();
+			FString ConsumedStr = TEXT("[]");
+			if (Consumed.Num() > 0)
+			{
+				ConsumedStr.Empty();
+				for (const FName& N : Consumed)
+				{
+					if (!ConsumedStr.IsEmpty()) ConsumedStr += TEXT(", ");
+					ConsumedStr += N.ToString();
+				}
+				ConsumedStr = FString::Printf(TEXT("[%s]"), *ConsumedStr);
+			}
+			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG]   GetConsumedDPUs = %s"), *ConsumedStr);
+		}
+		else if (DPU)
+		{
+			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG] DPU %s: no Condition"), *DPU->DPUName.ToString());
+		}
+	}
+
 	FPipelineSortResult Result = StableTopologicalSort(RawPtrs);
 
 	SortedDPUs.Empty();
@@ -182,26 +237,6 @@ FPipelineSortResult UPipelineAsset::Build()
 	}
 
 	bIsBaked = !Result.bHasCycle;
-
-	// v4.6: 解析条件树中 ConditionNode 子类的 ResolvedProducerDPU
-	if (bIsBaked)
-	{
-		TMap<UScriptStruct*, FName> FactTypeToProducerMap;
-		for (const auto& DPU : SortedDPUs)
-		{
-			if (DPU && DPU->ProducesFactType)
-			{
-				FactTypeToProducerMap.Add(DPU->ProducesFactType, DPU->DPUName);
-			}
-		}
-		for (const auto& DPU : SortedDPUs)
-		{
-			if (DPU && DPU->Condition)
-			{
-				DPU->Condition->ResolveProducer(FactTypeToProducerMap);
-			}
-		}
-	}
 
 	if (Result.bHasCycle)
 	{

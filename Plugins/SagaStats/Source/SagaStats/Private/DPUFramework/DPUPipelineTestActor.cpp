@@ -1,8 +1,22 @@
-// DPUPipelineTestActor.cpp — v4.6: Per-DPU ConditionNode 子类 + Execute 返回 Fact
+// DPUPipelineTestActor.cpp — v4.6: Per-DPU 文件组织 + ConditionNode 子类
 #include "DPUFramework/DPUPipelineTestActor.h"
 #include "DPUFramework/DamageContext.h"
 #include "DPUFramework/ConditionNode.h"
-#include "DPUFramework/DPUTestLogics.h"
+
+// 引入所有只狼 DPU（每个文件包含 Fact + ConditionNode + Logic）
+#include "DPUFramework/Sekiro/DPU_Mixup.h"
+#include "DPUFramework/Sekiro/DPU_Guard.h"
+#include "DPUFramework/Sekiro/DPU_Death.h"
+#include "DPUFramework/Sekiro/DPU_Hurt.h"
+#include "DPUFramework/Sekiro/DPU_Collapse.h"
+#include "DPUFramework/Sekiro/DPU_Poison.h"
+#include "DPUFramework/Sekiro/DPU_AttackerBound.h"
+#include "DPUFramework/Sekiro/DPU_LightningInAir.h"
+#include "DPUFramework/Sekiro/DPU_LightningOnGround.h"
+#include "DPUFramework/Sekiro/DPU_Toughness.h"
+#include "DPUFramework/Sekiro/DPU_SuperArmor.h"
+#include "DPUFramework/Sekiro/DPU_CollapseJustGuard.h"
+
 #include "SagaStatsLog.h"
 #include "Kismet/KismetSystemLibrary.h"
 
@@ -71,36 +85,32 @@ void ADPUPipelineTestActor::BuildSekiroPipeline()
 	Pipeline->bAutoExportMermaid = true;
 
 	// ================================================================
-	// 第一阶段：创建所有 DPU（无 Condition）
+	// 第一阶段：创建所有 DPU
 	// ================================================================
 
-	UDPUDefinition* Mixup = MakeDPU(this, "Mixup", FMixupResult::StaticStruct(), UDPULogic_TestMixup::StaticClass());
-	UDPUDefinition* Guard = MakeDPU(this, "Guard", FGuardResult::StaticStruct(), UDPULogic_TestGuard::StaticClass());
-	UDPUDefinition* Death = MakeDPU(this, "Death", FDeathResult::StaticStruct(), UDPULogic_TestDeath::StaticClass());
-	UDPUDefinition* Collapse = MakeDPU(this, "Collapse", FCollapseResult::StaticStruct(), UDPULogic_TestCollapse::StaticClass());
-	UDPUDefinition* Hurt = MakeDPU(this, "Hurt", FHurtResult::StaticStruct(), UDPULogic_TestHurt::StaticClass());
-	UDPUDefinition* CollapseGuard = MakeDPU(this, "CollapseGuard", FCollapseResult::StaticStruct(), UDPULogic_TestCollapseGuard::StaticClass());
-	UDPUDefinition* CollapseJustGuard = MakeDPU(this, "CollapseJustGuard", FCollapseJustGuardSignal::StaticStruct(), UDPULogic_TestCollapseJustGuard::StaticClass());
-	UDPUDefinition* AttackerBound = MakeDPU(this, "AttackerBound", FAttackerBoundResult::StaticStruct(), UDPULogic_TestAttackerBound::StaticClass());
-	UDPUDefinition* Poison = MakeDPU(this, "Poison", FPoisonResult::StaticStruct(), UDPULogic_TestPoison::StaticClass());
-	UDPUDefinition* Toughness = MakeDPU(this, "Toughness", FToughnessSignal::StaticStruct(), UDPULogic_TestToughness::StaticClass());
-	UDPUDefinition* SuperArmor = MakeDPU(this, "SuperArmor", FSuperArmorSignal::StaticStruct(), UDPULogic_TestSuperArmor::StaticClass());
-	UDPUDefinition* LightningOnGround = MakeDPU(this, "LightningOnGround", FLightningOnGroundSignal::StaticStruct(), UDPULogic_TestLightningOnGround::StaticClass());
-	UDPUDefinition* LightningInAir = MakeDPU(this, "LightningInAir", FLightningInAirSignal::StaticStruct(), UDPULogic_TestLightningInAir::StaticClass());
+	UDPUDefinition* Mixup = MakeDPU(this, "Mixup", FMixupResult::StaticStruct(), UDPULogic_Mixup::StaticClass());
+	UDPUDefinition* Guard = MakeDPU(this, "Guard", FGuardResult::StaticStruct(), UDPULogic_Guard::StaticClass());
+	UDPUDefinition* Death = MakeDPU(this, "Death", FDeathResult::StaticStruct(), UDPULogic_Death::StaticClass());
+	UDPUDefinition* Collapse = MakeDPU(this, "Collapse", FCollapseResult::StaticStruct(), UDPULogic_Collapse::StaticClass());
+	UDPUDefinition* Hurt = MakeDPU(this, "Hurt", FHurtResult::StaticStruct(), UDPULogic_Hurt::StaticClass());
+	UDPUDefinition* CollapseGuard = MakeDPU(this, "CollapseGuard", FCollapseGuardResult::StaticStruct(), UDPULogic_CollapseGuard::StaticClass());
+	UDPUDefinition* CollapseJustGuard = MakeDPU(this, "CollapseJustGuard", FCollapseJustGuardSignal::StaticStruct(), UDPULogic_CollapseJustGuard::StaticClass());
+	UDPUDefinition* AttackerBound = MakeDPU(this, "AttackerBound", FAttackerBoundResult::StaticStruct(), UDPULogic_AttackerBound::StaticClass());
+	UDPUDefinition* Poison = MakeDPU(this, "Poison", FPoisonResult::StaticStruct(), UDPULogic_Poison::StaticClass());
+	UDPUDefinition* Toughness = MakeDPU(this, "Toughness", FToughnessSignal::StaticStruct(), UDPULogic_Toughness::StaticClass());
+	UDPUDefinition* SuperArmor = MakeDPU(this, "SuperArmor", FSuperArmorSignal::StaticStruct(), UDPULogic_SuperArmor::StaticClass());
+	UDPUDefinition* LightningOnGround = MakeDPU(this, "LightningOnGround", FLightningOnGroundSignal::StaticStruct(), UDPULogic_LightningOnGround::StaticClass());
+	UDPUDefinition* LightningInAir = MakeDPU(this, "LightningInAir", FLightningInAirSignal::StaticStruct(), UDPULogic_LightningInAir::StaticClass());
 
 	// ================================================================
-	// 第二阶段：设置 Condition（v4.6: per-DPU ConditionNode 子类）
+	// 第二阶段：设置 Condition
 	// ================================================================
 
-	// Mixup：无 Condition
-
-	// Guard: Mixup.IsGuard && !LightningInAir
 	Guard->Condition = MakeAnd(this, {
 		MakeDPUCondition<UConditionNode_Mixup>(this, FName("IsGuard")),
 		MakeDPUCondition<UConditionNode_LightningInAir>(this, NAME_None, true)
 	});
 
-	// 共用条件：!(Mixup.IsGuard && Guard.IsGuardSuccess) && !LightningInAir
 	auto MakeHurtCondition = [this]() -> UConditionNode*
 	{
 		return MakeAnd(this, {
@@ -118,44 +128,38 @@ void ADPUPipelineTestActor::BuildSekiroPipeline()
 	Toughness->Condition = MakeHurtCondition();
 	SuperArmor->Condition = MakeHurtCondition();
 
-	// CollapseGuard: Guard.IsGuardSuccess && !Guard.IsJustGuard && !LightningInAir
 	CollapseGuard->Condition = MakeAnd(this, {
 		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsGuardSuccess")),
 		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsJustGuard"), true),
 		MakeDPUCondition<UConditionNode_LightningInAir>(this, NAME_None, true)
 	});
 
-	// CollapseJustGuard: Guard.IsGuardSuccess && Guard.IsJustGuard && !LightningInAir
 	CollapseJustGuard->Condition = MakeAnd(this, {
 		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsGuardSuccess")),
 		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsJustGuard")),
 		MakeDPUCondition<UConditionNode_LightningInAir>(this, NAME_None, true)
 	});
 
-	// AttackerBound: 同 CollapseJustGuard
 	AttackerBound->Condition = MakeAnd(this, {
 		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsGuardSuccess")),
 		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsJustGuard")),
 		MakeDPUCondition<UConditionNode_LightningInAir>(this, NAME_None, true)
 	});
 
-	// Poison: !Guard.IsJustGuard
 	Poison->Condition = MakeDPUCondition<UConditionNode_Guard>(this, FName("IsJustGuard"), true);
 
-	// LightningOnGround: Ctx:Lightning && !Ctx:IsInAir
 	LightningOnGround->Condition = MakeAnd(this, {
 		MakeCtxCheck(this, FName("Lightning")),
 		MakeCtxCheck(this, FName("IsInAir"), true)
 	});
 
-	// LightningInAir: Ctx:Lightning && Ctx:IsInAir
 	LightningInAir->Condition = MakeAnd(this, {
 		MakeCtxCheck(this, FName("Lightning")),
 		MakeCtxCheck(this, FName("IsInAir"))
 	});
 
 	// ================================================================
-	// 添加到 Pipeline 并 Build
+	// Build
 	// ================================================================
 
 	Pipeline->DPUDefinitions = {

@@ -41,6 +41,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "DamageContext|EventContext")
 	void SetEventContext(const FInstancedStruct& InContext);
 
+	UFUNCTION(BlueprintPure, Category = "DamageContext|EventContext")
 	const FInstancedStruct& GetEventContext() const { return EventContext; }
 
 	template<typename T>
