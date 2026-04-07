@@ -4,14 +4,14 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "DPUFramework/DPULogicBase.h"
-#include "DPUFramework/ConditionNode.h"
+#include "DPUFramework/DPUPredicate.h"
 #include "DPUDefinition.generated.h"
 
 /**
  * UDPUDefinition — DPU 的静态定义。
  *
- * v4.5: DPU 身份标识（DPUName）同时用于 DC 中 Fact 索引和 Condition 中的引用。
- * Produces 声明单个 Fact 类型（UScriptStruct*），不再是 Fact Key 列表。
+ * v4.7: ProducesFactType 从 LogicClass CDO 获取，不再在 Definition 上声明。
+ * Condition 类型改为 UDPUPredicate（谓词容器）。
  */
 UCLASS(BlueprintType)
 class SAGASTATS_API UDPUDefinition : public UDataAsset
@@ -19,7 +19,7 @@ class SAGASTATS_API UDPUDefinition : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	/** DPU 身份标识——同时用于 DC 中 Fact 索引和 Condition 中的引用 */
+	/** DPU 身份标识——同时用于 DC 中 Fact 索引和依赖引用 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName DPUName;
 
@@ -27,13 +27,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Description;
 
-	/** 此 DPU 产出的 Fact 类型（v4.5: 每个 DPU 产出一个 Fact） */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<UScriptStruct> ProducesFactType;
-
-	/** Condition 条件树（R4: 装配到 DPU 上，可为空 = 始终执行） */
+	/** Condition 谓词容器（v4.7: Predicate/Condition 双层，可为空 = 始终执行） */
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite)
-	TObjectPtr<UConditionNode> Condition;
+	TObjectPtr<UDPUPredicate> Condition;
 
 	/** 实现机制的逻辑类（UDPULogicBase 的子类） */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -43,6 +39,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float BasePriority = 0.f;
 
-	/** 从 Condition 条件树中提取依赖的 DPU 名列表（用于拓扑排序） */
-	TArray<FName> GetConsumedDPUs() const;
+	/** 从 LogicClass CDO 获取此 DPU 产出的 Fact 类型 */
+	UScriptStruct* GetProducesFactType() const;
+
+	/** 从 Condition 谓词树中提取依赖的 FactType 列表（用于拓扑排序） */
+	TArray<UScriptStruct*> GetConsumedFactTypes() const;
 };

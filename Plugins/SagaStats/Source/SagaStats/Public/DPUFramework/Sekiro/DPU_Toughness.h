@@ -4,7 +4,7 @@
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
 #include "DPUFramework/DPULogicBase.h"
-#include "DPUFramework/ConditionNode.h"
+#include "DPUFramework/DPUCondition.h"
 #include "DPUFramework/DamageContext.h"
 #include "DPU_Toughness.generated.h"
 
@@ -19,15 +19,16 @@ struct SAGASTATS_API FToughnessSignal
 };
 
 // ============================================================================
-// ConditionNode
+// Condition
 // ============================================================================
 
 UCLASS(BlueprintType, meta = (DisplayName = "Toughness"))
-class SAGASTATS_API UConditionNode_Toughness : public UConditionNode_DPUBase
+class SAGASTATS_API UDPUCondition_Toughness : public UDPUCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedFactType() const override { return FToughnessSignal::StaticStruct(); }
+	virtual bool Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const override { return ConsumedFact.IsValid(); }
 };
 
 // ============================================================================
@@ -39,5 +40,6 @@ class SAGASTATS_API UDPULogic_Toughness : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual FInstancedStruct Execute_Implementation(const UDamageContext* DC) override;
+	virtual void Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact) override;
+	virtual UScriptStruct* GetProducesFactType() const override { return FToughnessSignal::StaticStruct(); }
 };

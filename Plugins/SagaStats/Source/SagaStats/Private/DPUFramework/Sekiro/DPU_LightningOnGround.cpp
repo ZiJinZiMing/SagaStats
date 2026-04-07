@@ -5,7 +5,7 @@
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_LightningOnGround::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_LightningOnGround::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
-	return FInstancedStruct::Make<FLightningOnGroundSignal>(FLightningOnGroundSignal{});
+	OutFact = FInstancedStruct::Make<FLightningOnGroundSignal>(FLightningOnGroundSignal{});
 }

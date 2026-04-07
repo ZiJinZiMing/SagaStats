@@ -2,37 +2,31 @@
 #include "DPUFramework/Sekiro/DPU_Mixup.h"
 
 // ============================================================================
-// ConditionNode 领域方法
+// Condition
 // ============================================================================
 
-bool UConditionNode_Mixup::IsGuard(const UDamageContext* DC) const
+bool UDPUCondition_IsGuard::Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const
 {
-	const FMixupResult* F = DC->GetFact<FMixupResult>(ResolvedProducerDPU);
+	const FMixupResult* F = ConsumedFact.GetPtr<FMixupResult>();
 	return F ? F->bIsGuard : false;
 }
 
-bool UConditionNode_Mixup::IsJustGuard(const UDamageContext* DC) const
+bool UDPUCondition_IsJustGuard::Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const
 {
-	const FMixupResult* F = DC->GetFact<FMixupResult>(ResolvedProducerDPU);
+	const FMixupResult* F = ConsumedFact.GetPtr<FMixupResult>();
 	return F ? F->bIsJustGuard : false;
-}
-
-bool UConditionNode_Mixup::IsGuardSuccess(const UDamageContext* DC) const
-{
-	const FMixupResult* F = DC->GetFact<FMixupResult>(ResolvedProducerDPU);
-	return F ? F->bIsGuard : false;
 }
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_Mixup::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_Mixup::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
 	float GuardLevel = DC->GetFloat(FName("guard_level"));
 	float DmgLevel = DC->GetFloat(FName("DmgLevel"));
 	FMixupResult Result;
 	Result.bIsGuard = GuardLevel > 0.f;
 	Result.bIsJustGuard = GuardLevel > DmgLevel;
-	return FInstancedStruct::Make<FMixupResult>(Result);
+	OutFact = FInstancedStruct::Make<FMixupResult>(Result);
 }

@@ -4,7 +4,7 @@
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
 #include "DPUFramework/DPULogicBase.h"
-#include "DPUFramework/ConditionNode.h"
+#include "DPUFramework/DPUCondition.h"
 #include "DPUFramework/DamageContext.h"
 #include "DPU_Guard.generated.h"
 
@@ -25,18 +25,25 @@ struct SAGASTATS_API FGuardResult
 };
 
 // ============================================================================
-// ConditionNode
+// Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "Guard"))
-class SAGASTATS_API UConditionNode_Guard : public UConditionNode_DPUBase
+UCLASS(BlueprintType, meta = (DisplayName = "GuardSuccess"))
+class SAGASTATS_API UDPUCondition_GuardSuccess : public UDPUCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedFactType() const override { return FGuardResult::StaticStruct(); }
+	virtual bool Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const override;
+};
 
-	UFUNCTION() bool IsGuardSuccess(const UDamageContext* DC) const;
-	UFUNCTION() bool IsJustGuard(const UDamageContext* DC) const;
+UCLASS(BlueprintType, meta = (DisplayName = "GuardIsJustGuard"))
+class SAGASTATS_API UDPUCondition_GuardIsJustGuard : public UDPUCondition
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedFactType() const override { return FGuardResult::StaticStruct(); }
+	virtual bool Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const override;
 };
 
 // ============================================================================
@@ -48,5 +55,6 @@ class SAGASTATS_API UDPULogic_Guard : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual FInstancedStruct Execute_Implementation(const UDamageContext* DC) override;
+	virtual void Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact) override;
+	virtual UScriptStruct* GetProducesFactType() const override { return FGuardResult::StaticStruct(); }
 };

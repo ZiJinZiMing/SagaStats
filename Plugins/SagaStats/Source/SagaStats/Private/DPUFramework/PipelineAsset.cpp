@@ -1,6 +1,6 @@
 // PipelineAsset.cpp — 自洽的 Pipeline：拓扑排序烘焙 + 执行 + Mermaid DAG 导出
 #include "DPUFramework/PipelineAsset.h"
-#include "DPUFramework/ConditionNode.h"
+#include "DPUFramework/DPUCondition.h"
 #include "SagaStatsLog.h"
 #include "Misc/FileHelper.h"
 #include "HAL/PlatformFileManager.h"
@@ -50,12 +50,13 @@ FPipelineSortResult UPipelineAsset::StableTopologicalSort(const TArray<UDPUDefin
 		OriginalIndex.Add(DPUs[i], i);
 	}
 
-	// 2. 构建生产者映射：DPU Name -> DPU（v4.5: DPU 自身就是 Fact 的身份）
-	TMap<FName, UDPUDefinition*> ProducerMap;
+	// 2. 构建生产者映射：FactType -> DPU（v4.8: 类型即 key）
+	TMap<UScriptStruct*, UDPUDefinition*> ProducerMap;
 	for (UDPUDefinition* DPU : DPUs)
 	{
 		if (!DPU) continue;
-		ProducerMap.Add(DPU->DPUName, DPU);
+		UScriptStruct* FactType = DPU->GetProducesFactType();
+		if (FactType) ProducerMap.Add(FactType, DPU);
 	}
 
 	// 3. 构建依赖图
@@ -74,10 +75,10 @@ FPipelineSortResult UPipelineAsset::StableTopologicalSort(const TArray<UDPUDefin
 	for (UDPUDefinition* DPU : DPUs)
 	{
 		if (!DPU) continue;
-		TArray<FName> ConsumedFacts = DPU->GetConsumedDPUs();
-		for (const FName& Fact : ConsumedFacts)
+		TArray<UScriptStruct*> ConsumedTypes = DPU->GetConsumedFactTypes();
+		for (UScriptStruct* Type : ConsumedTypes)
 		{
-			UDPUDefinition** ProducerPtr = ProducerMap.Find(Fact);
+			UDPUDefinition** ProducerPtr = ProducerMap.Find(Type);
 			if (ProducerPtr && *ProducerPtr != DPU)
 			{
 				UDPUDefinition* Producer = *ProducerPtr;
@@ -165,6 +166,25 @@ FPipelineSortResult UPipelineAsset::StableTopologicalSort(const TArray<UDPUDefin
 // Build：拓扑排序烘焙
 // ============================================================================
 
+// 递归收集 Predicate 树中所有叶子 Condition
+static void CollectLeafConditions(const UDPUPredicate* Pred, TArray<const UDPUCondition*>& OutConditions)
+{
+	if (!Pred) return;
+
+	if (const UDPUPredicate_Single* Single = Cast<UDPUPredicate_Single>(Pred))
+	{
+		if (Single->Condition) OutConditions.Add(Single->Condition);
+	}
+	else if (const UDPUPredicate_And* And = Cast<UDPUPredicate_And>(Pred))
+	{
+		for (const auto& P : And->Predicates) CollectLeafConditions(P, OutConditions);
+	}
+	else if (const UDPUPredicate_Or* Or = Cast<UDPUPredicate_Or>(Pred))
+	{
+		for (const auto& P : Or->Predicates) CollectLeafConditions(P, OutConditions);
+	}
+}
+
 FPipelineSortResult UPipelineAsset::Build()
 {
 	TArray<UDPUDefinition*> RawPtrs;
@@ -173,62 +193,51 @@ FPipelineSortResult UPipelineAsset::Build()
 		if (Def) RawPtrs.Add(Def.Get());
 	}
 
-	// ---- DEBUG: FactTypeToProducerMap ----
-	TMap<UScriptStruct*, FName> FactTypeToProducerMap;
+	// ---- FactType 校验 ----
+	bool bValidationFailed = false;
+
 	for (const auto& DPU : RawPtrs)
 	{
-		if (DPU && DPU->ProducesFactType)
+		if (!DPU) continue;
+
+		// 校验 Logic 的 ProducesFactType
+		if (!DPU->GetProducesFactType())
 		{
-			FactTypeToProducerMap.Add(DPU->ProducesFactType, DPU->DPUName);
-			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG] FactTypeToProducerMap: %s -> %s"),
-				*DPU->ProducesFactType->GetName(), *DPU->DPUName.ToString());
-		}
-		else if (DPU)
-		{
-			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG] DPU %s: ProducesFactType = nullptr"),
+			UE_LOG(LogSagaStats, Error, TEXT("Pipeline Build 校验失败: DPU [%s] 的 Logic 未配置 ProducesFactType"),
 				*DPU->DPUName.ToString());
+			bValidationFailed = true;
 		}
-	}
 
-	// 先解析 ResolvedProducerDPU——拓扑排序的 GetConsumedDPUs() 依赖此信息
-	for (const auto& DPU : RawPtrs)
-	{
-		if (DPU && DPU->Condition)
+		// 校验 Condition 树中所有叶子的 ConsumedFactType（ContextCheck 除外）
+		if (DPU->Condition)
 		{
-			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG] DPU %s: Condition class = %s"),
-				*DPU->DPUName.ToString(), *DPU->Condition->GetClass()->GetName());
-
-			// 检查条件树叶子节点的 GetConsumedFactType
-			UScriptStruct* FactType = DPU->Condition->GetConsumedFactType();
-			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG]   GetConsumedFactType = %s"),
-				FactType ? *FactType->GetName() : TEXT("nullptr"));
-
-			DPU->Condition->ResolveProducer(FactTypeToProducerMap);
-
-			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG]   After ResolveProducer: ResolvedProducerDPU = %s"),
-				*DPU->Condition->ResolvedProducerDPU.ToString());
-
-			TArray<FName> Consumed = DPU->GetConsumedDPUs();
-			FString ConsumedStr = TEXT("[]");
-			if (Consumed.Num() > 0)
+			TArray<const UDPUCondition*> Leaves;
+			CollectLeafConditions(DPU->Condition, Leaves);
+			for (const UDPUCondition* Cond : Leaves)
 			{
-				ConsumedStr.Empty();
-				for (const FName& N : Consumed)
+				if (Cond->IsA<UDPUCondition_ContextCheck>()) continue;
+				if (!Cond->GetConsumedFactType())
 				{
-					if (!ConsumedStr.IsEmpty()) ConsumedStr += TEXT(", ");
-					ConsumedStr += N.ToString();
+					UE_LOG(LogSagaStats, Error,
+						TEXT("Pipeline Build 校验失败: DPU [%s] 的 Condition [%s] 未配置 ConsumedFactType"),
+						*DPU->DPUName.ToString(), *Cond->GetClass()->GetName());
+					bValidationFailed = true;
 				}
-				ConsumedStr = FString::Printf(TEXT("[%s]"), *ConsumedStr);
 			}
-			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG]   GetConsumedDPUs = %s"), *ConsumedStr);
-		}
-		else if (DPU)
-		{
-			UE_LOG(LogSagaStats, Warning, TEXT("[Build DEBUG] DPU %s: no Condition"), *DPU->DPUName.ToString());
 		}
 	}
 
-	FPipelineSortResult Result = StableTopologicalSort(RawPtrs);
+	FPipelineSortResult Result;
+	if (bValidationFailed)
+	{
+		bIsBaked = false;
+		Result.bHasCycle = true;
+		Result.CycleInfo.Add(TEXT("FactType 校验失败，请检查上方 Error 日志"));
+		return Result;
+	}
+
+	// ---- 拓扑排序 ----
+	Result = StableTopologicalSort(RawPtrs);
 
 	SortedDPUs.Empty();
 	for (const auto& DPU : Result.SortedDPUs)
@@ -286,10 +295,10 @@ TArray<FDPUExecutionEntry> UPipelineAsset::Execute(UDamageContext* DC)
 		FDPUExecutionEntry Entry;
 		Entry.DPUName = DPU->DPUName;
 
-		// 评估 Condition（调用 EvaluateCondition 以应用 bReverse）
+		// 评估 Predicate（调用 EvaluatePredicate 以应用 bReverse）
 		if (DPU->Condition)
 		{
-			if (!DPU->Condition->EvaluateCondition(DC))
+			if (!DPU->Condition->EvaluatePredicate(DC))
 			{
 				Entry.bExecuted = false;
 				ExecutionLog.Add(Entry);
@@ -298,16 +307,28 @@ TArray<FDPUExecutionEntry> UPipelineAsset::Execute(UDamageContext* DC)
 			}
 		}
 
-		// 执行逻辑：DPU 返回 Fact，PipelineAsset 以 DPU 名写入 DC
+		// 执行逻辑：框架创建 OutFact → Logic 填字段 → 写入 DC
 		if (DPU->LogicClass)
 		{
 			UDPULogicBase* Logic = GetOrCreateLogic(DPU->LogicClass);
-			if (Logic)
+			UScriptStruct* FactType = DPU->GetProducesFactType();
+			if (Logic && FactType)
 			{
-				FInstancedStruct Fact = Logic->Execute(DC);
-				if (Fact.IsValid())
+				FInstancedStruct OutFact(FactType);
+				Logic->Execute(DC, OutFact);
+
+				// 校验 OutFact 类型与声明的 ProducesFactType 一致
+				if (OutFact.IsValid() && OutFact.GetScriptStruct() == FactType)
 				{
-					DC->SetFactGeneric(DPU->DPUName, Fact);
+					DC->SetFactByType(FactType, OutFact);
+				}
+				else
+				{
+					UE_LOG(LogSagaStats, Error,
+						TEXT("DPU %s: OutFact 类型不匹配！期望 %s，实际 %s"),
+						*DPU->DPUName.ToString(),
+						*FactType->GetName(),
+						OutFact.IsValid() ? *OutFact.GetScriptStruct()->GetName() : TEXT("invalid"));
 				}
 			}
 		}
@@ -366,14 +387,6 @@ void UPipelineAsset::ExportMermaidDAG(
 		ExecStatusMap.Add(Entry.DPUName, Entry.bExecuted);
 	}
 
-	// v4.5: 生产者映射——DPU Name → DPU Name（每个 DPU 自身就是生产者标识）
-	TMap<FName, FName> ProducerMap;
-	for (const auto& DPU : SortedDPUs)
-	{
-		if (!DPU) continue;
-		ProducerMap.Add(DPU->DPUName, DPU->DPUName);
-	}
-
 	// DPU 间依赖的颜色分配（以 DPU Name 为单位着色）
 	TMap<FName, FString> DPUColorMap;
 	{
@@ -389,37 +402,30 @@ void UPipelineAsset::ExportMermaidDAG(
 		}
 	}
 
-	// DC 初始字段
+	// DC 初始字段（事件上下文）
 	TArray<TPair<FName, FString>> InitialFields;
 	if (DC)
 	{
-		for (const auto& Pair : DC->GetAllFacts())
+		for (const auto& Pair : DC->GetAllContextFacts())
 		{
-			if (!ProducerMap.Contains(Pair.Key))
-			{
-				// 从 FInstancedStruct 提取显示字符串
-				FString ValueStr;
-				if (!Pair.Value.IsValid())
-				{
-					ValueStr = TEXT("(invalid)");
-				}
-				else
-				{
-					// 简单显示：使用 DC 的标量接口
-					if (DC->Contains(Pair.Key))
-					{
-						// 尝试各种标量类型
-						bool bVal = DC->GetBool(Pair.Key);
-						float fVal = DC->GetFloat(Pair.Key);
-						if (fVal != 0.f)
-							ValueStr = FString::SanitizeFloat(fVal);
-						else
-							ValueStr = bVal ? TEXT("true") : TEXT("false");
-					}
-				}
-				InitialFields.Add({Pair.Key, ValueStr});
-			}
+			FString ValueStr;
+			bool bVal = DC->GetBool(Pair.Key);
+			float fVal = DC->GetFloat(Pair.Key);
+			if (fVal != 0.f)
+				ValueStr = FString::SanitizeFloat(fVal);
+			else
+				ValueStr = bVal ? TEXT("true") : TEXT("false");
+			InitialFields.Add({Pair.Key, ValueStr});
 		}
+	}
+
+	// v4.8: FactType→DPU 映射用于依赖连线
+	TMap<UScriptStruct*, const UDPUDefinition*> FactTypeToProducerDPU;
+	for (const auto& DPU : SortedDPUs)
+	{
+		if (!DPU) continue;
+		UScriptStruct* FT = DPU->GetProducesFactType();
+		if (FT) FactTypeToProducerDPU.Add(FT, DPU);
 	}
 
 	// ---- 生成 Mermaid ----
@@ -468,17 +474,17 @@ void UPipelineAsset::ExportMermaidDAG(
 
 		// v4.5: Produces 显示 Fact 类型名
 		FString ProducesText;
-		if (DPU->ProducesFactType)
+		if (DPU->GetProducesFactType())
 		{
 			FString TypeColor = DPUColorMap.FindRef(DPU->DPUName);
 			if (!TypeColor.IsEmpty())
 			{
 				ProducesText = FString::Printf(TEXT("<font color='%s'>#9632;</font> %s"),
-					*TypeColor, *DPU->ProducesFactType->GetName());
+					*TypeColor, *DPU->GetProducesFactType()->GetName());
 			}
 			else
 			{
-				ProducesText = DPU->ProducesFactType->GetName();
+				ProducesText = DPU->GetProducesFactType()->GetName();
 			}
 		}
 		else
@@ -518,33 +524,37 @@ void UPipelineAsset::ExportMermaidDAG(
 	}
 	M += TEXT("\n");
 
-	// 产销依赖连线
+	// 产销依赖连线（v4.8: FactType 匹配）
 	for (const auto& DPU : SortedDPUs)
 	{
 		if (!DPU) continue;
-		TArray<FName> ConsumedFacts = DPU->GetConsumedDPUs();
+		TArray<UScriptStruct*> ConsumedTypes = DPU->GetConsumedFactTypes();
 
-		for (const FName& Fact : ConsumedFacts)
+		for (UScriptStruct* Type : ConsumedTypes)
 		{
-			FName* ProducerName = ProducerMap.Find(Fact);
-			FString FieldColor = DPUColorMap.FindRef(Fact);
+			const UDPUDefinition** ProducerDef = FactTypeToProducerDPU.Find(Type);
+			FString TypeName = Type ? Type->GetName() : TEXT("?");
 
-			if (ProducerName)
+			if (ProducerDef && *ProducerDef)
 			{
+				FString ProducerName = (*ProducerDef)->DPUName.ToString();
+				FString FieldColor = DPUColorMap.FindRef((*ProducerDef)->DPUName);
+
 				M += FString::Printf(TEXT("    %s -->|%s| %s\n"),
-					*ProducerName->ToString(), *Fact.ToString(), *DPU->DPUName.ToString());
+					*ProducerName, *TypeName, *DPU->DPUName.ToString());
+
+				if (!FieldColor.IsEmpty())
+				{
+					ColoredLinks.Add({LinkIndex, FieldColor});
+				}
 			}
 			else if (InitialFields.Num() > 0)
 			{
 				M += FString::Printf(TEXT("    DC_Init -->|%s| %s\n"),
-					*Fact.ToString(), *DPU->DPUName.ToString());
+					*TypeName, *DPU->DPUName.ToString());
 			}
 			else { continue; }
 
-			if (!FieldColor.IsEmpty())
-			{
-				ColoredLinks.Add({LinkIndex, FieldColor});
-			}
 			LinkIndex++;
 		}
 	}
@@ -560,18 +570,15 @@ void UPipelineAsset::ExportMermaidDAG(
 
 	M += TEXT("\n");
 
-	// DC Final 节点
+	// DC Final 节点（DPU 产出的 Fact）
 	if (DC)
 	{
 		FString FinalLines;
-		for (const auto& Pair : DC->GetAllFacts())
+		for (const auto& Pair : DC->GetAllDPUFacts())
 		{
-			if (!DC->GetContextFieldNames().Contains(Pair.Key))
-			{
-				if (!FinalLines.IsEmpty()) FinalLines += TEXT("<br/>");
-				FString ValueStr = DC->GetBool(Pair.Key) ? TEXT("true") : TEXT("false");
-				FinalLines += FString::Printf(TEXT("%s = %s"), *Pair.Key.ToString(), *ValueStr);
-			}
+			if (!FinalLines.IsEmpty()) FinalLines += TEXT("<br/>");
+			FString TypeName = Pair.Key ? Pair.Key->GetName() : TEXT("null");
+			FinalLines += FString::Printf(TEXT("[%s]"), *TypeName);
 		}
 		if (!FinalLines.IsEmpty())
 		{

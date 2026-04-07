@@ -5,7 +5,7 @@
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_LightningInAir::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_LightningInAir::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
-	return FInstancedStruct::Make<FLightningInAirSignal>(FLightningInAirSignal{});
+	OutFact = FInstancedStruct::Make<FLightningInAirSignal>(FLightningInAirSignal{});
 }

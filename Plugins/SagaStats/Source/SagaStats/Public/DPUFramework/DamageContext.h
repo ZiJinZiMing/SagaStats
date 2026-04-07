@@ -19,13 +19,13 @@ USTRUCT() struct FDCFact_Vector{ GENERATED_BODY() UPROPERTY() FVector Value = FV
 
 /**
  * UDamageContext (DC)
- * 单次伤害事件的共享上下文。存储事件上下文信息和 DPU 产出的 Fact。
- * 生命周期：事件开始时创建，事件结束时销毁。
- * R1: DC 是 DPU 之间唯一的通信媒介。
- * R3: Fact 缺失时视为 false。
+ * 单次伤害事件的共享上下文。
  *
- * v4.4: 内部存储升级为 TMap<FName, FInstancedStruct>（Fact 模型）。
- * SetBool/GetFloat 等保留为兼容接口，内部通过包装器 USTRUCT 存取。
+ * v4.8: 双存储架构
+ * - ContextFacts (FName key)：事件上下文，标量兼容接口
+ * - DPUFacts (UScriptStruct* key)：DPU 产出的 Fact，类型即 key
+ *
+ * FactType 作为万能连接件：DPU:Fact 1:1 → 类型唯一确定生产者。
  */
 UCLASS(BlueprintType)
 class SAGASTATS_API UDamageContext : public UObject
@@ -37,7 +37,6 @@ public:
 	// 事件上下文（FInstancedStruct —— 管线启动前一次性填入）
 	// =====================================================================
 
-	/** 设置攻击事件上下文。自动将结构体字段展开到 Facts TMap 中。 */
 	UFUNCTION(BlueprintCallable, Category = "DamageContext|EventContext")
 	void SetEventContext(const FInstancedStruct& InContext);
 
@@ -48,44 +47,51 @@ public:
 	const T* GetContext() const { return EventContext.GetPtr<T>(); }
 
 	// =====================================================================
-	// Fact 存储（v4.4 核心 API）
+	// DPU Fact 存储（v4.8: UScriptStruct* key —— 类型即 key）
 	// =====================================================================
 
-	/** C++ 模板路径：类型安全地写入 Fact */
+	/** C++ 模板：类型安全地写入 DPU Fact（类型即 key） */
 	template<typename T>
-	void SetFact(FName Key, const T& Value)
+	void SetFact(const T& Value)
 	{
-		Facts.Add(Key, FInstancedStruct::Make<T>(Value));
+		DPUFacts.Add(T::StaticStruct(), FInstancedStruct::Make<T>(Value));
 	}
 
-	/** C++ 模板路径：类型安全地读取 Fact。类型不匹配或不存在返回 nullptr。 */
+	/** C++ 模板：类型安全地读取 DPU Fact（类型即 key） */
 	template<typename T>
-	const T* GetFact(FName Key) const
+	const T* GetFact() const
 	{
-		if (const FInstancedStruct* Found = Facts.Find(Key))
+		if (const FInstancedStruct* Found = DPUFacts.Find(T::StaticStruct()))
 		{
 			return Found->GetPtr<T>();
 		}
 		return nullptr;
 	}
 
-	/** 通用 FInstancedStruct 路径（蓝图可调用） */
+	/** C++ 模板：检查 DPU Fact 是否存在 */
+	template<typename T>
+	bool HasFact() const
+	{
+		return DPUFacts.Contains(T::StaticStruct());
+	}
+
+	/** 通用 API（蓝图可调用）—— 按 FactType 写入 */
 	UFUNCTION(BlueprintCallable, Category = "DamageContext|Facts")
-	void SetFactGeneric(FName Key, const FInstancedStruct& Value);
+	void SetFactByType(UScriptStruct* FactType, const FInstancedStruct& Value);
 
-	/** 通用读取。不存在返回空的 FInstancedStruct。 */
+	/** 通用 API（蓝图可调用）—— 按 FactType 读取 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DamageContext|Facts")
-	FInstancedStruct GetFactGeneric(FName Key) const;
+	FInstancedStruct GetFactByType(UScriptStruct* FactType) const;
 
-	/** Fact 是否存在 */
+	/** 通用 API（蓝图可调用）—— 按 FactType 检查存在 */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DamageContext|Facts")
-	bool HasFact(FName Key) const;
+	bool HasFactByType(UScriptStruct* FactType) const;
 
-	/** 获取所有 Fact（包含上下文展开的和 DPU 产出的） */
-	const TMap<FName, FInstancedStruct>& GetAllFacts() const { return Facts; }
+	/** 获取所有 DPU Fact */
+	const TMap<UScriptStruct*, FInstancedStruct>& GetAllDPUFacts() const { return DPUFacts; }
 
 	// =====================================================================
-	// 标量兼容接口（保留，内部通过包装器 USTRUCT 存取）
+	// 事件上下文标量接口（FName key，保留兼容）
 	// =====================================================================
 
 	UFUNCTION(BlueprintCallable, Category = "DamageContext")
@@ -122,11 +128,14 @@ public:
 	// 查询 / 生命周期 / 调试
 	// =====================================================================
 
+	/** 事件上下文中是否存在指定 key */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DamageContext")
 	bool Contains(FName Key) const;
 
-	/** 获取由 SetEventContext 自动展开的上下文字段名列表 */
 	const TSet<FName>& GetContextFieldNames() const { return ContextFieldNames; }
+
+	/** 获取所有事件上下文 Fact（FName key） */
+	const TMap<FName, FInstancedStruct>& GetAllContextFacts() const { return ContextFacts; }
 
 	UFUNCTION(BlueprintCallable, Category = "DamageContext")
 	void Reset();
@@ -135,20 +144,29 @@ public:
 	FString DumpToString() const;
 
 private:
-	/** Fact 存储：Fact Key → FInstancedStruct（包含标量包装器和复杂 Fact） */
+	/** 事件上下文存储（FName key） */
 	UPROPERTY()
-	TMap<FName, FInstancedStruct> Facts;
+	TMap<FName, FInstancedStruct> ContextFacts;
+
+	/** DPU 产出的 Fact 存储（UScriptStruct* key —— 类型即 key） */
+	TMap<UScriptStruct*, FInstancedStruct> DPUFacts;
 
 	/** 原始事件上下文结构体 */
 	UPROPERTY()
 	FInstancedStruct EventContext;
 
-	/** 由 SetEventContext 自动展开的字段名集合（区分"上下文"和"DPU产出"） */
+	/** 由 SetEventContext 自动展开的字段名集合 */
 	TSet<FName> ContextFieldNames;
 
-	/** 内部：将 FInstancedStruct 的 UPROPERTY 字段展开到 Facts TMap */
+	/** 内部：将 FInstancedStruct 的 UPROPERTY 字段展开到 ContextFacts */
 	void ExpandStructToFields(const FInstancedStruct& Struct);
 
-	/** 内部：从 FInstancedStruct 提取标量 float 值 */
+	/** 内部标量存取辅助 */
+	template<typename T>
+	void SetContextValue(FName Key, const T& Value)
+	{
+		ContextFacts.Add(Key, FInstancedStruct::Make<T>(Value));
+	}
+
 	static float ExtractFloatFromStruct(const FInstancedStruct& Struct, FName FieldName);
 };

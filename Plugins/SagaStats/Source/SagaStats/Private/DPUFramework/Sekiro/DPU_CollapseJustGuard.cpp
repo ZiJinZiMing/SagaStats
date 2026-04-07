@@ -5,7 +5,7 @@
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_CollapseJustGuard::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_CollapseJustGuard::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
-	return FInstancedStruct::Make<FCollapseJustGuardSignal>(FCollapseJustGuardSignal{});
+	OutFact = FInstancedStruct::Make<FCollapseJustGuardSignal>(FCollapseJustGuardSignal{});
 }

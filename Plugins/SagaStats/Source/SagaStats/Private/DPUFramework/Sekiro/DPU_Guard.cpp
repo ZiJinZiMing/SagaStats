@@ -3,18 +3,18 @@
 #include "DPUFramework/Sekiro/DPU_Mixup.h"
 
 // ============================================================================
-// ConditionNode 领域方法
+// Condition
 // ============================================================================
 
-bool UConditionNode_Guard::IsGuardSuccess(const UDamageContext* DC) const
+bool UDPUCondition_GuardSuccess::Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const
 {
-	const FGuardResult* F = DC->GetFact<FGuardResult>(ResolvedProducerDPU);
+	const FGuardResult* F = ConsumedFact.GetPtr<FGuardResult>();
 	return F ? F->bGuardSuccess : false;
 }
 
-bool UConditionNode_Guard::IsJustGuard(const UDamageContext* DC) const
+bool UDPUCondition_GuardIsJustGuard::Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const
 {
-	const FGuardResult* F = DC->GetFact<FGuardResult>(ResolvedProducerDPU);
+	const FGuardResult* F = ConsumedFact.GetPtr<FGuardResult>();
 	return F ? F->bIsJustGuard : false;
 }
 
@@ -22,12 +22,12 @@ bool UConditionNode_Guard::IsJustGuard(const UDamageContext* DC) const
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_Guard::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_Guard::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
-	const FMixupResult* Mixup = DC->GetFact<FMixupResult>(FName("Mixup"));
+	const FMixupResult* Mixup = DC->GetFact<FMixupResult>();
 
 	FGuardResult Result;
 	Result.bGuardSuccess = Mixup ? Mixup->bIsGuard : false;
 	Result.bIsJustGuard = Mixup ? Mixup->bIsJustGuard : false;
-	return FInstancedStruct::Make<FGuardResult>(Result);
+	OutFact = FInstancedStruct::Make<FGuardResult>(Result);
 }

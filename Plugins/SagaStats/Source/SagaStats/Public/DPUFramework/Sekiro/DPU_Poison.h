@@ -4,7 +4,7 @@
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
 #include "DPUFramework/DPULogicBase.h"
-#include "DPUFramework/ConditionNode.h"
+#include "DPUFramework/DPUCondition.h"
 #include "DPUFramework/DamageContext.h"
 #include "DPU_Poison.generated.h"
 
@@ -22,17 +22,16 @@ struct SAGASTATS_API FPoisonResult
 };
 
 // ============================================================================
-// ConditionNode
+// Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "Poison"))
-class SAGASTATS_API UConditionNode_Poison : public UConditionNode_DPUBase
+UCLASS(BlueprintType, meta = (DisplayName = "IsPoisoned"))
+class SAGASTATS_API UDPUCondition_IsPoisoned : public UDPUCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedFactType() const override { return FPoisonResult::StaticStruct(); }
-
-	UFUNCTION() bool IsPoisoned(const UDamageContext* DC) const;
+	virtual bool Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const override;
 };
 
 // ============================================================================
@@ -44,5 +43,6 @@ class SAGASTATS_API UDPULogic_Poison : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual FInstancedStruct Execute_Implementation(const UDamageContext* DC) override;
+	virtual void Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact) override;
+	virtual UScriptStruct* GetProducesFactType() const override { return FPoisonResult::StaticStruct(); }
 };

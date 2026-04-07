@@ -2,12 +2,12 @@
 #include "DPUFramework/Sekiro/DPU_Poison.h"
 
 // ============================================================================
-// ConditionNode 领域方法
+// Condition
 // ============================================================================
 
-bool UConditionNode_Poison::IsPoisoned(const UDamageContext* DC) const
+bool UDPUCondition_IsPoisoned::Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const
 {
-	const FPoisonResult* F = DC->GetFact<FPoisonResult>(ResolvedProducerDPU);
+	const FPoisonResult* F = ConsumedFact.GetPtr<FPoisonResult>();
 	return F ? F->bIsPoisoned : false;
 }
 
@@ -15,9 +15,9 @@ bool UConditionNode_Poison::IsPoisoned(const UDamageContext* DC) const
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_Poison::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_Poison::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
 	FPoisonResult Result;
 	Result.bIsPoisoned = true;
-	return FInstancedStruct::Make<FPoisonResult>(Result);
+	OutFact = FInstancedStruct::Make<FPoisonResult>(Result);
 }

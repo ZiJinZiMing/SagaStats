@@ -5,7 +5,7 @@
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_Toughness::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_Toughness::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
-	return FInstancedStruct::Make<FToughnessSignal>(FToughnessSignal{});
+	OutFact = FInstancedStruct::Make<FToughnessSignal>(FToughnessSignal{});
 }

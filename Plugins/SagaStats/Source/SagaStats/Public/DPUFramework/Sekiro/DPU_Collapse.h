@@ -4,7 +4,7 @@
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
 #include "DPUFramework/DPULogicBase.h"
-#include "DPUFramework/ConditionNode.h"
+#include "DPUFramework/DPUCondition.h"
 #include "DPUFramework/DamageContext.h"
 #include "DPU_Collapse.generated.h"
 
@@ -31,31 +31,29 @@ struct SAGASTATS_API FCollapseGuardResult
 };
 
 // ============================================================================
-// ConditionNode — Collapse
+// Condition — Collapse
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "Collapse"))
-class SAGASTATS_API UConditionNode_Collapse : public UConditionNode_DPUBase
+UCLASS(BlueprintType, meta = (DisplayName = "CollapseIsCollapse"))
+class SAGASTATS_API UDPUCondition_CollapseIsCollapse : public UDPUCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedFactType() const override { return FCollapseResult::StaticStruct(); }
-
-	UFUNCTION() bool IsCollapse(const UDamageContext* DC) const;
+	virtual bool Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const override;
 };
 
 // ============================================================================
-// ConditionNode — CollapseGuard
+// Condition — CollapseGuard
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "CollapseGuard"))
-class SAGASTATS_API UConditionNode_CollapseGuard : public UConditionNode_DPUBase
+UCLASS(BlueprintType, meta = (DisplayName = "CollapseGuardIsCollapse"))
+class SAGASTATS_API UDPUCondition_CollapseGuardIsCollapse : public UDPUCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedFactType() const override { return FCollapseGuardResult::StaticStruct(); }
-
-	UFUNCTION() bool IsCollapse(const UDamageContext* DC) const;
+	virtual bool Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const override;
 };
 
 // ============================================================================
@@ -67,7 +65,8 @@ class SAGASTATS_API UDPULogic_Collapse : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual FInstancedStruct Execute_Implementation(const UDamageContext* DC) override;
+	virtual void Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact) override;
+	virtual UScriptStruct* GetProducesFactType() const override { return FCollapseResult::StaticStruct(); }
 };
 
 UCLASS()
@@ -75,5 +74,6 @@ class SAGASTATS_API UDPULogic_CollapseGuard : public UDPULogicBase
 {
 	GENERATED_BODY()
 public:
-	virtual FInstancedStruct Execute_Implementation(const UDamageContext* DC) override;
+	virtual void Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact) override;
+	virtual UScriptStruct* GetProducesFactType() const override { return FCollapseGuardResult::StaticStruct(); }
 };

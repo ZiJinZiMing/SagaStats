@@ -2,12 +2,12 @@
 #include "DPUFramework/Sekiro/DPU_AttackerBound.h"
 
 // ============================================================================
-// ConditionNode 领域方法
+// Condition
 // ============================================================================
 
-bool UConditionNode_AttackerBound::IsBound(const UDamageContext* DC) const
+bool UDPUCondition_IsBound::Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const
 {
-	const FAttackerBoundResult* F = DC->GetFact<FAttackerBoundResult>(ResolvedProducerDPU);
+	const FAttackerBoundResult* F = ConsumedFact.GetPtr<FAttackerBoundResult>();
 	return F ? F->bIsBound : false;
 }
 
@@ -15,9 +15,9 @@ bool UConditionNode_AttackerBound::IsBound(const UDamageContext* DC) const
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_AttackerBound::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_AttackerBound::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
 	FAttackerBoundResult Result;
 	Result.bIsBound = true;
-	return FInstancedStruct::Make<FAttackerBoundResult>(Result);
+	OutFact = FInstancedStruct::Make<FAttackerBoundResult>(Result);
 }

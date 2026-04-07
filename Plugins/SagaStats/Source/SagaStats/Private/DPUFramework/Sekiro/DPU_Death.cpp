@@ -2,12 +2,12 @@
 #include "DPUFramework/Sekiro/DPU_Death.h"
 
 // ============================================================================
-// ConditionNode 领域方法
+// Condition
 // ============================================================================
 
-bool UConditionNode_Death::IsDead(const UDamageContext* DC) const
+bool UDPUCondition_IsDead::Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const
 {
-	const FDeathResult* F = DC->GetFact<FDeathResult>(ResolvedProducerDPU);
+	const FDeathResult* F = ConsumedFact.GetPtr<FDeathResult>();
 	return F ? F->bIsDead : false;
 }
 
@@ -15,12 +15,12 @@ bool UConditionNode_Death::IsDead(const UDamageContext* DC) const
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_Death::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_Death::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
 	float CurrentHP = DC->GetFloat(FName("CurrentHP"));
 	float DmgLevel = DC->GetFloat(FName("DmgLevel"));
 
 	FDeathResult Result;
 	Result.bIsDead = (CurrentHP - DmgLevel) <= 0.f;
-	return FInstancedStruct::Make<FDeathResult>(Result);
+	OutFact = FInstancedStruct::Make<FDeathResult>(Result);
 }

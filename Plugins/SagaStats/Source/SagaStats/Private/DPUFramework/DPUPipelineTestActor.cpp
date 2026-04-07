@@ -1,9 +1,10 @@
-// DPUPipelineTestActor.cpp — v4.6: Per-DPU 文件组织 + ConditionNode 子类
+// DPUPipelineTestActor.cpp — v4.7: Predicate/Condition 双层 + Logic Set DC
 #include "DPUFramework/DPUPipelineTestActor.h"
 #include "DPUFramework/DamageContext.h"
-#include "DPUFramework/ConditionNode.h"
+#include "DPUFramework/DPUCondition.h"
+#include "DPUFramework/DPUPredicate.h"
 
-// 引入所有只狼 DPU（每个文件包含 Fact + ConditionNode + Logic）
+// 引入所有只狼 DPU（每个文件包含 Fact + DPUCondition + Logic）
 #include "DPUFramework/Sekiro/DPU_Mixup.h"
 #include "DPUFramework/Sekiro/DPU_Guard.h"
 #include "DPUFramework/Sekiro/DPU_Death.h"
@@ -24,36 +25,40 @@
 // 辅助函数
 // ============================================================================
 
-static UConditionNode_And* MakeAnd(UObject* Outer, const TArray<UConditionNode*>& Children, bool bReverse = false)
+static UDPUPredicate_And* MakeAnd(UObject* Outer, const TArray<UDPUPredicate*>& Children, bool bReverse = false)
 {
-	UConditionNode_And* Node = NewObject<UConditionNode_And>(Outer);
-	for (UConditionNode* Child : Children) Node->Children.Add(Child);
+	UDPUPredicate_And* Node = NewObject<UDPUPredicate_And>(Outer);
+	for (UDPUPredicate* Child : Children) Node->Predicates.Add(Child);
 	Node->bReverse = bReverse;
 	return Node;
 }
 
-template<typename TCondNode>
-static TCondNode* MakeDPUCondition(UObject* Outer, FName MethodName = NAME_None, bool bReverse = false)
+template<typename TCondClass>
+static UDPUPredicate_Single* MakeDPUCondition(UObject* Outer, bool bReverse = false)
 {
-	TCondNode* Node = NewObject<TCondNode>(Outer);
-	Node->MethodName = MethodName;
-	Node->bReverse = bReverse;
-	return Node;
+	TCondClass* Cond = NewObject<TCondClass>(Outer);
+
+	UDPUPredicate_Single* Single = NewObject<UDPUPredicate_Single>(Outer);
+	Single->Condition = Cond;
+	Single->bReverse = bReverse;
+	return Single;
 }
 
-static UConditionNode_ContextCheck* MakeCtxCheck(UObject* Outer, FName ContextKey, bool bReverse = false)
+static UDPUPredicate_Single* MakeCtxCheck(UObject* Outer, FName ContextKey, bool bReverse = false)
 {
-	UConditionNode_ContextCheck* Node = NewObject<UConditionNode_ContextCheck>(Outer);
-	Node->ContextKey = ContextKey;
-	Node->bReverse = bReverse;
-	return Node;
+	UDPUCondition_ContextCheck* Cond = NewObject<UDPUCondition_ContextCheck>(Outer);
+	Cond->ContextKey = ContextKey;
+
+	UDPUPredicate_Single* Single = NewObject<UDPUPredicate_Single>(Outer);
+	Single->Condition = Cond;
+	Single->bReverse = bReverse;
+	return Single;
 }
 
-static UDPUDefinition* MakeDPU(UObject* Outer, FName Name, UScriptStruct* FactType, TSubclassOf<UDPULogicBase> Logic)
+static UDPUDefinition* MakeDPU(UObject* Outer, FName Name, TSubclassOf<UDPULogicBase> Logic)
 {
 	UDPUDefinition* Def = NewObject<UDPUDefinition>(Outer);
 	Def->DPUName = Name;
-	Def->ProducesFactType = FactType;
 	Def->LogicClass = Logic;
 	return Def;
 }
@@ -81,44 +86,44 @@ void ADPUPipelineTestActor::BeginPlay()
 void ADPUPipelineTestActor::BuildSekiroPipeline()
 {
 	Pipeline = NewObject<UPipelineAsset>(this);
-	Pipeline->PipelineName = FName("SekiroMVPv4.6");
+	Pipeline->PipelineName = FName("SekiroMVPv4.7");
 	Pipeline->bAutoExportMermaid = true;
 
 	// ================================================================
-	// 第一阶段：创建所有 DPU
+	// 第一阶段：创建所有 DPU（ProducesFactType 自动从 LogicClass CDO 获取）
 	// ================================================================
 
-	UDPUDefinition* Mixup = MakeDPU(this, "Mixup", FMixupResult::StaticStruct(), UDPULogic_Mixup::StaticClass());
-	UDPUDefinition* Guard = MakeDPU(this, "Guard", FGuardResult::StaticStruct(), UDPULogic_Guard::StaticClass());
-	UDPUDefinition* Death = MakeDPU(this, "Death", FDeathResult::StaticStruct(), UDPULogic_Death::StaticClass());
-	UDPUDefinition* Collapse = MakeDPU(this, "Collapse", FCollapseResult::StaticStruct(), UDPULogic_Collapse::StaticClass());
-	UDPUDefinition* Hurt = MakeDPU(this, "Hurt", FHurtResult::StaticStruct(), UDPULogic_Hurt::StaticClass());
-	UDPUDefinition* CollapseGuard = MakeDPU(this, "CollapseGuard", FCollapseGuardResult::StaticStruct(), UDPULogic_CollapseGuard::StaticClass());
-	UDPUDefinition* CollapseJustGuard = MakeDPU(this, "CollapseJustGuard", FCollapseJustGuardSignal::StaticStruct(), UDPULogic_CollapseJustGuard::StaticClass());
-	UDPUDefinition* AttackerBound = MakeDPU(this, "AttackerBound", FAttackerBoundResult::StaticStruct(), UDPULogic_AttackerBound::StaticClass());
-	UDPUDefinition* Poison = MakeDPU(this, "Poison", FPoisonResult::StaticStruct(), UDPULogic_Poison::StaticClass());
-	UDPUDefinition* Toughness = MakeDPU(this, "Toughness", FToughnessSignal::StaticStruct(), UDPULogic_Toughness::StaticClass());
-	UDPUDefinition* SuperArmor = MakeDPU(this, "SuperArmor", FSuperArmorSignal::StaticStruct(), UDPULogic_SuperArmor::StaticClass());
-	UDPUDefinition* LightningOnGround = MakeDPU(this, "LightningOnGround", FLightningOnGroundSignal::StaticStruct(), UDPULogic_LightningOnGround::StaticClass());
-	UDPUDefinition* LightningInAir = MakeDPU(this, "LightningInAir", FLightningInAirSignal::StaticStruct(), UDPULogic_LightningInAir::StaticClass());
+	UDPUDefinition* Mixup = MakeDPU(this, "Mixup", UDPULogic_Mixup::StaticClass());
+	UDPUDefinition* Guard = MakeDPU(this, "Guard", UDPULogic_Guard::StaticClass());
+	UDPUDefinition* Death = MakeDPU(this, "Death", UDPULogic_Death::StaticClass());
+	UDPUDefinition* Collapse = MakeDPU(this, "Collapse", UDPULogic_Collapse::StaticClass());
+	UDPUDefinition* Hurt = MakeDPU(this, "Hurt", UDPULogic_Hurt::StaticClass());
+	UDPUDefinition* CollapseGuard = MakeDPU(this, "CollapseGuard", UDPULogic_CollapseGuard::StaticClass());
+	UDPUDefinition* CollapseJustGuard = MakeDPU(this, "CollapseJustGuard", UDPULogic_CollapseJustGuard::StaticClass());
+	UDPUDefinition* AttackerBound = MakeDPU(this, "AttackerBound", UDPULogic_AttackerBound::StaticClass());
+	UDPUDefinition* Poison = MakeDPU(this, "Poison", UDPULogic_Poison::StaticClass());
+	UDPUDefinition* Toughness = MakeDPU(this, "Toughness", UDPULogic_Toughness::StaticClass());
+	UDPUDefinition* SuperArmor = MakeDPU(this, "SuperArmor", UDPULogic_SuperArmor::StaticClass());
+	UDPUDefinition* LightningOnGround = MakeDPU(this, "LightningOnGround", UDPULogic_LightningOnGround::StaticClass());
+	UDPUDefinition* LightningInAir = MakeDPU(this, "LightningInAir", UDPULogic_LightningInAir::StaticClass());
 
 	// ================================================================
-	// 第二阶段：设置 Condition
+	// 第二阶段：设置 Condition（Predicate/Condition 双层）
 	// ================================================================
 
 	Guard->Condition = MakeAnd(this, {
-		MakeDPUCondition<UConditionNode_Mixup>(this, FName("IsGuard")),
-		MakeDPUCondition<UConditionNode_LightningInAir>(this, NAME_None, true)
+		MakeDPUCondition<UDPUCondition_IsGuard>(this),
+		MakeDPUCondition<UDPUCondition_LightningInAir>(this, true)
 	});
 
-	auto MakeHurtCondition = [this]() -> UConditionNode*
+	auto MakeHurtCondition = [this]() -> UDPUPredicate*
 	{
 		return MakeAnd(this, {
 			MakeAnd(this, {
-				MakeDPUCondition<UConditionNode_Mixup>(this, FName("IsGuard")),
-				MakeDPUCondition<UConditionNode_Guard>(this, FName("IsGuardSuccess"))
+				MakeDPUCondition<UDPUCondition_IsGuard>(this),
+				MakeDPUCondition<UDPUCondition_GuardSuccess>(this)
 			}, true),
-			MakeDPUCondition<UConditionNode_LightningInAir>(this, NAME_None, true)
+			MakeDPUCondition<UDPUCondition_LightningInAir>(this, true)
 		});
 	};
 
@@ -129,24 +134,24 @@ void ADPUPipelineTestActor::BuildSekiroPipeline()
 	SuperArmor->Condition = MakeHurtCondition();
 
 	CollapseGuard->Condition = MakeAnd(this, {
-		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsGuardSuccess")),
-		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsJustGuard"), true),
-		MakeDPUCondition<UConditionNode_LightningInAir>(this, NAME_None, true)
+		MakeDPUCondition<UDPUCondition_GuardSuccess>(this),
+		MakeDPUCondition<UDPUCondition_GuardIsJustGuard>(this, true),
+		MakeDPUCondition<UDPUCondition_LightningInAir>(this, true)
 	});
 
 	CollapseJustGuard->Condition = MakeAnd(this, {
-		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsGuardSuccess")),
-		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsJustGuard")),
-		MakeDPUCondition<UConditionNode_LightningInAir>(this, NAME_None, true)
+		MakeDPUCondition<UDPUCondition_GuardSuccess>(this),
+		MakeDPUCondition<UDPUCondition_GuardIsJustGuard>(this),
+		MakeDPUCondition<UDPUCondition_LightningInAir>(this, true)
 	});
 
 	AttackerBound->Condition = MakeAnd(this, {
-		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsGuardSuccess")),
-		MakeDPUCondition<UConditionNode_Guard>(this, FName("IsJustGuard")),
-		MakeDPUCondition<UConditionNode_LightningInAir>(this, NAME_None, true)
+		MakeDPUCondition<UDPUCondition_GuardSuccess>(this),
+		MakeDPUCondition<UDPUCondition_GuardIsJustGuard>(this),
+		MakeDPUCondition<UDPUCondition_LightningInAir>(this, true)
 	});
 
-	Poison->Condition = MakeDPUCondition<UConditionNode_Guard>(this, FName("IsJustGuard"), true);
+	Poison->Condition = MakeDPUCondition<UDPUCondition_GuardIsJustGuard>(this, true);
 
 	LightningOnGround->Condition = MakeAnd(this, {
 		MakeCtxCheck(this, FName("Lightning")),
@@ -171,7 +176,7 @@ void ADPUPipelineTestActor::BuildSekiroPipeline()
 
 	FPipelineSortResult SortResult = Pipeline->Build();
 
-	PrintToScreen(FString::Printf(TEXT("=== Sekiro MVP v4.6 Pipeline Built: %d DPUs ==="), Pipeline->DPUDefinitions.Num()), FColor::Cyan);
+	PrintToScreen(FString::Printf(TEXT("=== Sekiro MVP v4.7 Pipeline Built: %d DPUs ==="), Pipeline->DPUDefinitions.Num()), FColor::Cyan);
 
 	FString SortOrder;
 	for (int32 i = 0; i < SortResult.SortedDPUs.Num(); i++)
@@ -299,13 +304,10 @@ void ADPUPipelineTestActor::PrintScenarioResult(
 		PrintToScreen(FString::Printf(TEXT("  %s %s"), *Status, *Entry.DPUName.ToString()), Color);
 	}
 
-	PrintToScreen(TEXT("  DC Facts:"), FColor::Yellow);
-	for (const auto& Pair : DC->GetAllFacts())
+	PrintToScreen(TEXT("  DC DPU Facts:"), FColor::Yellow);
+	for (const auto& Pair : DC->GetAllDPUFacts())
 	{
-		if (DC->GetContextFieldNames().Contains(Pair.Key)) continue;
-		bool bVal = DC->GetBool(Pair.Key);
-		FColor ValColor = bVal ? FColor::Green : FColor::Red;
-		PrintToScreen(FString::Printf(TEXT("    %s = %s"),
-			*Pair.Key.ToString(), bVal ? TEXT("true") : TEXT("false")), ValColor);
+		FString TypeName = Pair.Key ? Pair.Key->GetName() : TEXT("null");
+		PrintToScreen(FString::Printf(TEXT("    [%s]"), *TypeName), FColor::Green);
 	}
 }

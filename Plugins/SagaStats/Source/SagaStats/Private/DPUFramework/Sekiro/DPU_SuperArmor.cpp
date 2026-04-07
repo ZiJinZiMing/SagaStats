@@ -5,7 +5,7 @@
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_SuperArmor::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_SuperArmor::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
-	return FInstancedStruct::Make<FSuperArmorSignal>(FSuperArmorSignal{});
+	OutFact = FInstancedStruct::Make<FSuperArmorSignal>(FSuperArmorSignal{});
 }

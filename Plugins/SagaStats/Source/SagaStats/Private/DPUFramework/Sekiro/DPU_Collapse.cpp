@@ -2,18 +2,18 @@
 #include "DPUFramework/Sekiro/DPU_Collapse.h"
 
 // ============================================================================
-// ConditionNode 领域方法
+// Condition
 // ============================================================================
 
-bool UConditionNode_Collapse::IsCollapse(const UDamageContext* DC) const
+bool UDPUCondition_CollapseIsCollapse::Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const
 {
-	const FCollapseResult* F = DC->GetFact<FCollapseResult>(ResolvedProducerDPU);
+	const FCollapseResult* F = ConsumedFact.GetPtr<FCollapseResult>();
 	return F ? F->bIsCollapse : false;
 }
 
-bool UConditionNode_CollapseGuard::IsCollapse(const UDamageContext* DC) const
+bool UDPUCondition_CollapseGuardIsCollapse::Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const
 {
-	const FCollapseGuardResult* F = DC->GetFact<FCollapseGuardResult>(ResolvedProducerDPU);
+	const FCollapseGuardResult* F = ConsumedFact.GetPtr<FCollapseGuardResult>();
 	return F ? F->bIsCollapse : false;
 }
 
@@ -21,16 +21,16 @@ bool UConditionNode_CollapseGuard::IsCollapse(const UDamageContext* DC) const
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_Collapse::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_Collapse::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
 	FCollapseResult Result;
 	Result.bIsCollapse = true;
-	return FInstancedStruct::Make<FCollapseResult>(Result);
+	OutFact = FInstancedStruct::Make<FCollapseResult>(Result);
 }
 
-FInstancedStruct UDPULogic_CollapseGuard::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_CollapseGuard::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
 	FCollapseGuardResult Result;
 	Result.bIsCollapse = true;
-	return FInstancedStruct::Make<FCollapseGuardResult>(Result);
+	OutFact = FInstancedStruct::Make<FCollapseGuardResult>(Result);
 }

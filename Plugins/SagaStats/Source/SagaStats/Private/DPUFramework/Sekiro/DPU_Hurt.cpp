@@ -2,12 +2,12 @@
 #include "DPUFramework/Sekiro/DPU_Hurt.h"
 
 // ============================================================================
-// ConditionNode 领域方法
+// Condition
 // ============================================================================
 
-bool UConditionNode_Hurt::IsHurt(const UDamageContext* DC) const
+bool UDPUCondition_IsHurt::Evaluate_Implementation(const UDamageContext* DC, const FInstancedStruct& ConsumedFact) const
 {
-	const FHurtResult* F = DC->GetFact<FHurtResult>(ResolvedProducerDPU);
+	const FHurtResult* F = ConsumedFact.GetPtr<FHurtResult>();
 	return F ? F->bIsHurt : false;
 }
 
@@ -15,9 +15,9 @@ bool UConditionNode_Hurt::IsHurt(const UDamageContext* DC) const
 // Logic
 // ============================================================================
 
-FInstancedStruct UDPULogic_Hurt::Execute_Implementation(const UDamageContext* DC)
+void UDPULogic_Hurt::Execute_Implementation(UDamageContext* DC, FInstancedStruct& OutFact)
 {
 	FHurtResult Result;
 	Result.bIsHurt = true;
-	return FInstancedStruct::Make<FHurtResult>(Result);
+	OutFact = FInstancedStruct::Make<FHurtResult>(Result);
 }

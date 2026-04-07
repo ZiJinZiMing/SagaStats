@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "DPUFramework/DPUDefinition.h"
+#include "DPUFramework/DPUPredicate.h"
 #include "DPUFramework/DamageContext.h"
 #include "PipelineAsset.generated.h"
 

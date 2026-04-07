@@ -1,7 +1,8 @@
 {
   "permissions": {
     "additionalDirectories": [
-      "D:\\UnrealEngine\\UnrealEngine"
+      "D:\\UnrealEngine\\UnrealEngine",
+      "E:\\MyWorkSpace\\MyProject57"
     ]
   }
 }
