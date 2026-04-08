@@ -1,0 +1,79 @@
+// DR_Collapse.h — 崩架势机制（Collapse + CollapseGuard，各自独立 Effect 类型）
+#pragma once
+
+#include "CoreMinimal.h"
+#include "StructUtils/InstancedStruct.h"
+#include "DamageFramework/DamageOperationBase.h"
+#include "DamageFramework/DamageCondition.h"
+#include "DamageFramework/DamageContext.h"
+#include "DR_Collapse.generated.h"
+
+// ============================================================================
+// Effect — 每个 DamageRule 独立的 Effect 类型（DPU 和 Effect 一一对应）
+// ============================================================================
+
+USTRUCT(BlueprintType)
+struct SAGASTATS_API FCollapseEffect
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsCollapse = false;
+};
+
+USTRUCT(BlueprintType)
+struct SAGASTATS_API FCollapseGuardEffect
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsCollapse = false;
+};
+
+// ============================================================================
+// Condition — Collapse
+// ============================================================================
+
+UCLASS(BlueprintType, meta = (DisplayName = "CollapseIsCollapse"))
+class SAGASTATS_API UDamageCondition_CollapseIsCollapse : public UDamageCondition
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedEffectType() const override { return FCollapseEffect::StaticStruct(); }
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+};
+
+// ============================================================================
+// Condition — CollapseGuard
+// ============================================================================
+
+UCLASS(BlueprintType, meta = (DisplayName = "CollapseGuardIsCollapse"))
+class SAGASTATS_API UDamageCondition_CollapseGuardIsCollapse : public UDamageCondition
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetConsumedEffectType() const override { return FCollapseGuardEffect::StaticStruct(); }
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+};
+
+// ============================================================================
+// Logic
+// ============================================================================
+
+UCLASS()
+class SAGASTATS_API UDamageOperation_Collapse : public UDamageOperationBase
+{
+	GENERATED_BODY()
+public:
+	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
+	virtual UScriptStruct* GetProducesEffectType() const override { return FCollapseEffect::StaticStruct(); }
+};
+
+UCLASS()
+class SAGASTATS_API UDamageOperation_CollapseGuard : public UDamageOperationBase
+{
+	GENERATED_BODY()
+public:
+	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
+	virtual UScriptStruct* GetProducesEffectType() const override { return FCollapseGuardEffect::StaticStruct(); }
+};

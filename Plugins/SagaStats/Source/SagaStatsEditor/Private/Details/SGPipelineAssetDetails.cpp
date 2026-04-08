@@ -1,6 +1,6 @@
-// SGPipelineAssetDetails.cpp — PipelineAsset Build 按钮实现
+// SGPipelineAssetDetails.cpp — DamagePipeline Build 按钮实现
 #include "Details/SGPipelineAssetDetails.h"
-#include "DPUFramework/PipelineAsset.h"
+#include "DamageFramework/DamagePipeline.h"
 #include "DetailLayoutBuilder.h"
 #include "DetailCategoryBuilder.h"
 #include "DetailWidgetRow.h"
@@ -8,20 +8,20 @@
 #include "Widgets/Text/STextBlock.h"
 #include "SGEditorLog.h"
 
-TSharedRef<IDetailCustomization> FSGPipelineAssetDetails::MakeInstance()
+TSharedRef<IDetailCustomization> FSGDamagePipelineDetails::MakeInstance()
 {
-	return MakeShared<FSGPipelineAssetDetails>();
+	return MakeShared<FSGDamagePipelineDetails>();
 }
 
-void FSGPipelineAssetDetails::CustomizeDetails(IDetailLayoutBuilder& InDetailLayout)
+void FSGDamagePipelineDetails::CustomizeDetails(IDetailLayoutBuilder& InDetailLayout)
 {
-	// 获取正在编辑的 PipelineAsset
+	// 获取正在编辑的 DamagePipeline
 	TArray<TWeakObjectPtr<UObject>> ObjectsBeingCustomized;
 	InDetailLayout.GetObjectsBeingCustomized(ObjectsBeingCustomized);
 
 	if (ObjectsBeingCustomized.Num() == 1)
 	{
-		PipelineAsset = Cast<UPipelineAsset>(ObjectsBeingCustomized[0].Get());
+		DamagePipeline = Cast<UDamagePipeline>(ObjectsBeingCustomized[0].Get());
 	}
 
 	// 在 "Pipeline" 分类中添加 Build 按钮和状态显示
@@ -48,12 +48,12 @@ void FSGPipelineAssetDetails::CustomizeDetails(IDetailLayoutBuilder& InDetailLay
 			[
 				SNew(SButton)
 				.Text(FText::FromString(TEXT("Build")))
-				.ToolTipText(FText::FromString(TEXT("根据 DPU Definitions 的产销关系进行拓扑排序，烘焙 DAG 到 Asset 中")))
-				.OnClicked(FOnClicked::CreateSP(this, &FSGPipelineAssetDetails::OnBuildClicked))
+				.ToolTipText(FText::FromString(TEXT("根据 DamageRules 的产销关系进行拓扑排序，烘焙 DAG 到 Asset 中")))
+				.OnClicked(FOnClicked::CreateSP(this, &FSGDamagePipelineDetails::OnBuildClicked))
 			]
 		];
 
-	// 状态行：显示 bIsBaked 和 DPU 数量
+	// 状态行：显示 bIsBaked 和 DamageRule 数量
 	Category.AddCustomRow(FText::FromString(TEXT("Status")))
 		.NameContent()
 		[
@@ -67,18 +67,18 @@ void FSGPipelineAssetDetails::CustomizeDetails(IDetailLayoutBuilder& InDetailLay
 			.Font(IDetailLayoutBuilder::GetDetailFont())
 			.Text_Lambda([this]() -> FText
 			{
-				if (!PipelineAsset.IsValid())
+				if (!DamagePipeline.IsValid())
 				{
 					return FText::FromString(TEXT("(no asset)"));
 				}
-				UPipelineAsset* Asset = PipelineAsset.Get();
+				UDamagePipeline* Asset = DamagePipeline.Get();
 				FString Status = Asset->bIsBaked ? TEXT("Baked") : TEXT("Not Baked");
-				return FText::FromString(FString::Printf(TEXT("%s | %d DPUs"),
-					*Status, Asset->DPUDefinitions.Num()));
+				return FText::FromString(FString::Printf(TEXT("%s | %d Rules"),
+					*Status, Asset->DamageRules.Num()));
 			})
 			.ColorAndOpacity_Lambda([this]() -> FSlateColor
 			{
-				if (PipelineAsset.IsValid() && PipelineAsset->bIsBaked)
+				if (DamagePipeline.IsValid() && DamagePipeline->bIsBaked)
 				{
 					return FSlateColor(FLinearColor::Green);
 				}
@@ -87,18 +87,18 @@ void FSGPipelineAssetDetails::CustomizeDetails(IDetailLayoutBuilder& InDetailLay
 		];
 }
 
-FReply FSGPipelineAssetDetails::OnBuildClicked()
+FReply FSGDamagePipelineDetails::OnBuildClicked()
 {
-	if (!PipelineAsset.IsValid())
+	if (!DamagePipeline.IsValid())
 	{
-		SG_EDITOR_LOG(Warning, TEXT("PipelineAsset Build: 无有效 Asset"));
+		SG_EDITOR_LOG(Warning, TEXT("DamagePipeline Build: 无有效 Asset"));
 		return FReply::Handled();
 	}
 
-	UPipelineAsset* Asset = PipelineAsset.Get();
+	UDamagePipeline* Asset = DamagePipeline.Get();
 
-	SG_EDITOR_LOG(Log, TEXT("PipelineAsset Build 开始: %s (%d DPUs)"),
-		*Asset->PipelineName.ToString(), Asset->DPUDefinitions.Num());
+	SG_EDITOR_LOG(Log, TEXT("DamagePipeline Build 开始: %s (%d Rules)"),
+		*Asset->PipelineName.ToString(), Asset->DamageRules.Num());
 
 	FPipelineSortResult Result = Asset->Build();
 
@@ -112,7 +112,7 @@ FReply FSGPipelineAssetDetails::OnBuildClicked()
 	}
 	else
 	{
-		SG_EDITOR_LOG(Log, TEXT("Build 成功: %d DPUs 已排序"), Result.SortedDPUs.Num());
+		SG_EDITOR_LOG(Log, TEXT("Build 成功: %d Rules 已排序"), Result.SortedRules.Num());
 
 		// 标记 Asset 为已修改，这样保存时会写入烘焙结果
 		Asset->MarkPackageDirty();

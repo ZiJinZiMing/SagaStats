@@ -1,0 +1,66 @@
+// DamageCondition.h — 条件原子（v4.8: 子类即域方法，无 MethodName）
+#pragma once
+
+#include "CoreMinimal.h"
+#include "StructUtils/InstancedStruct.h"
+#include "DamageCondition.generated.h"
+
+class UDamageContext;
+
+// ============================================================================
+// UDamageCondition — 条件原子基类
+// ============================================================================
+
+/**
+ * 选子类 = 选域方法。每个子类 IS 一个域检查。
+ * 框架自动从 DC 取出 ConsumedFact 传给 Evaluate。
+ */
+UCLASS(Abstract, DefaultToInstanced, EditInlineNew, Blueprintable, CollapseCategories)
+class SAGASTATS_API UDamageCondition : public UObject
+{
+	GENERATED_BODY()
+
+public:
+	/** 公共入口——自动从 DC 取 ConsumedFact 传给 Evaluate */
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DamageCondition")
+	bool EvaluateCondition(const UDamageContext* Context) const;
+
+	/**
+	 * 子类重写——BlueprintNativeEvent。
+	 * @param DC             共享上下文
+	 * @param OutEffect   框架自动取出的 Effect（按 ConsumedEffectType 从 DC 获取）
+	 */
+	UFUNCTION(BlueprintNativeEvent, Category = "DamageCondition")
+	bool Evaluate(const UDamageContext* Context, const FInstancedStruct& OutEffect) const;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& OutEffect) const { return false; }
+
+	// ---- EffectType 连接件 ----
+
+	/** 蓝图子类在类默认值中设置；C++ 子类 override GetConsumedEffectType()。实例上不可见。 */
+	UPROPERTY(EditDefaultsOnly, Category = "DamageCondition", meta = (DisplayName = "Consumed Effect Type", HideInDetailPanel))
+	UScriptStruct* ConsumedEffectType = nullptr;
+
+	virtual UScriptStruct* GetConsumedEffectType() const { return ConsumedEffectType; }
+
+	TArray<UScriptStruct*> GetConsumedEffectTypes() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DamageCondition")
+	virtual FString GetDisplayString() const;
+};
+
+// ============================================================================
+// UDamageCondition_ContextCheck — 事件上下文字段检查（不消费 DamageEffect）
+// ============================================================================
+
+UCLASS(BlueprintType, meta = (DisplayName = "Context Check"))
+class SAGASTATS_API UDamageCondition_ContextCheck : public UDamageCondition
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY(EditAnywhere, Category = "DamageCondition")
+	FName ContextKey;
+
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual FString GetDisplayString() const override;
+};

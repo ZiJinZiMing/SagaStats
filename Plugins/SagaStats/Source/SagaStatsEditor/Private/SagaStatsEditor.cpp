@@ -64,7 +64,7 @@ void FSagaStatsEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("SGClampedGameplayAttributeData"));
 
 		PropertyModule.UnregisterCustomClassLayout(TEXT("SGAttributeSet"));
-		PropertyModule.UnregisterCustomClassLayout(TEXT("PipelineAsset"));
+		PropertyModule.UnregisterCustomClassLayout(TEXT("DamagePipeline"));
 	}
 
 	// Unregister asset type actions
@@ -138,7 +138,7 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SGClampedGameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSGAttributeDataClampedDetails::MakeInstance));
 		
 		PropertyModule.RegisterCustomClassLayout(TEXT("SGAttributeSet"), FOnGetDetailCustomizationInstance::CreateStatic(&FSGAttributeSetDetails::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout(TEXT("PipelineAsset"), FOnGetDetailCustomizationInstance::CreateStatic(&FSGPipelineAssetDetails::MakeInstance));
+		PropertyModule.RegisterCustomClassLayout(TEXT("DamagePipeline"), FOnGetDetailCustomizationInstance::CreateStatic(&FSGDamagePipelineDetails::MakeInstance));
 
 		// Asset Types
 		{
