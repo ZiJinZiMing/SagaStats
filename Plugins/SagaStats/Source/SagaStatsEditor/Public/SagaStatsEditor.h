@@ -43,6 +43,8 @@ private:
 	
     /** Pin factory for gameplay abilities; Cached so it can be unregistered */
     TSharedPtr<FGraphPanelPinFactory> GameplayAbilitiesGraphPanelPinFactory;
+    /** Node factory for DamagePipeline graph */
+    TSharedPtr<struct FGraphPanelNodeFactory> DamagePipelineNodeFactory;
 	TSharedPtr<SSGAttributeListReferenceViewer> AttributeListReferenceViewerWidget;
 	TSharedPtr<SWindow> AttributeListReferenceViewerWindow;
 

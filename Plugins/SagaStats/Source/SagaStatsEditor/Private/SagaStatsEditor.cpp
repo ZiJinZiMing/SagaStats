@@ -14,6 +14,8 @@
 #include "AttributeReferenceViewer/SGAttributeListReferenceViewer.h"
 #include "Details/SGAttributeSetDetails.h"
 #include "Details/SGPipelineAssetDetails.h"
+#include "DamagePipelineAssetTypeActions.h"
+#include "Graph/SDamagePipelineGraphNode.h"
 #include "Details/SGAttributeDataClampedDetails.h"
 #include "Details/SGGameplayAttributeDataDetails.h"
 #include "Details/SGGameplayAttributeDetails.h"
@@ -45,6 +47,10 @@ void FSagaStatsEditorModule::StartupModule()
 	// That is for K2 nodes with FGameplayAttribute pins, like GetFloatAttributeBase from ASC
 	GameplayAbilitiesGraphPanelPinFactory = MakeShared<FSGGraphPanelPinFactory>();
 	FEdGraphUtilities::RegisterVisualPinFactory(GameplayAbilitiesGraphPanelPinFactory);
+
+	// DamagePipeline Graph Node Factory
+	DamagePipelineNodeFactory = MakeShared<FDamagePipelineNodeFactory>();
+	FEdGraphUtilities::RegisterVisualNodeFactory(DamagePipelineNodeFactory);
 }
 
 void FSagaStatsEditorModule::ShutdownModule()
@@ -64,7 +70,7 @@ void FSagaStatsEditorModule::ShutdownModule()
 		PropertyModule.UnregisterCustomPropertyTypeLayout(TEXT("SGClampedGameplayAttributeData"));
 
 		PropertyModule.UnregisterCustomClassLayout(TEXT("SGAttributeSet"));
-		PropertyModule.UnregisterCustomClassLayout(TEXT("DamagePipeline"));
+		// DamagePipeline Detail Customization 已移除
 	}
 
 	// Unregister asset type actions
@@ -86,6 +92,12 @@ void FSagaStatsEditorModule::ShutdownModule()
 	{
 		FEdGraphUtilities::UnregisterVisualPinFactory(GameplayAbilitiesGraphPanelPinFactory);
 		GameplayAbilitiesGraphPanelPinFactory.Reset();
+	}
+
+	if (DamagePipelineNodeFactory.IsValid())
+	{
+		FEdGraphUtilities::UnregisterVisualNodeFactory(DamagePipelineNodeFactory);
+		DamagePipelineNodeFactory.Reset();
 	}
 
 	if (GEditor)
@@ -138,7 +150,7 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		PropertyModule.RegisterCustomPropertyTypeLayout(TEXT("SGClampedGameplayAttributeData"), FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FSGAttributeDataClampedDetails::MakeInstance));
 		
 		PropertyModule.RegisterCustomClassLayout(TEXT("SGAttributeSet"), FOnGetDetailCustomizationInstance::CreateStatic(&FSGAttributeSetDetails::MakeInstance));
-		PropertyModule.RegisterCustomClassLayout(TEXT("DamagePipeline"), FOnGetDetailCustomizationInstance::CreateStatic(&FSGDamagePipelineDetails::MakeInstance));
+		// DamagePipeline 使用自定义 AssetEditor（FDamagePipelineAssetEditor），不再需要 Detail Customization
 
 		// Asset Types
 		{
@@ -147,6 +159,7 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 			constexpr EAssetTypeCategories::Type AssetCategory = EAssetTypeCategories::Gameplay;
 			SG_EDITOR_NS_LOG(Verbose, TEXT("FSGAssetTypeActions_AttributeSet"))
 			RegisterAssetTypeAction(AssetTools, MakeShared<FSGAssetTypeActions_AttributeSet>(AssetCategory));
+			RegisterAssetTypeAction(AssetTools, MakeShared<FDamagePipelineAssetTypeActions>());
 		}
 	}
 
