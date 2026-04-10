@@ -25,20 +25,20 @@ struct SAGASTATS_API FHurtEffect
 // Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "IsHurt"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsHurt"))
 class SAGASTATS_API UDamageCondition_IsHurt : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FHurtEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_Hurt : public UDamageOperationBase
 {
 	GENERATED_BODY()

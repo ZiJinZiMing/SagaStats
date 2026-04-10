@@ -1,4 +1,4 @@
-// DamageCondition.cpp — 条件原子实现（v4.8: 子类即域方法）
+// DamageCondition.cpp — 条件原子实现（子类即域方法）
 #include "DamageFramework/DamageCondition.h"
 #include "DamageFramework/DamageContext.h"
 
@@ -8,14 +8,14 @@
 
 bool UDamageCondition::EvaluateCondition(const UDamageContext* Context) const
 {
-	FInstancedStruct ConsumedFact;
+	FInstancedStruct ConsumedEffect;
 	UScriptStruct* EffectType = GetConsumedEffectType();
 	if (Context && EffectType)
 	{
-		ConsumedFact = Context->GetEffectByType(EffectType);
+		ConsumedEffect = Context->GetEffectByType(EffectType);
 	}
 
-	return Evaluate(Context, ConsumedFact);
+	return Evaluate(Context, ConsumedEffect);
 }
 
 TArray<UScriptStruct*> UDamageCondition::GetConsumedEffectTypes() const
@@ -28,19 +28,4 @@ TArray<UScriptStruct*> UDamageCondition::GetConsumedEffectTypes() const
 FString UDamageCondition::GetDisplayString() const
 {
 	return GetClass()->GetName();
-}
-
-// ============================================================================
-// UDamageCondition_ContextCheck
-// ============================================================================
-
-bool UDamageCondition_ContextCheck::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& /*ConsumedFact*/) const
-{
-	if (!Context || ContextKey.IsNone()) return false;
-	return Context->Contains(ContextKey) && Context->GetBool(ContextKey);
-}
-
-FString UDamageCondition_ContextCheck::GetDisplayString() const
-{
-	return FString::Printf(TEXT("Ctx:%s"), *ContextKey.ToString());
 }

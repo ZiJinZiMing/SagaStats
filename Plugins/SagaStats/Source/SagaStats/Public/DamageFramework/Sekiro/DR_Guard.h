@@ -28,29 +28,29 @@ struct SAGASTATS_API FGuardEffect
 // Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "GuardSuccess"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "GuardSuccess"))
 class SAGASTATS_API UDamageCondition_GuardSuccess : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FGuardEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "GuardIsJustGuard"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "GuardIsJustGuard"))
 class SAGASTATS_API UDamageCondition_GuardIsJustGuard : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FGuardEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_Guard : public UDamageOperationBase
 {
 	GENERATED_BODY()

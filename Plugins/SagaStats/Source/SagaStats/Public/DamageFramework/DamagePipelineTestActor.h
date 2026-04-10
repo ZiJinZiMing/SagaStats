@@ -11,7 +11,7 @@
  * BeginPlay 时构建 Sekiro MVP v4 Pipeline（13 个 DPU），
  * 运行多个测试场景，并在屏幕和日志中打印结果。
  */
-UCLASS(BlueprintType, Blueprintable)
+UCLASS(HideDropDown)
 class SAGASTATS_API ADamagePipelineTestActor : public AActor
 {
 	GENERATED_BODY()

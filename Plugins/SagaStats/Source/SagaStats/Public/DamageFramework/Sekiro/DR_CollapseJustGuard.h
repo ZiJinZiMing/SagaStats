@@ -22,20 +22,20 @@ struct SAGASTATS_API FCollapseJustGuardEffect
 // Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "CollapseJustGuard"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "CollapseJustGuard"))
 class SAGASTATS_API UDamageCondition_CollapseJustGuard : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FCollapseJustGuardEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override { return ConsumedFact.IsValid(); }
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override { return ConsumedEffect.IsValid(); }
 };
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_CollapseJustGuard : public UDamageOperationBase
 {
 	GENERATED_BODY()

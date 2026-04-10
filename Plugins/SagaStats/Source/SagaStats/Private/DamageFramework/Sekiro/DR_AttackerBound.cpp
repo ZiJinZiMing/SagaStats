@@ -5,9 +5,9 @@
 // Condition
 // ============================================================================
 
-bool UDamageCondition_IsBound::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const
+bool UDamageCondition_IsBound::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const
 {
-	const FAttackerBoundEffect* F = ConsumedFact.GetPtr<FAttackerBoundEffect>();
+	const FAttackerBoundEffect* F = ConsumedEffect.GetPtr<FAttackerBoundEffect>();
 	return F ? F->bIsBound : false;
 }
 

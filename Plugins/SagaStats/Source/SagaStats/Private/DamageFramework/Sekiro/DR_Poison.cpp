@@ -5,9 +5,9 @@
 // Condition
 // ============================================================================
 
-bool UDamageCondition_IsPoisoned::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const
+bool UDamageCondition_IsPoisoned::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const
 {
-	const FPoisonEffect* F = ConsumedFact.GetPtr<FPoisonEffect>();
+	const FPoisonEffect* F = ConsumedEffect.GetPtr<FPoisonEffect>();
 	return F ? F->bIsPoisoned : false;
 }
 

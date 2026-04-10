@@ -1,19 +1,20 @@
 // DR_Mixup.cpp — 猜拳判定机制实现
 #include "DamageFramework/Sekiro/DR_Mixup.h"
+#include "DamageFramework/Sekiro/DR_AttackContext.h"
 
 // ============================================================================
 // Condition
 // ============================================================================
 
-bool UDamageCondition_IsGuard::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const
+bool UDamageCondition_IsGuard::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const
 {
-	const FMixupEffect* F = ConsumedFact.GetPtr<FMixupEffect>();
+	const FMixupEffect* F = ConsumedEffect.GetPtr<FMixupEffect>();
 	return F ? F->bIsGuard : false;
 }
 
-bool UDamageCondition_IsJustGuard::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const
+bool UDamageCondition_IsJustGuard::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const
 {
-	const FMixupEffect* F = ConsumedFact.GetPtr<FMixupEffect>();
+	const FMixupEffect* F = ConsumedEffect.GetPtr<FMixupEffect>();
 	return F ? F->bIsJustGuard : false;
 }
 
@@ -23,10 +24,12 @@ bool UDamageCondition_IsJustGuard::Evaluate_Implementation(const UDamageContext*
 
 void UDamageOperation_Mixup::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)
 {
-	float GuardLevel = Context->GetFloat(FName("guard_level"));
-	float DmgLevel = Context->GetFloat(FName("DmgLevel"));
+	const FSekiroAttackContext* Atk = Context->GetEffect<FSekiroAttackContext>();
 	FMixupEffect Result;
-	Result.bIsGuard = GuardLevel > 0.f;
-	Result.bIsJustGuard = GuardLevel > DmgLevel;
+	if (Atk)
+	{
+		Result.bIsGuard = Atk->GuardLevel > 0.f;
+		Result.bIsJustGuard = Atk->GuardLevel > Atk->DmgLevel;
+	}
 	OutEffect = FInstancedStruct::Make<FMixupEffect>(Result);
 }

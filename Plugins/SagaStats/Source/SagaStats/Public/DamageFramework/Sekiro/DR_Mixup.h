@@ -28,29 +28,29 @@ struct SAGASTATS_API FMixupEffect
 // Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "IsGuard"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsGuard"))
 class SAGASTATS_API UDamageCondition_IsGuard : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FMixupEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
-UCLASS(BlueprintType, meta = (DisplayName = "IsJustGuard"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsJustGuard"))
 class SAGASTATS_API UDamageCondition_IsJustGuard : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FMixupEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_Mixup : public UDamageOperationBase
 {
 	GENERATED_BODY()

@@ -25,20 +25,20 @@ struct SAGASTATS_API FPoisonEffect
 // Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "IsPoisoned"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsPoisoned"))
 class SAGASTATS_API UDamageCondition_IsPoisoned : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FPoisonEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_Poison : public UDamageOperationBase
 {
 	GENERATED_BODY()

@@ -22,20 +22,20 @@ struct SAGASTATS_API FLightningOnGroundEffect
 // Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "LightningOnGround"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "LightningOnGround"))
 class SAGASTATS_API UDamageCondition_LightningOnGround : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FLightningOnGroundEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override { return ConsumedFact.IsValid(); }
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override { return ConsumedEffect.IsValid(); }
 };
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_LightningOnGround : public UDamageOperationBase
 {
 	GENERATED_BODY()

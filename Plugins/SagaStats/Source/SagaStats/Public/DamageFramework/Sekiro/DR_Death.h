@@ -25,20 +25,20 @@ struct SAGASTATS_API FDeathEffect
 // Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "IsDead"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsDead"))
 class SAGASTATS_API UDamageCondition_IsDead : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FDeathEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_Death : public UDamageOperationBase
 {
 	GENERATED_BODY()

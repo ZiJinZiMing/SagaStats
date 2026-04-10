@@ -5,9 +5,9 @@
 // Condition
 // ============================================================================
 
-bool UDamageCondition_IsHurt::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const
+bool UDamageCondition_IsHurt::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const
 {
-	const FHurtEffect* F = ConsumedFact.GetPtr<FHurtEffect>();
+	const FHurtEffect* F = ConsumedEffect.GetPtr<FHurtEffect>();
 	return F ? F->bIsHurt : false;
 }
 

@@ -13,7 +13,7 @@ class UDamageContext;
 
 /**
  * 选子类 = 选域方法。每个子类 IS 一个域检查。
- * 框架自动从 DC 取出 ConsumedFact 传给 Evaluate。
+ * 框架自动从 DC 取出 ConsumedEffect 传给 Evaluate。
  */
 UCLASS(Abstract, DefaultToInstanced, EditInlineNew, Blueprintable, CollapseCategories)
 class SAGASTATS_API UDamageCondition : public UObject
@@ -21,14 +21,14 @@ class SAGASTATS_API UDamageCondition : public UObject
 	GENERATED_BODY()
 
 public:
-	/** 公共入口——自动从 DC 取 ConsumedFact 传给 Evaluate */
+	/** 公共入口——自动从 DC 取 ConsumedEffect 传给 Evaluate */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DamageCondition")
 	bool EvaluateCondition(const UDamageContext* Context) const;
 
 	/**
 	 * 子类重写——BlueprintNativeEvent。
-	 * @param DC             共享上下文
-	 * @param OutEffect   框架自动取出的 Effect（按 ConsumedEffectType 从 DC 获取）
+	 * @param Context         共享上下文
+	 * @param ConsumedEffect  框架自动取出的 Effect（按 ConsumedEffectType 从 DC 获取）
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "DamageCondition")
 	bool Evaluate(const UDamageContext* Context, const FInstancedStruct& OutEffect) const;
@@ -48,19 +48,3 @@ public:
 	virtual FString GetDisplayString() const;
 };
 
-// ============================================================================
-// UDamageCondition_ContextCheck — 事件上下文字段检查（不消费 DamageEffect）
-// ============================================================================
-
-UCLASS(BlueprintType, meta = (DisplayName = "Context Check"))
-class SAGASTATS_API UDamageCondition_ContextCheck : public UDamageCondition
-{
-	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, Category = "DamageCondition")
-	FName ContextKey;
-
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
-	virtual FString GetDisplayString() const override;
-};

@@ -200,22 +200,21 @@ FPipelineSortResult UDamagePipeline::Build()
 	{
 		if (!Rule) continue;
 
-		// 校验 Logic 的 ProducesEffectType
+		// 校验 Operation 的 ProducesEffectType
 		if (!Rule->GetProducesEffectType())
 		{
-			UE_LOG(LogSagaStats, Error, TEXT("Pipeline Build 校验失败: DamageRule [%s] 的 Logic 未配置 ProducesEffectType"),
+			UE_LOG(LogSagaStats, Error, TEXT("Pipeline Build 校验失败: DamageRule [%s] 的 Operation 未配置 ProducesEffectType"),
 				*Rule->RuleName.ToString());
 			bValidationFailed = true;
 		}
 
-		// 校验 Condition 树中所有叶子的 ConsumedEffectType（ContextCheck 除外）
+		// 校验 Condition 树中所有叶子的 ConsumedEffectType
 		if (Rule->Condition)
 		{
 			TArray<const UDamageCondition*> Leaves;
 			CollectLeafConditions(Rule->Condition, Leaves);
 			for (const UDamageCondition* Cond : Leaves)
 			{
-				if (Cond->IsA<UDamageCondition_ContextCheck>()) continue;
 				if (!Cond->GetConsumedEffectType())
 				{
 					UE_LOG(LogSagaStats, Error,
@@ -307,20 +306,20 @@ TArray<FRuleExecutionEntry> UDamagePipeline::Execute(UDamageContext* Context)
 			}
 		}
 
-		// 执行逻辑：框架创建 OutEffect → Logic 填字段 → 写入 DC
+		// 执行逻辑：框架创建 OutEffect → Operation 填字段 → 写入 DC
 		if (Rule->OperationClass)
 		{
-			UDamageOperationBase* Logic = GetOrCreateOperation(Rule->OperationClass);
+			UDamageOperationBase* Op = GetOrCreateOperation(Rule->OperationClass);
 			UScriptStruct* EffectType = Rule->GetProducesEffectType();
-			if (Logic && EffectType)
+			if (Op && EffectType)
 			{
 				FInstancedStruct OutEffect(EffectType);
-				Logic->Execute(Context, OutEffect);
+				Op->Execute(Context, OutEffect);
 
 				// 校验 OutEffect 类型与声明的 ProducesEffectType 一致
 				if (OutEffect.IsValid() && OutEffect.GetScriptStruct() == EffectType)
 				{
-					Context->SetEffectByType(EffectType, OutEffect);
+					Context->SetEffectByType(OutEffect);
 				}
 				else
 				{
@@ -358,9 +357,9 @@ UDamageOperationBase* UDamagePipeline::GetOrCreateOperation(TSubclassOf<UDamageO
 		return Found->Get();
 	}
 
-	UDamageOperationBase* NewLogic = NewObject<UDamageOperationBase>(this, ClassPtr);
-	OperationInstances.Add(ClassPtr, NewLogic);
-	return NewLogic;
+	UDamageOperationBase* NewOp = NewObject<UDamageOperationBase>(this, ClassPtr);
+	OperationInstances.Add(ClassPtr, NewOp);
+	return NewOp;
 }
 
 // ============================================================================
@@ -402,24 +401,7 @@ void UDamagePipeline::ExportMermaidDAG(
 		}
 	}
 
-	// DC 初始字段（事件上下文）
-	TArray<TPair<FName, FString>> InitialFields;
-	if (Context)
-	{
-		for (const auto& Pair : Context->GetAllContextFacts())
-		{
-			FString ValueStr;
-			bool bVal = Context->GetBool(Pair.Key);
-			float fVal = Context->GetFloat(Pair.Key);
-			if (fVal != 0.f)
-				ValueStr = FString::SanitizeFloat(fVal);
-			else
-				ValueStr = bVal ? TEXT("true") : TEXT("false");
-			InitialFields.Add({Pair.Key, ValueStr});
-		}
-	}
-
-	// v4.8: EffectType→DPU 映射用于依赖连线
+	// EffectType→DamageRule 映射用于依赖连线
 	TMap<UScriptStruct*, const UDamageRule*> EffectTypeToProducer;
 	for (const auto& Rule : SortedRules)
 	{
@@ -440,16 +422,25 @@ void UDamagePipeline::ExportMermaidDAG(
 	M += TEXT("    classDef initCtx fill:#fff3cd,stroke:#ffc107,color:#000\n");
 	M += TEXT("    classDef finalCtx fill:#cce5ff,stroke:#004085,color:#000\n\n");
 
-	// DC Init 节点
-	if (InitialFields.Num() > 0)
+	// DC Init 节点（显示非 DamageRule 产出的 Effect = 攻击上下文）
+	bool bHasInitialEffects = false;
+	if (Context)
 	{
-		FString FieldLines;
-		for (const auto& Pair : InitialFields)
+		FString InitLines;
+		for (const auto& Pair : Context->GetAllDamageEffects())
 		{
-			if (!FieldLines.IsEmpty()) FieldLines += TEXT("<br/>");
-			FieldLines += FString::Printf(TEXT("%s = %s"), *Pair.Key.ToString(), *Pair.Value);
+			if (!EffectTypeToProducer.Contains(Pair.Key))
+			{
+				if (!InitLines.IsEmpty()) InitLines += TEXT("<br/>");
+				FString TypeName = Pair.Key ? Pair.Key->GetName() : TEXT("null");
+				InitLines += FString::Printf(TEXT("[%s]"), *TypeName);
+				bHasInitialEffects = true;
+			}
 		}
-		M += FString::Printf(TEXT("    DC_Init[\"<b>DC Initial</b><br/>%s\"]:::initCtx\n\n"), *FieldLines);
+		if (bHasInitialEffects)
+		{
+			M += FString::Printf(TEXT("    DC_Init[\"<b>DC Initial</b><br/>%s\"]:::initCtx\n\n"), *InitLines);
+		}
 	}
 
 	// DamageRule 节点
@@ -506,7 +497,7 @@ void UDamagePipeline::ExportMermaidDAG(
 	TArray<FColoredLink> ColoredLinks;
 
 	// 隐藏执行顺序链
-	if (InitialFields.Num() > 0 && SortedRules.Num() > 0)
+	if (bHasInitialEffects && SortedRules.Num() > 0)
 	{
 		M += FString::Printf(TEXT("    DC_Init ~~~ %s\n"), *SortedRules[0]->RuleName.ToString());
 		LinkIndex++;
@@ -548,7 +539,7 @@ void UDamagePipeline::ExportMermaidDAG(
 					ColoredLinks.Add({LinkIndex, FieldColor});
 				}
 			}
-			else if (InitialFields.Num() > 0)
+			else if (bHasInitialEffects)
 			{
 				M += FString::Printf(TEXT("    DC_Init -->|%s| %s\n"),
 					*TypeName, *Rule->RuleName.ToString());
@@ -570,7 +561,7 @@ void UDamagePipeline::ExportMermaidDAG(
 
 	M += TEXT("\n");
 
-	// DC Final 节点（DamageRule 产出的 Fact）
+	// DC Final 节点（所有 DamageRule 产出的 Effect + 攻击上下文）
 	if (Context)
 	{
 		FString FinalLines;
@@ -578,7 +569,15 @@ void UDamagePipeline::ExportMermaidDAG(
 		{
 			if (!FinalLines.IsEmpty()) FinalLines += TEXT("<br/>");
 			FString TypeName = Pair.Key ? Pair.Key->GetName() : TEXT("null");
-			FinalLines += FString::Printf(TEXT("[%s]"), *TypeName);
+			// 查找产出此 Effect 的 DamageRule（攻击上下文无 producer）
+			if (const UDamageRule** Producer = EffectTypeToProducer.Find(Pair.Key))
+			{
+				FinalLines += FString::Printf(TEXT("%s: %s"), *(*Producer)->RuleName.ToString(), *TypeName);
+			}
+			else
+			{
+				FinalLines += FString::Printf(TEXT("[ctx] %s"), *TypeName);
+			}
 		}
 		if (!FinalLines.IsEmpty())
 		{

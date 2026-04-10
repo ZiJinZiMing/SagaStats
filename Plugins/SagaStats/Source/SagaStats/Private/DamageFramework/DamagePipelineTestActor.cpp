@@ -4,7 +4,8 @@
 #include "DamageFramework/DamageCondition.h"
 #include "DamageFramework/DamagePredicate.h"
 
-// 引入所有只狼 DamageRule（每个文件包含 Effect + DamageCondition + Logic）
+// 引入所有只狼 DamageRule（每个文件包含 Effect + Condition + Operation）
+#include "DamageFramework/Sekiro/DR_AttackContext.h"
 #include "DamageFramework/Sekiro/DR_Mixup.h"
 #include "DamageFramework/Sekiro/DR_Guard.h"
 #include "DamageFramework/Sekiro/DR_Death.h"
@@ -37,17 +38,6 @@ template<typename TCondClass>
 static UDamagePredicate_Single* MakeDamageCondition(UObject* Outer, bool bReverse = false)
 {
 	TCondClass* Cond = NewObject<TCondClass>(Outer);
-
-	UDamagePredicate_Single* Single = NewObject<UDamagePredicate_Single>(Outer);
-	Single->Condition = Cond;
-	Single->bReverse = bReverse;
-	return Single;
-}
-
-static UDamagePredicate_Single* MakeCtxCheck(UObject* Outer, FName ContextKey, bool bReverse = false)
-{
-	UDamageCondition_ContextCheck* Cond = NewObject<UDamageCondition_ContextCheck>(Outer);
-	Cond->ContextKey = ContextKey;
 
 	UDamagePredicate_Single* Single = NewObject<UDamagePredicate_Single>(Outer);
 	Single->Condition = Cond;
@@ -154,13 +144,13 @@ void ADamagePipelineTestActor::BuildSekiroPipeline()
 	Poison->Condition = MakeDamageCondition<UDamageCondition_GuardIsJustGuard>(this, true);
 
 	LightningOnGround->Condition = MakeAnd(this, {
-		MakeCtxCheck(this, FName("Lightning")),
-		MakeCtxCheck(this, FName("IsInAir"), true)
+		MakeDamageCondition<UDamageCondition_IsLightning>(this),
+		MakeDamageCondition<UDamageCondition_IsInAir>(this, true)
 	});
 
 	LightningInAir->Condition = MakeAnd(this, {
-		MakeCtxCheck(this, FName("Lightning")),
-		MakeCtxCheck(this, FName("IsInAir"))
+		MakeDamageCondition<UDamageCondition_IsLightning>(this),
+		MakeDamageCondition<UDamageCondition_IsInAir>(this)
 	});
 
 	// ================================================================
@@ -223,8 +213,10 @@ void ADamagePipelineTestActor::RunScenario_NormalHit()
 {
 	Pipeline->ScenarioLabel = TEXT("1.NormalSlashHit");
 	UDamageContext* Context = NewObject<UDamageContext>(this);
-	Context->SetFloat(FName("DmgLevel"), 3.0f);
-	Context->SetFloat(FName("CurrentHP"), 100.0f);
+	FSekiroAttackContext Atk;
+	Atk.DmgLevel = 3.0f;
+	Atk.CurrentHP = 100.0f;
+	Context->SetEffect<FSekiroAttackContext>(Atk);
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("1. Normal Slash Hit"), Context, Log);
@@ -234,9 +226,11 @@ void ADamagePipelineTestActor::RunScenario_Guard()
 {
 	Pipeline->ScenarioLabel = TEXT("2.Guard");
 	UDamageContext* Context = NewObject<UDamageContext>(this);
-	Context->SetFloat(FName("DmgLevel"), 3.0f);
-	Context->SetFloat(FName("guard_level"), 3.0f);
-	Context->SetFloat(FName("CurrentHP"), 100.0f);
+	FSekiroAttackContext Atk;
+	Atk.DmgLevel = 3.0f;
+	Atk.GuardLevel = 3.0f;
+	Atk.CurrentHP = 100.0f;
+	Context->SetEffect<FSekiroAttackContext>(Atk);
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("2. Guard (non-JustGuard)"), Context, Log);
@@ -246,10 +240,12 @@ void ADamagePipelineTestActor::RunScenario_JustGuard()
 {
 	Pipeline->ScenarioLabel = TEXT("3.JustGuard");
 	UDamageContext* Context = NewObject<UDamageContext>(this);
-	Context->SetFloat(FName("DmgLevel"), 3.0f);
-	Context->SetFloat(FName("guard_level"), 5.0f);
-	Context->SetFloat(FName("CurrentHP"), 100.0f);
-	Context->SetBool(FName("IsPlayer"), true);
+	FSekiroAttackContext Atk;
+	Atk.DmgLevel = 3.0f;
+	Atk.GuardLevel = 5.0f;
+	Atk.CurrentHP = 100.0f;
+	Atk.bIsPlayer = true;
+	Context->SetEffect<FSekiroAttackContext>(Atk);
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("3. JustGuard (Deflect)"), Context, Log);
@@ -259,10 +255,12 @@ void ADamagePipelineTestActor::RunScenario_LightningGround()
 {
 	Pipeline->ScenarioLabel = TEXT("4.LightningGround");
 	UDamageContext* Context = NewObject<UDamageContext>(this);
-	Context->SetBool(FName("Lightning"), true);
-	Context->SetBool(FName("IsInAir"), false);
-	Context->SetFloat(FName("DmgLevel"), 3.0f);
-	Context->SetFloat(FName("CurrentHP"), 100.0f);
+	FSekiroAttackContext Atk;
+	Atk.bLightning = true;
+	Atk.bIsInAir = false;
+	Atk.DmgLevel = 3.0f;
+	Atk.CurrentHP = 100.0f;
+	Context->SetEffect<FSekiroAttackContext>(Atk);
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("4. Lightning on Ground"), Context, Log);
@@ -272,10 +270,12 @@ void ADamagePipelineTestActor::RunScenario_LightningInAir()
 {
 	Pipeline->ScenarioLabel = TEXT("5.LightningInAir");
 	UDamageContext* Context = NewObject<UDamageContext>(this);
-	Context->SetBool(FName("Lightning"), true);
-	Context->SetBool(FName("IsInAir"), true);
-	Context->SetFloat(FName("DmgLevel"), 3.0f);
-	Context->SetFloat(FName("CurrentHP"), 100.0f);
+	FSekiroAttackContext Atk;
+	Atk.bLightning = true;
+	Atk.bIsInAir = true;
+	Atk.DmgLevel = 3.0f;
+	Atk.CurrentHP = 100.0f;
+	Context->SetEffect<FSekiroAttackContext>(Atk);
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("5. Lightning in Air"), Context, Log);

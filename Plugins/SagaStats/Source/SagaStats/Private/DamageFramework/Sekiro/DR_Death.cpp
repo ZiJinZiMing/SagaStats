@@ -1,13 +1,14 @@
 // DR_Death.cpp — 死亡判定机制实现
 #include "DamageFramework/Sekiro/DR_Death.h"
+#include "DamageFramework/Sekiro/DR_AttackContext.h"
 
 // ============================================================================
 // Condition
 // ============================================================================
 
-bool UDamageCondition_IsDead::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const
+bool UDamageCondition_IsDead::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const
 {
-	const FDeathEffect* F = ConsumedFact.GetPtr<FDeathEffect>();
+	const FDeathEffect* F = ConsumedEffect.GetPtr<FDeathEffect>();
 	return F ? F->bIsDead : false;
 }
 
@@ -17,10 +18,11 @@ bool UDamageCondition_IsDead::Evaluate_Implementation(const UDamageContext* Cont
 
 void UDamageOperation_Death::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)
 {
-	float CurrentHP = Context->GetFloat(FName("CurrentHP"));
-	float DmgLevel = Context->GetFloat(FName("DmgLevel"));
-
+	const FSekiroAttackContext* Atk = Context->GetEffect<FSekiroAttackContext>();
 	FDeathEffect Result;
-	Result.bIsDead = (CurrentHP - DmgLevel) <= 0.f;
+	if (Atk)
+	{
+		Result.bIsDead = (Atk->CurrentHP - Atk->DmgLevel) <= 0.f;
+	}
 	OutEffect = FInstancedStruct::Make<FDeathEffect>(Result);
 }

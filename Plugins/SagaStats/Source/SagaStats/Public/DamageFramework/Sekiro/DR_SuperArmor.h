@@ -22,20 +22,20 @@ struct SAGASTATS_API FSuperArmorEffect
 // Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "SuperArmor"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "SuperArmor"))
 class SAGASTATS_API UDamageCondition_SuperArmor : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FSuperArmorEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override { return ConsumedFact.IsValid(); }
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override { return ConsumedEffect.IsValid(); }
 };
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_SuperArmor : public UDamageOperationBase
 {
 	GENERATED_BODY()

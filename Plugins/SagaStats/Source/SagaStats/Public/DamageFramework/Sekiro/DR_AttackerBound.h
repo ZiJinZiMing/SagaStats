@@ -25,20 +25,20 @@ struct SAGASTATS_API FAttackerBoundEffect
 // Condition
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "IsBound"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsBound"))
 class SAGASTATS_API UDamageCondition_IsBound : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FAttackerBoundEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_AttackerBound : public UDamageOperationBase
 {
 	GENERATED_BODY()

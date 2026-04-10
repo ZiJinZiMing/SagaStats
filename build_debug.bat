@@ -1,0 +1,1 @@
+D:\UnrealEngine\UnrealEngine\Engine\Build\BatchFiles\Build.bat  -Target="MySagaStatsEditor Win64 Debug -Project=\"D:\MyWorkSpace\MySagaStats\MySagaStats.uproject\"" -Target="ShaderCompileWorker Win64 Development -Project=\"D:\MyWorkSpace\MySagaStats\MySagaStats.uproject\" -Quiet" -WaitMutex  -FromMSBuild

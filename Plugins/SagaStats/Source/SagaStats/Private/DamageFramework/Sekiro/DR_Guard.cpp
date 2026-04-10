@@ -6,15 +6,15 @@
 // Condition
 // ============================================================================
 
-bool UDamageCondition_GuardSuccess::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const
+bool UDamageCondition_GuardSuccess::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const
 {
-	const FGuardEffect* F = ConsumedFact.GetPtr<FGuardEffect>();
+	const FGuardEffect* F = ConsumedEffect.GetPtr<FGuardEffect>();
 	return F ? F->bGuardSuccess : false;
 }
 
-bool UDamageCondition_GuardIsJustGuard::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const
+bool UDamageCondition_GuardIsJustGuard::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const
 {
-	const FGuardEffect* F = ConsumedFact.GetPtr<FGuardEffect>();
+	const FGuardEffect* F = ConsumedEffect.GetPtr<FGuardEffect>();
 	return F ? F->bIsJustGuard : false;
 }
 

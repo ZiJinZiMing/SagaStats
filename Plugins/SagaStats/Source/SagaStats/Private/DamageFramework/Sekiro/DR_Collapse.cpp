@@ -5,15 +5,15 @@
 // Condition
 // ============================================================================
 
-bool UDamageCondition_CollapseIsCollapse::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const
+bool UDamageCondition_CollapseIsCollapse::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const
 {
-	const FCollapseEffect* F = ConsumedFact.GetPtr<FCollapseEffect>();
+	const FCollapseEffect* F = ConsumedEffect.GetPtr<FCollapseEffect>();
 	return F ? F->bIsCollapse : false;
 }
 
-bool UDamageCondition_CollapseGuardIsCollapse::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const
+bool UDamageCondition_CollapseGuardIsCollapse::Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const
 {
-	const FCollapseGuardEffect* F = ConsumedFact.GetPtr<FCollapseGuardEffect>();
+	const FCollapseGuardEffect* F = ConsumedEffect.GetPtr<FCollapseGuardEffect>();
 	return F ? F->bIsCollapse : false;
 }
 

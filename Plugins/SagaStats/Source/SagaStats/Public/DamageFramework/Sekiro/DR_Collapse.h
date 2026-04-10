@@ -34,33 +34,33 @@ struct SAGASTATS_API FCollapseGuardEffect
 // Condition — Collapse
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "CollapseIsCollapse"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "CollapseIsCollapse"))
 class SAGASTATS_API UDamageCondition_CollapseIsCollapse : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FCollapseEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
 // ============================================================================
 // Condition — CollapseGuard
 // ============================================================================
 
-UCLASS(BlueprintType, meta = (DisplayName = "CollapseGuardIsCollapse"))
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "CollapseGuardIsCollapse"))
 class SAGASTATS_API UDamageCondition_CollapseGuardIsCollapse : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
 	virtual UScriptStruct* GetConsumedEffectType() const override { return FCollapseGuardEffect::StaticStruct(); }
-	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedFact) const override;
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
 // ============================================================================
 // Logic
 // ============================================================================
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_Collapse : public UDamageOperationBase
 {
 	GENERATED_BODY()
@@ -69,7 +69,7 @@ public:
 	virtual UScriptStruct* GetProducesEffectType() const override { return FCollapseEffect::StaticStruct(); }
 };
 
-UCLASS()
+UCLASS(HideDropDown)
 class SAGASTATS_API UDamageOperation_CollapseGuard : public UDamageOperationBase
 {
 	GENERATED_BODY()
