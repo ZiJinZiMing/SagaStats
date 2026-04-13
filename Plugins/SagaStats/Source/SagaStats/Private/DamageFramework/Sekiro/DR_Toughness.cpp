@@ -2,7 +2,7 @@
 #include "DamageFramework/Sekiro/DR_Toughness.h"
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_Toughness::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

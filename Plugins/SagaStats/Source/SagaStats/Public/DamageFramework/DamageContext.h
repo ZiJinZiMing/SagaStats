@@ -55,7 +55,7 @@ public:
 	FInstancedStruct GetEffectByType(UScriptStruct* EffectType) const;
 	bool HasEffectByType(UScriptStruct* EffectType) const;
 
-	const TMap<UScriptStruct*, FInstancedStruct>& GetAllDamageEffects() const { return DamageEffects; }
+	const TMap<TObjectPtr<UScriptStruct>, FInstancedStruct>& GetAllDamageEffects() const { return DamageEffects; }
 
 	// =====================================================================
 	// 生命周期 / 调试
@@ -68,6 +68,7 @@ public:
 	FString DumpToString() const;
 
 private:
-	/** UScriptStruct* 来自编译时 USTRUCT，生命周期永久，不需要 GC 追踪 */
-	TMap<UScriptStruct*, FInstancedStruct> DamageEffects;
+	/** DamageEffect 存储（UScriptStruct* key —— 类型即 key） */
+	UPROPERTY()
+	TMap<TObjectPtr<UScriptStruct>, FInstancedStruct> DamageEffects;
 };

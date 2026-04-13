@@ -2,7 +2,7 @@
 #include "DamageFramework/Sekiro/DR_CollapseJustGuard.h"
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_CollapseJustGuard::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

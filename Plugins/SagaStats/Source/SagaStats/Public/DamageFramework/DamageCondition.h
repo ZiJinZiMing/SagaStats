@@ -28,7 +28,7 @@ public:
 	/**
 	 * 子类重写——BlueprintNativeEvent。
 	 * @param Context         共享上下文
-	 * @param ConsumedEffect  框架自动取出的 Effect（按 ConsumedEffectType 从 DC 获取）
+	 * @param OutEffect  框架自动取出的 Effect（按 ConsumedEffectType 从 DC 获取）
 	 */
 	UFUNCTION(BlueprintNativeEvent, Category = "DamageCondition")
 	bool Evaluate(const UDamageContext* Context, const FInstancedStruct& OutEffect) const;

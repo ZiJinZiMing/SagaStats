@@ -13,7 +13,6 @@
 #include "AssetTypes/SGAssetTypeActions_AttributeSet.h"
 #include "AttributeReferenceViewer/SGAttributeListReferenceViewer.h"
 #include "Details/SGAttributeSetDetails.h"
-#include "Details/SGPipelineAssetDetails.h"
 #include "DamagePipelineAssetTypeActions.h"
 #include "Graph/SDamagePipelineGraphNode.h"
 #include "Details/SGAttributeDataClampedDetails.h"

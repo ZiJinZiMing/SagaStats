@@ -19,7 +19,7 @@ bool UDamageCondition_GuardIsJustGuard::Evaluate_Implementation(const UDamageCon
 }
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_Guard::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

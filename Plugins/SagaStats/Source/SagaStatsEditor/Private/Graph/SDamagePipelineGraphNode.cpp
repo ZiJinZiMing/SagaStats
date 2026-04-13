@@ -111,7 +111,7 @@ FText SDamagePipelineGraphNode::GetNodeTitle() const
 		return FText::FromString(FString::Printf(
 			TEXT("#%d %s"),
 			PipelineGraphNode->SortIndex,
-			*PipelineGraphNode->Rule->RuleName.ToString()));
+			*PipelineGraphNode->Rule->GetName()));
 	}
 	return LOCTEXT("InvalidNode", "(Invalid)");
 }

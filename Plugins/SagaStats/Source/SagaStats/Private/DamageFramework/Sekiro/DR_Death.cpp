@@ -13,7 +13,7 @@ bool UDamageCondition_IsDead::Evaluate_Implementation(const UDamageContext* Cont
 }
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_Death::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

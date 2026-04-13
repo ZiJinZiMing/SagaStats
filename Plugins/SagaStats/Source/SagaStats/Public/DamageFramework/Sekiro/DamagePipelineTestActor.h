@@ -1,4 +1,4 @@
-// DamagePipelineTestActor.h — DamageRule Pipeline 可视化运行时测试 Actor
+// Sekiro/DamagePipelineTestActor.h — 只狼 DamagePipeline 可视化运行时测试 Actor
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,7 +8,7 @@
 
 /**
  * 将此 Actor 放置在测试关卡中。
- * BeginPlay 时构建 Sekiro MVP v4 Pipeline（13 个 DPU），
+ * BeginPlay 时构建 Sekiro MVP Pipeline（13 个 DamageRule），
  * 运行多个测试场景，并在屏幕和日志中打印结果。
  */
 UCLASS(HideDropDown)

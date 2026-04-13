@@ -2,7 +2,7 @@
 #include "DamageFramework/Sekiro/DR_SuperArmor.h"
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_SuperArmor::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

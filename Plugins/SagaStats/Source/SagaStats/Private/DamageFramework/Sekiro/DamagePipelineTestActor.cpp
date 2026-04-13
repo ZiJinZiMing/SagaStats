@@ -1,5 +1,5 @@
-// DamagePipelineTestActor.cpp — v4.7: Predicate/Condition 双层 + Operation Set Context
-#include "DamageFramework/DamagePipelineTestActor.h"
+// Sekiro/DamagePipelineTestActor.cpp — 只狼测试 Actor 实现
+#include "DamageFramework/Sekiro/DamagePipelineTestActor.h"
 #include "DamageFramework/DamageContext.h"
 #include "DamageFramework/DamageCondition.h"
 #include "DamageFramework/DamagePredicate.h"
@@ -47,8 +47,8 @@ static UDamagePredicate_Single* MakeDamageCondition(UObject* Outer, bool bRevers
 
 static UDamageRule* MakeDamageRule(UObject* Outer, FName Name, TSubclassOf<UDamageOperationBase> OpClass)
 {
-	UDamageRule* Def = NewObject<UDamageRule>(Outer);
-	Def->RuleName = Name;
+	// 以 Name 作为 UObject 名字，让 Rule->GetFName() 返回它
+	UDamageRule* Def = NewObject<UDamageRule>(Outer, Name);
 	Def->OperationClass = OpClass;
 	return Def;
 }
@@ -75,8 +75,7 @@ void ADamagePipelineTestActor::BeginPlay()
 
 void ADamagePipelineTestActor::BuildSekiroPipeline()
 {
-	Pipeline = NewObject<UDamagePipeline>(this);
-	Pipeline->PipelineName = FName("SekiroMVPv4.7");
+	Pipeline = NewObject<UDamagePipeline>(this, FName("SekiroMVPPipeline"));
 	Pipeline->bAutoExportMermaid = true;
 
 	// ================================================================
@@ -172,7 +171,7 @@ void ADamagePipelineTestActor::BuildSekiroPipeline()
 	for (int32 i = 0; i < SortResult.SortedRules.Num(); i++)
 	{
 		if (i > 0) SortOrder += TEXT(" -> ");
-		SortOrder += SortResult.SortedRules[i]->RuleName.ToString();
+		SortOrder += SortResult.SortedRules[i]->GetName();
 	}
 	PrintToScreen(FString::Printf(TEXT("Topo Sort: %s"), *SortOrder), FColor::Yellow);
 }

@@ -19,7 +19,7 @@ bool UDamageCondition_IsJustGuard::Evaluate_Implementation(const UDamageContext*
 }
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_Mixup::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

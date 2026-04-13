@@ -2,7 +2,7 @@
 #include "DamageFramework/Sekiro/DR_LightningInAir.h"
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_LightningInAir::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

@@ -2,7 +2,7 @@
 #include "DamageFramework/Sekiro/DR_LightningOnGround.h"
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_LightningOnGround::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

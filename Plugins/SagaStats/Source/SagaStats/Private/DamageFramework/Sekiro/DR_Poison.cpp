@@ -12,7 +12,7 @@ bool UDamageCondition_IsPoisoned::Evaluate_Implementation(const UDamageContext* 
 }
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_Poison::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

@@ -1,4 +1,4 @@
-// DamageRuleDefinition.h — UDamageRule: DamageRule 定义（DataAsset 形式）
+// DamageRule.h — UDamageRule: DamageRule 定义（DataAsset 形式）
 #pragma once
 
 #include "CoreMinimal.h"
@@ -10,8 +10,8 @@
 /**
  * UDamageRule — DamageRule 的静态定义。
  *
- * v4.7: ProducesEffectType 从 OperationClass CDO 获取，不再在 Definition 上声明。
- * Condition 类型改为 UDamagePredicate（谓词容器）。
+ * 身份标识直接使用资产名（GetFName()），不再冗余存一份 RuleName 字段。
+ * ProducesEffectType 从 OperationClass CDO 获取。
  */
 UCLASS(BlueprintType)
 class SAGASTATS_API UDamageRule : public UDataAsset
@@ -19,15 +19,7 @@ class SAGASTATS_API UDamageRule : public UDataAsset
 	GENERATED_BODY()
 
 public:
-	/** DamageRule 身份标识——同时用于 DC 中 Effect 索引和依赖引用 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName RuleName;
-
-	/** 人类可读的描述 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FString Description;
-
-	/** Condition 谓词容器（v4.7: Predicate/Condition 双层，可为空 = 始终执行） */
+	/** Condition 谓词容器（Predicate/Condition 双层，可为空 = 始终执行） */
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite)
 	TObjectPtr<UDamagePredicate> Condition;
 

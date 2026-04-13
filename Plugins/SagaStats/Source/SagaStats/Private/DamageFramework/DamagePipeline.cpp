@@ -145,11 +145,11 @@ FPipelineSortResult UDamagePipeline::StableTopologicalSort(const TArray<UDamageR
 					if (!Sorted.Contains(Dep))
 					{
 						if (!DepNames.IsEmpty()) DepNames += TEXT(", ");
-						DepNames += Dep->RuleName.ToString();
+						DepNames += Dep->GetName();
 					}
 				}
 				Result.CycleInfo.Add(FString::Printf(TEXT("%s depends on [%s]"),
-					*Rule->RuleName.ToString(), *DepNames));
+					*Rule->GetName(), *DepNames));
 			}
 		}
 	}
@@ -185,12 +185,25 @@ static void CollectLeafConditions(const UDamagePredicate* Pred, TArray<const UDa
 	}
 }
 
+
 FPipelineSortResult UDamagePipeline::Build()
 {
+	/*
+Build()
+├── 阶段 1：输入净化 + EffectType 合法性校验
+├── 阶段 2：稳定拓扑排序（StableTopologicalSort）
+│     ├── Step 1: 分配原始索引（稳定性的基础）
+│     ├── Step 2: 构建生产者映射（ProducerMap）
+│     ├── Step 3: 构建依赖图（Dependencies + Dependents + InDegree）
+│     ├── Step 4: Kahn BFS 稳定排序
+│     └── Step 5: 环检测
+└── 阶段 3：写回 SortedRules、设置 bIsBaked、输出日志
+	 */
+	
 	TArray<UDamageRule*> RawPtrs;
-	for (const auto& Def : DamageRules)
+	for (const auto& Rule : DamageRules)
 	{
-		if (Def) RawPtrs.Add(Def.Get());
+		if (Rule) RawPtrs.Add(Rule.Get());
 	}
 
 	// ---- EffectType 校验 ----
@@ -204,7 +217,7 @@ FPipelineSortResult UDamagePipeline::Build()
 		if (!Rule->GetProducesEffectType())
 		{
 			UE_LOG(LogSagaStats, Error, TEXT("Pipeline Build 校验失败: DamageRule [%s] 的 Operation 未配置 ProducesEffectType"),
-				*Rule->RuleName.ToString());
+				*Rule->GetName());
 			bValidationFailed = true;
 		}
 
@@ -219,7 +232,7 @@ FPipelineSortResult UDamagePipeline::Build()
 				{
 					UE_LOG(LogSagaStats, Error,
 						TEXT("Pipeline Build 校验失败: DamageRule [%s] 的 Condition [%s] 未配置 ConsumedEffectType"),
-						*Rule->RuleName.ToString(), *Cond->GetClass()->GetName());
+						*Rule->GetName(), *Cond->GetClass()->GetName());
 					bValidationFailed = true;
 				}
 			}
@@ -260,7 +273,7 @@ FPipelineSortResult UDamagePipeline::Build()
 		for (const auto& Rule : SortedRules)
 		{
 			if (!SortOrder.IsEmpty()) SortOrder += TEXT(" -> ");
-			SortOrder += Rule->RuleName.ToString();
+			SortOrder += Rule->GetName();
 		}
 		UE_LOG(LogSagaStats, Log, TEXT("Pipeline Build 完成: %s"), *SortOrder);
 	}
@@ -292,7 +305,7 @@ TArray<FRuleExecutionEntry> UDamagePipeline::Execute(UDamageContext* Context)
 		if (!Rule) continue;
 
 		FRuleExecutionEntry Entry;
-		Entry.RuleName = Rule->RuleName;
+		Entry.RuleName = Rule->GetFName();
 
 		// 评估 Predicate（调用 EvaluatePredicate 以应用 bReverse）
 		if (Rule->Condition)
@@ -301,7 +314,7 @@ TArray<FRuleExecutionEntry> UDamagePipeline::Execute(UDamageContext* Context)
 			{
 				Entry.bExecuted = false;
 				ExecutionLog.Add(Entry);
-				UE_LOG(LogSagaStats, Log, TEXT("  [SKIP] %s"), *Rule->RuleName.ToString());
+				UE_LOG(LogSagaStats, Log, TEXT("  [SKIP] %s"), *Rule->GetName());
 				continue;
 			}
 		}
@@ -325,7 +338,7 @@ TArray<FRuleExecutionEntry> UDamagePipeline::Execute(UDamageContext* Context)
 				{
 					UE_LOG(LogSagaStats, Error,
 						TEXT("DamageRule %s: OutEffect 类型不匹配！期望 %s，实际 %s"),
-						*Rule->RuleName.ToString(),
+						*Rule->GetName(),
 						*EffectType->GetName(),
 						OutEffect.IsValid() ? *OutEffect.GetScriptStruct()->GetName() : TEXT("invalid"));
 				}
@@ -334,7 +347,7 @@ TArray<FRuleExecutionEntry> UDamagePipeline::Execute(UDamageContext* Context)
 
 		Entry.bExecuted = true;
 		ExecutionLog.Add(Entry);
-		UE_LOG(LogSagaStats, Log, TEXT("  [EXEC] %s"), *Rule->RuleName.ToString());
+		UE_LOG(LogSagaStats, Log, TEXT("  [EXEC] %s"), *Rule->GetName());
 	}
 
 	UE_LOG(LogSagaStats, Log, TEXT("%s"), *Context->DumpToString());
@@ -393,10 +406,10 @@ void UDamagePipeline::ExportMermaidDAG(
 		for (const auto& Rule : SortedRules)
 		{
 			if (!Rule) continue;
-			if (!RuleColorMap.Contains(Rule->RuleName))
+			if (!RuleColorMap.Contains(Rule->GetFName()))
 			{
-				RuleColorMap.Add(Rule->RuleName, FieldColorPalette[OrderedRules.Num() % FieldColorPaletteSize]);
-				OrderedRules.Add(Rule->RuleName);
+				RuleColorMap.Add(Rule->GetFName(), FieldColorPalette[OrderedRules.Num() % FieldColorPaletteSize]);
+				OrderedRules.Add(Rule->GetFName());
 			}
 		}
 	}
@@ -449,7 +462,7 @@ void UDamagePipeline::ExportMermaidDAG(
 		const UDamageRule* Rule = SortedRules[i];
 		if (!Rule) continue;
 
-		const bool* bExec = ExecStatusMap.Find(Rule->RuleName);
+		const bool* bExec = ExecStatusMap.Find(Rule->GetFName());
 		bool bExecuted = bExec ? *bExec : false;
 		FString StyleClass = bExecuted ? TEXT("exec") : TEXT("skip");
 
@@ -467,7 +480,7 @@ void UDamagePipeline::ExportMermaidDAG(
 		FString ProducesText;
 		if (Rule->GetProducesEffectType())
 		{
-			FString TypeColor = RuleColorMap.FindRef(Rule->RuleName);
+			FString TypeColor = RuleColorMap.FindRef(Rule->GetFName());
 			if (!TypeColor.IsEmpty())
 			{
 				ProducesText = FString::Printf(TEXT("<font color='%s'>#9632;</font> %s"),
@@ -485,7 +498,7 @@ void UDamagePipeline::ExportMermaidDAG(
 
 		M += FString::Printf(
 			TEXT("    %s[\"%s #%d<br/>Cond: %s<br/>Produces:<br/>%s\"]:::%s\n"),
-			*Rule->RuleName.ToString(), *Rule->RuleName.ToString(), i,
+			*Rule->GetName(), *Rule->GetName(), i,
 			*CondText, *ProducesText, *StyleClass);
 	}
 
@@ -499,18 +512,18 @@ void UDamagePipeline::ExportMermaidDAG(
 	// 隐藏执行顺序链
 	if (bHasInitialEffects && SortedRules.Num() > 0)
 	{
-		M += FString::Printf(TEXT("    DC_Init ~~~ %s\n"), *SortedRules[0]->RuleName.ToString());
+		M += FString::Printf(TEXT("    DC_Init ~~~ %s\n"), *SortedRules[0]->GetName());
 		LinkIndex++;
 	}
 	for (int32 i = 0; i + 1 < SortedRules.Num(); i++)
 	{
 		M += FString::Printf(TEXT("    %s ~~~ %s\n"),
-			*SortedRules[i]->RuleName.ToString(), *SortedRules[i + 1]->RuleName.ToString());
+			*SortedRules[i]->GetName(), *SortedRules[i + 1]->GetName());
 		LinkIndex++;
 	}
 	if (SortedRules.Num() > 0)
 	{
-		M += FString::Printf(TEXT("    %s ~~~ DC_Final\n"), *SortedRules.Last()->RuleName.ToString());
+		M += FString::Printf(TEXT("    %s ~~~ DC_Final\n"), *SortedRules.Last()->GetName());
 		LinkIndex++;
 	}
 	M += TEXT("\n");
@@ -528,11 +541,11 @@ void UDamagePipeline::ExportMermaidDAG(
 
 			if (ProducerDef && *ProducerDef)
 			{
-				FString ProducerName = (*ProducerDef)->RuleName.ToString();
-				FString FieldColor = RuleColorMap.FindRef((*ProducerDef)->RuleName);
+				FString ProducerName = (*ProducerDef)->GetName();
+				FString FieldColor = RuleColorMap.FindRef((*ProducerDef)->GetFName());
 
 				M += FString::Printf(TEXT("    %s -->|%s| %s\n"),
-					*ProducerName, *TypeName, *Rule->RuleName.ToString());
+					*ProducerName, *TypeName, *Rule->GetName());
 
 				if (!FieldColor.IsEmpty())
 				{
@@ -542,7 +555,7 @@ void UDamagePipeline::ExportMermaidDAG(
 			else if (bHasInitialEffects)
 			{
 				M += FString::Printf(TEXT("    DC_Init -->|%s| %s\n"),
-					*TypeName, *Rule->RuleName.ToString());
+					*TypeName, *Rule->GetName());
 			}
 			else { continue; }
 
@@ -572,7 +585,7 @@ void UDamagePipeline::ExportMermaidDAG(
 			// 查找产出此 Effect 的 DamageRule（攻击上下文无 producer）
 			if (const UDamageRule** Producer = EffectTypeToProducer.Find(Pair.Key))
 			{
-				FinalLines += FString::Printf(TEXT("%s: %s"), *(*Producer)->RuleName.ToString(), *TypeName);
+				FinalLines += FString::Printf(TEXT("%s: %s"), *(*Producer)->GetName(), *TypeName);
 			}
 			else
 			{

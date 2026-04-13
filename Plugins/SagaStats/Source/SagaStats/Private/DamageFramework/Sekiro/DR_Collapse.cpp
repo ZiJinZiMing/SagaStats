@@ -18,7 +18,7 @@ bool UDamageCondition_CollapseGuardIsCollapse::Evaluate_Implementation(const UDa
 }
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_Collapse::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

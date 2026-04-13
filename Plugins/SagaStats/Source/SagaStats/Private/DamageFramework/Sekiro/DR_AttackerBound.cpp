@@ -12,7 +12,7 @@ bool UDamageCondition_IsBound::Evaluate_Implementation(const UDamageContext* Con
 }
 
 // ============================================================================
-// Logic
+// Operation
 // ============================================================================
 
 void UDamageOperation_AttackerBound::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)

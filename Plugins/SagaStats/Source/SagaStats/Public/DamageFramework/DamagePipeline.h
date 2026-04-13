@@ -60,9 +60,6 @@ class SAGASTATS_API UDamagePipeline : public UDataAsset
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName PipelineName;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TArray<TObjectPtr<UDamageRule>> DamageRules;
 
 	// =====================================================================
