@@ -28,6 +28,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "UltraWire",
+			"Enabled": false
+		},
+		{
 			"Name": "GameplayStateTree",
 			"Enabled": true
 		}

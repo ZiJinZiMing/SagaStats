@@ -2,6 +2,7 @@
 #include "Graph/DamagePipelineGraph.h"
 #include "Graph/DamagePipelineGraphNode.h"
 #include "Graph/DamagePipelineGraphSchema.h"
+#include "DamagePipelineLayoutEngine.h"
 #include "DamageFramework/DamagePipeline.h"
 #include "DamageFramework/DamageRule.h"
 
@@ -11,13 +12,7 @@ void UDamagePipelineGraph::RebuildGraph(UDamagePipeline* Pipeline)
 {
 	if (!Pipeline) return;
 
-	// ── 1. Build if not baked ──
-	if (!Pipeline->bIsBaked)
-	{
-		Pipeline->Build();
-	}
-
-	// ── 2. Clear existing nodes ──
+	// ── 1. Clear existing nodes ──
 	Modify();
 	TArray<UEdGraphNode*> OldNodes = Nodes;
 	for (UEdGraphNode* Node : OldNodes)
@@ -25,10 +20,12 @@ void UDamagePipelineGraph::RebuildGraph(UDamagePipeline* Pipeline)
 		RemoveNode(Node);
 	}
 
-	// ── 3. Get sorted rules via Build() ──
+	// ── 2. Get sorted rules via Build()（内部有缓存，重复调用不会重算） ──
 	FPipelineSortResult SortResult = Pipeline->Build();
 	if (SortResult.bHasCycle)
 	{
+		UE_LOG(LogTemp, Error, TEXT("[DamagePipeline] RebuildGraph aborted: cycle detected in pipeline '%s'"),
+			*Pipeline->GetName());
 		return;
 	}
 
@@ -87,57 +84,36 @@ void UDamagePipelineGraph::RebuildGraph(UDamagePipeline* Pipeline)
 		}
 	}
 
-	// ── 6. Auto-layout: left-to-right by topological layer ──
-	const int32 NodeCount = AllNodes.Num();
-	if (NodeCount == 0) return;
-
-	// Calculate layer for each node (max layer of dependencies + 1)
-	TArray<int32> Layers;
-	Layers.SetNumZeroed(NodeCount);
-
-	// Build node-to-index map
-	TMap<UDamagePipelineGraphNode*, int32> NodeToIndex;
-	for (int32 i = 0; i < NodeCount; ++i)
+	// ── 6. 阶梯 + 通道布局 ──
+	// Y 方向：每节点累积 Pin 行数 → 每 Pin 全局唯一 Y
+	// X 方向：每节点前的 gap 根据该节点输入数扩展 → 每输入独占一条垂直通道
+	FDamagePipelineLayoutInput LayoutInput;
+	LayoutInput.TotalPinCounts.Reserve(AllNodes.Num());
+	LayoutInput.InputPinCounts.Reserve(AllNodes.Num());
+	for (UDamagePipelineGraphNode* Node : AllNodes)
 	{
-		NodeToIndex.Add(AllNodes[i], i);
-	}
+		LayoutInput.TotalPinCounts.Add(Node->Pins.Num());
 
-	// Calculate layers: iterate in topological order (SortedRules is already sorted)
-	for (int32 i = 0; i < NodeCount; ++i)
-	{
-		int32 MaxDepLayer = -1;
-
-		// Check all input pins for dependencies
-		for (UEdGraphPin* InputPin : AllNodes[i]->Pins)
+		int32 InputCount = 0;
+		for (UEdGraphPin* Pin : Node->Pins)
 		{
-			if (InputPin->Direction != EGPD_Input) continue;
-
-			for (UEdGraphPin* LinkedPin : InputPin->LinkedTo)
+			if (Pin->Direction == EGPD_Input)
 			{
-				UDamagePipelineGraphNode* DepNode = Cast<UDamagePipelineGraphNode>(LinkedPin->GetOwningNode());
-				if (const int32* DepIdx = NodeToIndex.Find(DepNode))
-				{
-					MaxDepLayer = FMath::Max(MaxDepLayer, Layers[*DepIdx]);
-				}
+				++InputCount;
 			}
 		}
-
-		Layers[i] = MaxDepLayer + 1;
+		LayoutInput.InputPinCounts.Add(InputCount);
 	}
 
-	// Group by layer and assign positions
-	constexpr float XSpacing = 400.f;
-	constexpr float YSpacing = 200.f;
+	const FDamagePipelineLayoutOutput LayoutOutput =
+		FDamagePipelineLayoutEngine::Compute(LayoutInput);
 
-	TMap<int32, int32> LayerCount; // layer -> current count in that layer
-	for (int32 i = 0; i < NodeCount; ++i)
+	for (int32 i = 0; i < AllNodes.Num(); ++i)
 	{
-		int32 Layer = Layers[i];
-		int32& YIndex = LayerCount.FindOrAdd(Layer, 0);
-
-		AllNodes[i]->NodePosX = Layer * XSpacing;
-		AllNodes[i]->NodePosY = YIndex * YSpacing;
-
-		++YIndex;
+		if (LayoutOutput.RuleNodePositions.IsValidIndex(i))
+		{
+			AllNodes[i]->NodePosX = LayoutOutput.RuleNodePositions[i].X;
+			AllNodes[i]->NodePosY = LayoutOutput.RuleNodePositions[i].Y;
+		}
 	}
 }

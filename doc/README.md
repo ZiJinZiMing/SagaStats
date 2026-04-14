@@ -27,6 +27,24 @@
 
 ---
 
+#### 🔌 UltraWire（Graph Editor 连线插件调研）
+**位置**: [ultraWire/](./ultraWire/)
+
+Fab 商城插件 UltraWire 的纯学术设计哲学调研。重点是"代码架构如何承载设计哲学"——把 PCB 电路板的可读性美学植入 UE Graph Editor 的工程实践。
+
+**快速链接**:
+- [📖 模块概览（WHY/HOW/WHAT 总览）](./ultraWire/README.md)
+- [📐 架构设计：HOW → WHAT 纵向深挖](./ultraWire/架构设计.md)
+- [🔍 术语速查表](./ultraWire/术语速查表.md)
+
+**关键洞察**:
+- 四条设计命题（可读性第一、走线可插拔、效果分层、零侵入）
+- 策略模式下的 4 种几何走线 + A\* 智能路由
+- 5 个独立静态效果服务类（Glow / Bubble / Label / Crossing / Line）
+- Slate 样式 snapshot-then-replace 的可逆主题引擎
+
+---
+
 ## 🗂️ 文档组织
 
 ```

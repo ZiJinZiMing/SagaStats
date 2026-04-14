@@ -56,5 +56,5 @@ class SAGASTATS_API UDamageOperation_Mixup : public UDamageOperationBase
 	GENERATED_BODY()
 public:
 	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
-	virtual UScriptStruct* GetProducesEffectType() const override { return FMixupEffect::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FMixupEffect::StaticStruct(); }
 };

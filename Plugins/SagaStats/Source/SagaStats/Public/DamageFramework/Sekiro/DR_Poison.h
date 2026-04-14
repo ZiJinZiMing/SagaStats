@@ -44,5 +44,5 @@ class SAGASTATS_API UDamageOperation_Poison : public UDamageOperationBase
 	GENERATED_BODY()
 public:
 	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
-	virtual UScriptStruct* GetProducesEffectType() const override { return FPoisonEffect::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FPoisonEffect::StaticStruct(); }
 };

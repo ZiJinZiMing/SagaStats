@@ -54,7 +54,8 @@ void UDamagePipelineGraphNode::AllocateDefaultPins()
 	UScriptStruct* ProducesType = Rule->GetProducesEffectType();
 	if (ProducesType)
 	{
-		CreatePin(EGPD_Output, TEXT("DamageEffect"), ProducesType->GetFName());
+		UEdGraphPin* OutPin = CreatePin(EGPD_Output, TEXT("DamageEffect"), ProducesType->GetFName());
+		OutPin->PinType.PinSubCategoryObject = ProducesType;
 	}
 
 	// 输入 Pin：此 Rule 依赖的 Effect 类型（每个 ConsumedEffectType 一个 Pin）
@@ -63,7 +64,8 @@ void UDamagePipelineGraphNode::AllocateDefaultPins()
 	{
 		if (Type)
 		{
-			CreatePin(EGPD_Input, TEXT("DamageEffect"), Type->GetFName());
+			UEdGraphPin* InPin = CreatePin(EGPD_Input, TEXT("DamageEffect"), Type->GetFName());
+			InPin->PinType.PinSubCategoryObject = Type;
 		}
 	}
 }

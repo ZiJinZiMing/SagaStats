@@ -27,10 +27,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TSubclassOf<UDamageOperationBase> OperationClass;
 
-	/** 表现层选择的基础优先级 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float BasePriority = 0.f;
-
 	/** 从 OperationClass CDO 获取此 DamageRule 产出的 Effect 类型 */
 	UScriptStruct* GetProducesEffectType() const;
 

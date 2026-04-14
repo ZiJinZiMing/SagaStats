@@ -5,7 +5,7 @@ UScriptStruct* UDamageRule::GetProducesEffectType() const
 {
 	if (OperationClass)
 	{
-		return OperationClass.GetDefaultObject()->GetProducesEffectType();
+		return OperationClass.GetDefaultObject()->GetEffectType();
 	}
 	return nullptr;
 }

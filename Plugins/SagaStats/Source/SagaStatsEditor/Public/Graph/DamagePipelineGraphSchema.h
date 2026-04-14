@@ -19,4 +19,10 @@ public:
 
 	// Pin 颜色
 	virtual FLinearColor GetPinTypeColor(const FEdGraphPinType& PinType) const override;
+
+	// 自定义连线绘制策略：电路板风格 Manhattan 折线 + 通道化 DropX（配合阶梯布局）
+	virtual class FConnectionDrawingPolicy* CreateConnectionDrawingPolicy(
+		int32 InBackLayerID, int32 InFrontLayerID, float InZoomFactor,
+		const class FSlateRect& InClippingRect, class FSlateWindowElementList& InDrawElements,
+		class UEdGraph* InGraphObj) const override;
 };

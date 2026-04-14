@@ -19,11 +19,8 @@ class SAGASTATS_API UDamageOperationBase : public UObject
 	GENERATED_BODY()
 
 public:
-	/** 此 Operation 产出的 Effect 类型（蓝图子类在类默认值中设置；C++ 子类可 override） */
-	UPROPERTY(EditAnywhere, Category = "DamageRule", meta = (DisplayName = "Produces Effect Type"))
-	UScriptStruct* ProducesEffectType = nullptr;
 
-	virtual UScriptStruct* GetProducesEffectType() const { return ProducesEffectType; }
+	virtual UScriptStruct* GetEffectType() const { return EffectType; }
 
 	/**
 	 * 执行机制逻辑。
@@ -34,4 +31,9 @@ public:
 	void Execute(UDamageContext* Context, UPARAM(ref) FInstancedStruct& OutEffect);
 
 	virtual void Execute_Implementation(UDamageContext* Context, UPARAM(ref) FInstancedStruct& OutEffect) {}
+	
+protected:
+	/** 此 Operation 产出的 Effect 类型（蓝图子类在类默认值中设置；C++ 子类可 override） */
+	UPROPERTY(EditDefaultsOnly, Category = "DamageRule")
+	UScriptStruct* EffectType = nullptr;
 };

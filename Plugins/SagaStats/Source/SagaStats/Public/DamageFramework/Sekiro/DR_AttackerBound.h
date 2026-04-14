@@ -44,5 +44,5 @@ class SAGASTATS_API UDamageOperation_AttackerBound : public UDamageOperationBase
 	GENERATED_BODY()
 public:
 	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
-	virtual UScriptStruct* GetProducesEffectType() const override { return FAttackerBoundEffect::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FAttackerBoundEffect::StaticStruct(); }
 };

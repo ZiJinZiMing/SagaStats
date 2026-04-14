@@ -41,5 +41,5 @@ class SAGASTATS_API UDamageOperation_CollapseJustGuard : public UDamageOperation
 	GENERATED_BODY()
 public:
 	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
-	virtual UScriptStruct* GetProducesEffectType() const override { return FCollapseJustGuardEffect::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FCollapseJustGuardEffect::StaticStruct(); }
 };
