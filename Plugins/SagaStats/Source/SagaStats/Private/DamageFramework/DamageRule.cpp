@@ -14,7 +14,7 @@ TArray<UScriptStruct*> UDamageRule::GetConsumedEffectTypes() const
 {
 	if (Condition)
 	{
-		return Condition->GetConsumedEffectTypes();
+		return Condition->GetDependencyEffectTypes();
 	}
 	return {};
 }

@@ -30,7 +30,7 @@ class SAGASTATS_API UDamageCondition_IsPoisoned : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetConsumedEffectType() const override { return FPoisonEffect::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FPoisonEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 

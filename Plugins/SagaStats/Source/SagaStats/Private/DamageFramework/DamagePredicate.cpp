@@ -22,9 +22,9 @@ bool UDamagePredicate_Single::Evaluate(const UDamageContext* Context) const
 	return Condition->EvaluateCondition(Context);
 }
 
-TArray<UScriptStruct*> UDamagePredicate_Single::GetConsumedEffectTypes() const
+TArray<UScriptStruct*> UDamagePredicate_Single::GetDependencyEffectTypes() const
 {
-	if (Condition) return Condition->GetConsumedEffectTypes();
+	if (Condition) return {Condition->GetEffectType()};
 	return {};
 }
 
@@ -49,13 +49,13 @@ bool UDamagePredicate_And::Evaluate(const UDamageContext* Context) const
 	return true;
 }
 
-TArray<UScriptStruct*> UDamagePredicate_And::GetConsumedEffectTypes() const
+TArray<UScriptStruct*> UDamagePredicate_And::GetDependencyEffectTypes() const
 {
 	TArray<UScriptStruct*> Result;
 	for (const auto& P : Predicates)
 	{
 		if (!P) continue;
-		for (UScriptStruct* Type : P->GetConsumedEffectTypes())
+		for (UScriptStruct* Type : P->GetDependencyEffectTypes())
 			Result.AddUnique(Type);
 	}
 	return Result;
@@ -89,13 +89,13 @@ bool UDamagePredicate_Or::Evaluate(const UDamageContext* Context) const
 	return false;
 }
 
-TArray<UScriptStruct*> UDamagePredicate_Or::GetConsumedEffectTypes() const
+TArray<UScriptStruct*> UDamagePredicate_Or::GetDependencyEffectTypes() const
 {
 	TArray<UScriptStruct*> Result;
 	for (const auto& P : Predicates)
 	{
 		if (!P) continue;
-		for (UScriptStruct* Type : P->GetConsumedEffectTypes())
+		for (UScriptStruct* Type : P->GetDependencyEffectTypes())
 			Result.AddUnique(Type);
 	}
 	return Result;

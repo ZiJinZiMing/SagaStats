@@ -39,7 +39,7 @@ class SAGASTATS_API UDamageCondition_CollapseIsCollapse : public UDamageConditio
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetConsumedEffectType() const override { return FCollapseEffect::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FCollapseEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
@@ -52,7 +52,7 @@ class SAGASTATS_API UDamageCondition_CollapseGuardIsCollapse : public UDamageCon
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetConsumedEffectType() const override { return FCollapseGuardEffect::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FCollapseGuardEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 

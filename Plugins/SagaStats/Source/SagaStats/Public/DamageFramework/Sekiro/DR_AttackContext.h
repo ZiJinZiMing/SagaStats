@@ -44,7 +44,7 @@ class SAGASTATS_API UDamageCondition_IsLightning : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetConsumedEffectType() const override { return FSekiroAttackContext::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FSekiroAttackContext::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
@@ -53,6 +53,6 @@ class SAGASTATS_API UDamageCondition_IsInAir : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetConsumedEffectType() const override { return FSekiroAttackContext::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FSekiroAttackContext::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };

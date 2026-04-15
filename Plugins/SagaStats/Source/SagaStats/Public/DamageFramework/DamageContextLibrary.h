@@ -24,16 +24,14 @@ public:
 	/**
 	 * 写入 Effect 到 DamageContext（类型由连线的结构体引脚自动推断）。
 	 */
-	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DamageContext",
-		meta = (CustomStructureParam = "Value"))
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DamageContext", meta = (CustomStructureParam = "Value"))
 	static void SetEffect(UDamageContext* Context, const int32& Value);
 
 	/**
 	 * 从 DamageContext 读取 Effect（类型由连线的结构体引脚自动推断）。
 	 * Valid/NotValid 执行引脚指示 Effect 是否存在。
 	 */
-	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DamageContext",
-		meta = (CustomStructureParam = "OutValue", ExpandEnumAsExecs = "ExecResult"))
+	UFUNCTION(BlueprintCallable, CustomThunk, Category = "DamageContext", meta = (CustomStructureParam = "OutValue", ExpandEnumAsExecs = "ExecResult"))
 	static void GetEffect(UDamageContext* Context, EStructUtilsResult& ExecResult, int32& OutValue);
 
 private:

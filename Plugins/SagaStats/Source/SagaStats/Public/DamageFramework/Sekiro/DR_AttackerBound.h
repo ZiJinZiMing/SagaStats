@@ -30,7 +30,7 @@ class SAGASTATS_API UDamageCondition_IsBound : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetConsumedEffectType() const override { return FAttackerBoundEffect::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FAttackerBoundEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 

@@ -35,16 +35,16 @@ public:
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& OutEffect) const { return false; }
 
 	// ---- EffectType 连接件 ----
+	virtual UScriptStruct* GetEffectType() const { return EffectType; }
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category = "DamageCondition")
+	FString GetDisplayString() const;
+
+	virtual FString GetDisplayString_Implementation() const { return GetClass()->GetName(); }
+
+protected:
 	/** 蓝图子类在类默认值中设置；C++ 子类 override GetConsumedEffectType()。实例上不可见。 */
-	UPROPERTY(EditDefaultsOnly, Category = "DamageCondition", meta = (DisplayName = "Consumed Effect Type", HideInDetailPanel))
-	UScriptStruct* ConsumedEffectType = nullptr;
-
-	virtual UScriptStruct* GetConsumedEffectType() const { return ConsumedEffectType; }
-
-	TArray<UScriptStruct*> GetConsumedEffectTypes() const;
-
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "DamageCondition")
-	virtual FString GetDisplayString() const;
+	UPROPERTY(EditDefaultsOnly, Category = "DamageCondition", meta = (HideInDetailPanel))
+	UScriptStruct* EffectType = nullptr;
 };
 

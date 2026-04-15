@@ -30,7 +30,7 @@ class SAGASTATS_API UDamageCondition_IsHurt : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetConsumedEffectType() const override { return FHurtEffect::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FHurtEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 

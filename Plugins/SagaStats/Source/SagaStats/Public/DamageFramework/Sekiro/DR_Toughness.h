@@ -27,7 +27,7 @@ class SAGASTATS_API UDamageCondition_Toughness : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetConsumedEffectType() const override { return FToughnessEffect::StaticStruct(); }
+	virtual UScriptStruct* GetEffectType() const override { return FToughnessEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override { return ConsumedEffect.IsValid(); }
 };
 

@@ -25,7 +25,7 @@ public:
 	virtual bool Evaluate(const UDamageContext* Context) const
 		PURE_VIRTUAL(UDamagePredicate::Evaluate, return false;);
 
-	virtual TArray<UScriptStruct*> GetConsumedEffectTypes() const { return {}; }
+	virtual TArray<UScriptStruct*> GetDependencyEffectTypes() const { return {}; }
 	virtual FString GetDisplayString() const { return TEXT("(base)"); }
 };
 
@@ -43,7 +43,7 @@ public:
 	TObjectPtr<UDamageCondition> Condition;
 
 	virtual bool Evaluate(const UDamageContext* Context) const override;
-	virtual TArray<UScriptStruct*> GetConsumedEffectTypes() const override;
+	virtual TArray<UScriptStruct*> GetDependencyEffectTypes() const override;
 	virtual FString GetDisplayString() const override;
 };
 
@@ -61,7 +61,7 @@ public:
 	TArray<TObjectPtr<UDamagePredicate>> Predicates;
 
 	virtual bool Evaluate(const UDamageContext* Context) const override;
-	virtual TArray<UScriptStruct*> GetConsumedEffectTypes() const override;
+	virtual TArray<UScriptStruct*> GetDependencyEffectTypes() const override;
 	virtual FString GetDisplayString() const override;
 };
 
@@ -79,6 +79,6 @@ public:
 	TArray<TObjectPtr<UDamagePredicate>> Predicates;
 
 	virtual bool Evaluate(const UDamageContext* Context) const override;
-	virtual TArray<UScriptStruct*> GetConsumedEffectTypes() const override;
+	virtual TArray<UScriptStruct*> GetDependencyEffectTypes() const override;
 	virtual FString GetDisplayString() const override;
 };

@@ -8,24 +8,13 @@
 
 bool UDamageCondition::EvaluateCondition(const UDamageContext* Context) const
 {
-	FInstancedStruct ConsumedEffect;
-	UScriptStruct* EffectType = GetConsumedEffectType();
-	if (Context && EffectType)
+	FInstancedStruct EffectValue;
+	UScriptStruct* Type = GetEffectType();
+	if (Context && Type)
 	{
-		ConsumedEffect = Context->GetEffectByType(EffectType);
+		EffectValue = Context->GetEffectByType(Type);
 	}
 
-	return Evaluate(Context, ConsumedEffect);
+	return Evaluate(Context, EffectValue);
 }
 
-TArray<UScriptStruct*> UDamageCondition::GetConsumedEffectTypes() const
-{
-	UScriptStruct* Type = GetConsumedEffectType();
-	if (Type) return {Type};
-	return {};
-}
-
-FString UDamageCondition::GetDisplayString() const
-{
-	return GetClass()->GetName();
-}

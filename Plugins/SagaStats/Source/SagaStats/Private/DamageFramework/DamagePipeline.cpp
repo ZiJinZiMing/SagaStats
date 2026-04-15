@@ -228,7 +228,7 @@ Build()
 			CollectLeafConditions(Rule->Condition, Leaves);
 			for (const UDamageCondition* Cond : Leaves)
 			{
-				if (!Cond->GetConsumedEffectType())
+				if (!Cond->GetEffectType())
 				{
 					UE_LOG(LogSagaStats, Error,
 						TEXT("Pipeline Build 校验失败: DamageRule [%s] 的 Condition [%s] 未配置 ConsumedEffectType"),
