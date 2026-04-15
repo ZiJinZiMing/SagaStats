@@ -14,6 +14,7 @@
 #include "AttributeReferenceViewer/SGAttributeListReferenceViewer.h"
 #include "Details/SGAttributeSetDetails.h"
 #include "DamagePipelineAssetTypeActions.h"
+#include "DamagePipelineCommands.h"
 #include "Graph/SDamagePipelineGraphNode.h"
 #include "Details/SGAttributeDataClampedDetails.h"
 #include "Details/SGGameplayAttributeDataDetails.h"
@@ -50,6 +51,9 @@ void FSagaStatsEditorModule::StartupModule()
 	// DamagePipeline Graph Node Factory
 	DamagePipelineNodeFactory = MakeShared<FDamagePipelineNodeFactory>();
 	FEdGraphUtilities::RegisterVisualNodeFactory(DamagePipelineNodeFactory);
+
+	// DamagePipeline editor commands (Build + F7)
+	FDamagePipelineCommands::Register();
 }
 
 void FSagaStatsEditorModule::ShutdownModule()
@@ -98,6 +102,8 @@ void FSagaStatsEditorModule::ShutdownModule()
 		FEdGraphUtilities::UnregisterVisualNodeFactory(DamagePipelineNodeFactory);
 		DamagePipelineNodeFactory.Reset();
 	}
+
+	FDamagePipelineCommands::Unregister();
 
 	if (GEditor)
 	{

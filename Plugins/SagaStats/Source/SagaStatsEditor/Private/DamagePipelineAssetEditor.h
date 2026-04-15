@@ -18,6 +18,8 @@ class IDetailsView;
 class FDamagePipelineAssetEditor : public FAssetEditorToolkit
 {
 public:
+	virtual ~FDamagePipelineAssetEditor();
+
 	void InitEditor(const EToolkitMode::Type Mode, const TSharedPtr<IToolkitHost>& Host, UDamagePipeline* InPipeline);
 
 	// FAssetEditorToolkit
@@ -35,6 +37,15 @@ private:
 
 	void AddToolbarExtension(FToolBarBuilder& ToolBarBuilder);
 	void OnBuild();
+
+	/** 动态返回 Build 按钮图标：Background + Overlay（Good 或 Unknown），随 bIsBaked 变化 */
+	FSlateIcon GetBuildStatusIcon() const;
+	FText GetBuildStatusTooltip() const;
+
+	/** 响应被引用的 DamageRule（或其嵌套 Predicate/Condition）属性变化，置 bIsBaked = false */
+	void OnObjectPropertyChanged(UObject* Object, struct FPropertyChangedEvent& PropertyChangedEvent);
+
+	FDelegateHandle PropertyChangedHandle;
 
 	static const FName GraphTabId;
 	static const FName DetailsTabId;
