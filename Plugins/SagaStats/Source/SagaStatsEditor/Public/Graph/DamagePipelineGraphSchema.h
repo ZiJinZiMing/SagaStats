@@ -20,6 +20,12 @@ public:
 	// Pin 颜色
 	virtual FLinearColor GetPinTypeColor(const FEdGraphPinType& PinType) const override;
 
+	/**
+	 * 静态：按 EffectType 查固定 12 色调色板（按类名哈希）。
+	 * Pin 和 Condition 行的色块共用此函数确保色彩一致。
+	 */
+	static FLinearColor GetColorForEffectType(const class UScriptStruct* EffectType);
+
 	// 自定义连线绘制策略：电路板风格 Manhattan 折线 + 通道化 DropX（配合阶梯布局）
 	virtual class FConnectionDrawingPolicy* CreateConnectionDrawingPolicy(
 		int32 InBackLayerID, int32 InFrontLayerID, float InZoomFactor,

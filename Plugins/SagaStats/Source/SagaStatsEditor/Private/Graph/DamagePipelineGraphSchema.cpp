@@ -7,34 +7,40 @@ const FPinConnectionResponse UDamagePipelineGraphSchema::CanCreateConnection(con
 	return FPinConnectionResponse(CONNECT_RESPONSE_DISALLOW, TEXT("Read-only graph"));
 }
 
+FLinearColor UDamagePipelineGraphSchema::GetColorForEffectType(const UScriptStruct* EffectType)
+{
+	// 调色板沿用 mmd 导出：#e6194b #3cb44b #4363d8 #f58231 #911eb4 #46f0f0 #f032e6 #bcf60c #fabebe #008080 #e6beff #9a6324
+	static const FLinearColor Palette[] = {
+		FLinearColor::FromSRGBColor(FColor(0xe6, 0x19, 0x4b)),
+		FLinearColor::FromSRGBColor(FColor(0x3c, 0xb4, 0x4b)),
+		FLinearColor::FromSRGBColor(FColor(0x43, 0x63, 0xd8)),
+		FLinearColor::FromSRGBColor(FColor(0xf5, 0x82, 0x31)),
+		FLinearColor::FromSRGBColor(FColor(0x91, 0x1e, 0xb4)),
+		FLinearColor::FromSRGBColor(FColor(0x46, 0xf0, 0xf0)),
+		FLinearColor::FromSRGBColor(FColor(0xf0, 0x32, 0xe6)),
+		FLinearColor::FromSRGBColor(FColor(0xbc, 0xf6, 0x0c)),
+		FLinearColor::FromSRGBColor(FColor(0xfa, 0xbe, 0xbe)),
+		FLinearColor::FromSRGBColor(FColor(0x00, 0x80, 0x80)),
+		FLinearColor::FromSRGBColor(FColor(0xe6, 0xbe, 0xff)),
+		FLinearColor::FromSRGBColor(FColor(0x9a, 0x63, 0x24)),
+	};
+	constexpr int32 PaletteSize = UE_ARRAY_COUNT(Palette);
+
+	if (EffectType)
+	{
+		// 用类型名字符串哈希，跨会话稳定
+		const uint32 Hash = GetTypeHash(EffectType->GetName());
+		return Palette[Hash % PaletteSize];
+	}
+	return FLinearColor(0.42f, 0.56f, 0.75f);
+}
+
 FLinearColor UDamagePipelineGraphSchema::GetPinTypeColor(const FEdGraphPinType& PinType) const
 {
 	if (PinType.PinCategory == TEXT("DamageEffect"))
 	{
-		// 调色板沿用 mmd 导出：#e6194b #3cb44b #4363d8 #f58231 #911eb4 #46f0f0 #f032e6 #bcf60c #fabebe #008080 #e6beff #9a6324
-		static const FLinearColor Palette[] = {
-			FLinearColor::FromSRGBColor(FColor(0xe6, 0x19, 0x4b)),
-			FLinearColor::FromSRGBColor(FColor(0x3c, 0xb4, 0x4b)),
-			FLinearColor::FromSRGBColor(FColor(0x43, 0x63, 0xd8)),
-			FLinearColor::FromSRGBColor(FColor(0xf5, 0x82, 0x31)),
-			FLinearColor::FromSRGBColor(FColor(0x91, 0x1e, 0xb4)),
-			FLinearColor::FromSRGBColor(FColor(0x46, 0xf0, 0xf0)),
-			FLinearColor::FromSRGBColor(FColor(0xf0, 0x32, 0xe6)),
-			FLinearColor::FromSRGBColor(FColor(0xbc, 0xf6, 0x0c)),
-			FLinearColor::FromSRGBColor(FColor(0xfa, 0xbe, 0xbe)),
-			FLinearColor::FromSRGBColor(FColor(0x00, 0x80, 0x80)),
-			FLinearColor::FromSRGBColor(FColor(0xe6, 0xbe, 0xff)),
-			FLinearColor::FromSRGBColor(FColor(0x9a, 0x63, 0x24)),
-		};
-		constexpr int32 PaletteSize = UE_ARRAY_COUNT(Palette);
-
-		if (const UObject* TypeObj = PinType.PinSubCategoryObject.Get())
-		{
-			// 用类型名字符串哈希，跨会话稳定
-			const uint32 Hash = GetTypeHash(TypeObj->GetName());
-			return Palette[Hash % PaletteSize];
-		}
-		return FLinearColor(0.42f, 0.56f, 0.75f);
+		const UObject* TypeObj = PinType.PinSubCategoryObject.Get();
+		return GetColorForEffectType(Cast<UScriptStruct>(TypeObj));
 	}
 	return Super::GetPinTypeColor(PinType);
 }

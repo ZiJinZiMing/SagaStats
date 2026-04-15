@@ -1,11 +1,15 @@
 // SDamagePipelineGraphNode.cpp
 #include "Graph/SDamagePipelineGraphNode.h"
 #include "Graph/DamagePipelineGraphNode.h"
+#include "Graph/DamagePipelineGraphSchema.h"
 #include "DamageFramework/DamageRule.h"
 #include "DamageFramework/DamagePredicate.h"
 #include "SGraphNode.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/SBoxPanel.h"
+#include "Widgets/Colors/SColorBlock.h"
 #include "Styling/AppStyle.h"
 #include "Styling/CoreStyle.h"
 
@@ -57,27 +61,19 @@ void SDamagePipelineGraphNode::UpdateGraphNode()
 					]
 				]
 
-				// --- Body: Condition + Produces ---
+				// --- Body: Condition rows + Description ---
 				+ SVerticalBox::Slot()
 				.AutoHeight()
 				.Padding(4.f)
 				[
 					SNew(SVerticalBox)
 
+					// Condition 树：每行一个 SHorizontalBox（文本 + 可选色块），
+					// 在 UpdateGraphNode 中静态构造（详见下方 CondBox 填充代码）
 					+ SVerticalBox::Slot()
 					.AutoHeight()
 					[
-						SNew(STextBlock)
-						.Text(this, &SDamagePipelineGraphNode::GetConditionText)
-						.ColorAndOpacity(FLinearColor(0.7f, 0.7f, 0.2f))
-					]
-
-					+ SVerticalBox::Slot()
-					.AutoHeight()
-					[
-						SNew(STextBlock)
-						.Text(this, &SDamagePipelineGraphNode::GetProducesText)
-						.ColorAndOpacity(FLinearColor(0.4f, 0.7f, 0.4f))
+						SAssignNew(ConditionBox, SVerticalBox)
 					]
 
 					// Description（空值自动缩紧；\n 硬换行 + AutoWrapText 软换行双重策略）
@@ -96,13 +92,15 @@ void SDamagePipelineGraphNode::UpdateGraphNode()
 				]
 
 				// --- Pin area ---
+				// 左右两列都用 AutoWidth，中间 FillWidth spacer 拉开。
+				// 这样 pin 的真实宽度会通过 desired size 向上传，撑开整个节点。
 				+ SVerticalBox::Slot()
 				.AutoHeight()
 				[
 					SNew(SHorizontalBox)
 
 					+ SHorizontalBox::Slot()
-					.FillWidth(1.f)
+					.AutoWidth()
 					[
 						SAssignNew(LeftNodeBox, SVerticalBox)
 					]
@@ -110,13 +108,97 @@ void SDamagePipelineGraphNode::UpdateGraphNode()
 					+ SHorizontalBox::Slot()
 					.FillWidth(1.f)
 					[
+						SNullWidget::NullWidget
+					]
+
+					+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.HAlign(HAlign_Right)
+					[
 						SAssignNew(RightNodeBox, SVerticalBox)
 					]
 				]
 			]
 		];
 
+	PopulateConditionBox();
+
 	CreatePinWidgets();
+}
+
+void SDamagePipelineGraphNode::PopulateConditionBox()
+{
+	if (!ConditionBox.IsValid())
+	{
+		return;
+	}
+
+	ConditionBox->ClearChildren();
+
+	if (!PipelineGraphNode || !PipelineGraphNode->Rule.IsValid())
+	{
+		return;
+	}
+
+	UDamageRule* Rule = PipelineGraphNode->Rule.Get();
+	const FLinearColor TextColor(0.7f, 0.7f, 0.2f);
+	const FSlateFontInfo MonoFont = FCoreStyle::GetDefaultFontStyle("Mono", 9);
+
+	if (!Rule->Condition)
+	{
+		// 无 Condition：单行 "(always)"
+		ConditionBox->AddSlot()
+			.AutoHeight()
+			[
+				SNew(STextBlock)
+				.Text(LOCTEXT("CondAlways", "(always)"))
+				.ColorAndOpacity(TextColor)
+				.Font(MonoFont)
+			];
+		return;
+	}
+
+	// 递归收集 ASCII 树每一行
+	TArray<FConditionDisplayLine> Lines;
+	Rule->Condition->CollectDisplayLines(TEXT(""), TEXT(""), Lines);
+
+	for (const FConditionDisplayLine& Line : Lines)
+	{
+		const bool bHasEffect = (Line.EffectType != nullptr);
+		const FLinearColor SwatchColor = bHasEffect
+			? UDamagePipelineGraphSchema::GetColorForEffectType(Line.EffectType)
+			: FLinearColor::Transparent;
+
+		ConditionBox->AddSlot()
+			.AutoHeight()
+			[
+				SNew(SHorizontalBox)
+
+				// 行文本（整行同色 mono 黄）
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				[
+					SNew(STextBlock)
+					.Text(FText::FromString(Line.Text))
+					.ColorAndOpacity(TextColor)
+					.Font(MonoFont)
+				]
+
+				// 色块（只在 leaf 行可见；结构行 Collapsed 不占位）
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.VAlign(VAlign_Center)
+				.Padding(FMargin(6.f, 0.f, 0.f, 0.f))
+				[
+					SNew(SColorBlock)
+					.Visibility(bHasEffect ? EVisibility::Visible : EVisibility::Collapsed)
+					.Color(SwatchColor)
+					.Size(FVector2D(10.f, 10.f))
+					.AlphaDisplayMode(EColorBlockAlphaDisplayMode::Ignore)
+				]
+			];
+	}
 }
 
 FText SDamagePipelineGraphNode::GetNodeTitle() const
@@ -129,35 +211,6 @@ FText SDamagePipelineGraphNode::GetNodeTitle() const
 	const FString RuleName = PipelineGraphNode->Rule->GetName();
 	const int32 DisplayIndex = PipelineGraphNode->SortIndex + 1;
 	return FText::FromString(FString::Printf(TEXT("%d. %s"), DisplayIndex, *RuleName));
-}
-
-FText SDamagePipelineGraphNode::GetConditionText() const
-{
-	if (PipelineGraphNode && PipelineGraphNode->Rule.IsValid())
-	{
-		if (PipelineGraphNode->Rule->Condition)
-		{
-			return FText::FromString(FString::Printf(
-				TEXT("Cond: %s"), *PipelineGraphNode->Rule->Condition->GetDisplayString()));
-		}
-		return LOCTEXT("CondAlways", "Cond: (always)");
-	}
-	return FText::GetEmpty();
-}
-
-FText SDamagePipelineGraphNode::GetProducesText() const
-{
-	if (PipelineGraphNode && PipelineGraphNode->Rule.IsValid())
-	{
-		UScriptStruct* EffectType = PipelineGraphNode->Rule->GetProducesEffectType();
-		if (EffectType)
-		{
-			return FText::FromString(FString::Printf(
-				TEXT("Produces: %s"), *EffectType->GetName()));
-		}
-		return LOCTEXT("ProducesNone", "Produces: (none)");
-	}
-	return FText::GetEmpty();
 }
 
 FText SDamagePipelineGraphNode::GetDescriptionText() const

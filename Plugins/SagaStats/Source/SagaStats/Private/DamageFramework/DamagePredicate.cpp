@@ -13,6 +13,68 @@ bool UDamagePredicate::EvaluatePredicate(const UDamageContext* Context) const
 }
 
 // ============================================================================
+// ASCII 树格式辅助
+// ============================================================================
+
+namespace
+{
+	// Unicode box-drawing 字符（\u 转义避免源码编码依赖）
+	const FString BranchMid  = TEXT("\u251C\u2500 ");  // ├─
+	const FString BranchLast = TEXT("\u2514\u2500 ");  // └─
+	const FString BarCont    = TEXT("\u2502  ");       // │
+	const FString SpaceCont  = TEXT("   ");            // (3 空格)
+
+	/** And/Or 共享的行收集：header 行 + 每个孩子递归 */
+	void CollectCompoundLines(
+		const TArray<TObjectPtr<UDamagePredicate>>& Predicates,
+		const FString& FirstLinePrefix,
+		const FString& ContinuationPrefix,
+		const TCHAR* Keyword,   // "AND" 或 "OR"
+		bool bReverseSelf,
+		TArray<FConditionDisplayLine>& OutLines)
+	{
+		// 收集非 null 孩子
+		TArray<UDamagePredicate*> Valid;
+		Valid.Reserve(Predicates.Num());
+		for (const auto& P : Predicates)
+		{
+			if (P) Valid.Add(P.Get());
+		}
+
+		// Header 文本：前缀 + (NOT if bReverse) + 运算符
+		FString HeaderText = FirstLinePrefix;
+		if (bReverseSelf)
+		{
+			HeaderText += TEXT("NOT ");
+		}
+		HeaderText += Keyword;
+
+		if (Valid.Num() == 0)
+		{
+			// 空集合：单行 "... AND (empty)"
+			FConditionDisplayLine EmptyLine;
+			EmptyLine.Text = HeaderText + TEXT(" (empty)");
+			OutLines.Add(EmptyLine);
+			return;
+		}
+
+		// Header 结构行（EffectType = nullptr）
+		FConditionDisplayLine HeaderLine;
+		HeaderLine.Text = HeaderText;
+		OutLines.Add(HeaderLine);
+
+		// 递归孩子
+		for (int32 i = 0; i < Valid.Num(); ++i)
+		{
+			const bool bLast = (i == Valid.Num() - 1);
+			const FString ChildFirstPrefix = ContinuationPrefix + (bLast ? BranchLast : BranchMid);
+			const FString ChildContPrefix  = ContinuationPrefix + (bLast ? SpaceCont : BarCont);
+			Valid[i]->CollectDisplayLines(ChildFirstPrefix, ChildContPrefix, OutLines);
+		}
+	}
+}
+
+// ============================================================================
 // UDamagePredicate_Single
 // ============================================================================
 
@@ -28,10 +90,17 @@ TArray<UScriptStruct*> UDamagePredicate_Single::GetDependencyEffectTypes() const
 	return {};
 }
 
-FString UDamagePredicate_Single::GetDisplayString() const
+void UDamagePredicate_Single::CollectDisplayLines(
+	const FString& FirstLinePrefix,
+	const FString& ContinuationPrefix,
+	TArray<FConditionDisplayLine>& OutLines) const
 {
-	if (!Condition) return TEXT("(empty)");
-	return Condition->GetDisplayString();
+	const FString Body = Condition ? Condition->GetDisplayString() : TEXT("(empty)");
+
+	FConditionDisplayLine Line;
+	Line.Text = FirstLinePrefix + (bReverse ? TEXT("NOT ") : TEXT("")) + Body;
+	Line.EffectType = Condition ? Condition->GetEffectType() : nullptr;
+	OutLines.Add(Line);
 }
 
 // ============================================================================
@@ -61,17 +130,12 @@ TArray<UScriptStruct*> UDamagePredicate_And::GetDependencyEffectTypes() const
 	return Result;
 }
 
-FString UDamagePredicate_And::GetDisplayString() const
+void UDamagePredicate_And::CollectDisplayLines(
+	const FString& FirstLinePrefix,
+	const FString& ContinuationPrefix,
+	TArray<FConditionDisplayLine>& OutLines) const
 {
-	TArray<FString> Parts;
-	for (const auto& P : Predicates)
-	{
-		if (!P) continue;
-		FString S = P->GetDisplayString();
-		if (P->bReverse) S = FString::Printf(TEXT("!(%s)"), *S);
-		Parts.Add(S);
-	}
-	return FString::Join(Parts, TEXT(" AND "));
+	CollectCompoundLines(Predicates, FirstLinePrefix, ContinuationPrefix, TEXT("AND"), bReverse, OutLines);
 }
 
 // ============================================================================
@@ -101,15 +165,10 @@ TArray<UScriptStruct*> UDamagePredicate_Or::GetDependencyEffectTypes() const
 	return Result;
 }
 
-FString UDamagePredicate_Or::GetDisplayString() const
+void UDamagePredicate_Or::CollectDisplayLines(
+	const FString& FirstLinePrefix,
+	const FString& ContinuationPrefix,
+	TArray<FConditionDisplayLine>& OutLines) const
 {
-	TArray<FString> Parts;
-	for (const auto& P : Predicates)
-	{
-		if (!P) continue;
-		FString S = P->GetDisplayString();
-		if (P->bReverse) S = FString::Printf(TEXT("!(%s)"), *S);
-		Parts.Add(S);
-	}
-	return FString::Join(Parts, TEXT(" OR "));
+	CollectCompoundLines(Predicates, FirstLinePrefix, ContinuationPrefix, TEXT("OR"), bReverse, OutLines);
 }

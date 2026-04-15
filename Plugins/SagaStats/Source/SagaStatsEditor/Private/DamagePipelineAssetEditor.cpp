@@ -10,10 +10,14 @@
 #include "Graph/DamagePipelineGraphNode.h"
 
 #include "GraphEditor.h"
+#include "SGraphPanel.h"
+#include "SGraphNode.h"
+#include "Graph/DamagePipelineLayoutConstants.h"
 #include "PropertyEditorModule.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Framework/Commands/UICommandList.h"
 #include "UObject/UObjectGlobals.h"
+#include "Containers/Ticker.h"
 
 #define LOCTEXT_NAMESPACE "DamagePipelineAssetEditor"
 
@@ -86,6 +90,9 @@ void FDamagePipelineAssetEditor::InitEditor(const EToolkitMode::Type Mode, const
 		);
 
 	InitAssetEditor(Mode, Host, TEXT("DamagePipelineEditorApp"), Layout, true, true, Pipeline);
+
+	// 首次打开时也需要真实尺寸校正（LayoutEngine 用的是估算，可能误差大）
+	ScheduleLayoutCorrection();
 }
 
 void FDamagePipelineAssetEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager)
@@ -139,10 +146,11 @@ TSharedRef<SDockTab> FDamagePipelineAssetEditor::SpawnTab_Details(const FSpawnTa
 
 void FDamagePipelineAssetEditor::AddToolbarExtension(FToolBarBuilder& ToolBarBuilder)
 {
+	// LabelOverride 传 unset TAttribute → 回退到 FUICommandInfo 注册的 "Build"（本地化友好）
 	ToolBarBuilder.AddToolBarButton(
 		FDamagePipelineCommands::Get().Build,
 		NAME_None,
-		FText::GetEmpty(),
+		TAttribute<FText>(),
 		TAttribute<FText>::CreateSP(this, &FDamagePipelineAssetEditor::GetBuildStatusTooltip),
 		TAttribute<FSlateIcon>::CreateSP(this, &FDamagePipelineAssetEditor::GetBuildStatusIcon));
 }
@@ -220,6 +228,151 @@ void FDamagePipelineAssetEditor::OnBuild()
 	{
 		DetailsView->ForceRefresh();
 	}
+
+	// 重建后节点被重新 SNew，需要重新做真实尺寸校正
+	ScheduleLayoutCorrection();
+}
+
+void FDamagePipelineAssetEditor::ScheduleLayoutCorrection()
+{
+	// WeakPtr 捕获以避免 Editor 提前销毁后悬空回调
+	// 注意：局部名不能叫 WeakThis（会遮蔽 TSharedFromThis 的同名成员）
+	TWeakPtr<FDamagePipelineAssetEditor> WeakSelf =
+		StaticCastSharedRef<FDamagePipelineAssetEditor>(AsShared());
+
+	// 共享重试计数器——mutable 捕获麻烦，用 SharedPtr 最简单
+	TSharedRef<int32> RetryCountPtr = MakeShared<int32>(0);
+	constexpr int32 MaxRetries = 10;
+
+	FTSTicker::GetCoreTicker().AddTicker(
+		FTickerDelegate::CreateLambda([WeakSelf, RetryCountPtr](float) -> bool
+		{
+			TSharedPtr<FDamagePipelineAssetEditor> Strong = WeakSelf.Pin();
+			if (!Strong.IsValid())
+			{
+				return false; // Editor 已销毁，停止
+			}
+
+			if (!Strong->ApplyRealSizeLayoutCorrection())
+			{
+				return false; // 成功完成
+			}
+
+			// Slate widget 还没就绪，下一帧重试
+			if (++(*RetryCountPtr) >= MaxRetries)
+			{
+				UE_LOG(LogTemp, Warning,
+					TEXT("[DamagePipeline] Layout correction gave up after %d retries"),
+					MaxRetries);
+				return false;
+			}
+			return true;
+		}),
+		0.0f);
+}
+
+bool FDamagePipelineAssetEditor::ApplyRealSizeLayoutCorrection()
+{
+	if (!GraphEditor.IsValid() || !PipelineGraph)
+	{
+		return true; // 还没就绪，重试
+	}
+
+	SGraphPanel* Panel = GraphEditor->GetGraphPanel();
+	if (!Panel)
+	{
+		return true;
+	}
+
+	// 按 SortIndex 拓扑序收集节点
+	TArray<UDamagePipelineGraphNode*> SortedNodes;
+	for (UEdGraphNode* EdNode : PipelineGraph->Nodes)
+	{
+		if (UDamagePipelineGraphNode* DPNode = Cast<UDamagePipelineGraphNode>(EdNode))
+		{
+			SortedNodes.Add(DPNode);
+		}
+	}
+	SortedNodes.Sort([](const UDamagePipelineGraphNode& A, const UDamagePipelineGraphNode& B)
+	{
+		return A.SortIndex < B.SortIndex;
+	});
+
+	if (SortedNodes.Num() == 0)
+	{
+		return false; // 没节点，完成
+	}
+
+	// 每个 node 找它的 Slate widget。任一失败就全局重试。
+	TArray<TSharedPtr<SGraphNode>> Widgets;
+	Widgets.Reserve(SortedNodes.Num());
+	for (UDamagePipelineGraphNode* Node : SortedNodes)
+	{
+		TSharedPtr<SGraphNode> Widget = Panel->GetNodeWidgetFromGuid(Node->NodeGuid);
+		if (!Widget.IsValid())
+		{
+			return true; // widget 还没建，重试
+		}
+		Widgets.Add(Widget);
+	}
+
+	// 强制 SlatePrepass 让 GetDesiredSize 返回真实值
+	// （首次 Tick 时 SGraphPanel 可能还没进入 Paint 阶段，DesiredSize 尚为 0）
+	for (const TSharedPtr<SGraphNode>& Widget : Widgets)
+	{
+		Widget->SlatePrepass(1.0f);
+	}
+
+	// 预先统计每个节点的输入 Pin 数（X 方向用于决定"下一节点前的通道区"宽度）
+	TArray<int32> InputCounts;
+	InputCounts.Reserve(SortedNodes.Num());
+	for (UDamagePipelineGraphNode* Node : SortedNodes)
+	{
+		int32 InputCount = 0;
+		for (UEdGraphPin* Pin : Node->Pins)
+		{
+			if (Pin->Direction == EGPD_Input) ++InputCount;
+		}
+		InputCounts.Add(InputCount);
+	}
+
+	// 单遍遍历：用真实 width/height 同时累积 X 和 Y
+	// 阶梯布局不变——每个节点 Y 单调递增，保证每个 Pin 全局唯一 Y
+	double CurX = 0.0;
+	double CurY = 0.0;
+	bool bAnyChanged = false;
+	for (int32 i = 0; i < SortedNodes.Num(); ++i)
+	{
+		UDamagePipelineGraphNode* Node = SortedNodes[i];
+		const FVector2f DesiredSize = Widgets[i]->GetDesiredSize();
+		const float RealW = FMath::Max(DesiredSize.X, 50.f);
+		const float RealH = FMath::Max(DesiredSize.Y, 50.f);
+
+		const int32 NewX = FMath::RoundToInt(CurX);
+		const int32 NewY = FMath::RoundToInt(CurY);
+		if (Node->NodePosX != NewX || Node->NodePosY != NewY)
+		{
+			Node->NodePosX = NewX;
+			Node->NodePosY = NewY;
+			bAnyChanged = true;
+		}
+
+		// Y：累加真实高度 + 固定间距
+		CurY += RealH + DamagePipelineLayoutConstants::GapBetweenNodesY;
+
+		// X：累加真实宽度 + BaseGap + 下一节点需要的输入通道区
+		const int32 NextInputCount = InputCounts.IsValidIndex(i + 1) ? InputCounts[i + 1] : 0;
+		CurX += RealW
+			+ DamagePipelineLayoutConstants::BaseGap
+			+ (double)NextInputCount * (double)DamagePipelineLayoutConstants::ChannelWidth;
+	}
+
+	if (bAnyChanged)
+	{
+		GraphEditor->NotifyGraphChanged();
+	}
+
+	return false; // 完成
 }
 
 #undef LOCTEXT_NAMESPACE

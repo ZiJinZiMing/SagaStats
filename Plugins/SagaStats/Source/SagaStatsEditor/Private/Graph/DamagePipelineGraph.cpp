@@ -2,7 +2,6 @@
 #include "Graph/DamagePipelineGraph.h"
 #include "Graph/DamagePipelineGraphNode.h"
 #include "Graph/DamagePipelineGraphSchema.h"
-#include "DamagePipelineLayoutEngine.h"
 #include "DamageFramework/DamagePipeline.h"
 #include "DamageFramework/DamageRule.h"
 
@@ -84,36 +83,12 @@ void UDamagePipelineGraph::RebuildGraph(UDamagePipeline* Pipeline)
 		}
 	}
 
-	// ── 6. 阶梯 + 通道布局 ──
-	// Y 方向：每节点累积 Pin 行数 → 每 Pin 全局唯一 Y
-	// X 方向：每节点前的 gap 根据该节点输入数扩展 → 每输入独占一条垂直通道
-	FDamagePipelineLayoutInput LayoutInput;
-	LayoutInput.TotalPinCounts.Reserve(AllNodes.Num());
-	LayoutInput.InputPinCounts.Reserve(AllNodes.Num());
+	// 节点位置全部留空（0, 0）——真实布局由 FDamagePipelineAssetEditor::ApplyRealSizeLayoutCorrection
+	// 在 Slate widget 构建完成后的一帧读真实尺寸后完成。
+	// 这里的 RebuildGraph 只负责数据层：节点创建 + Pin 连接。
 	for (UDamagePipelineGraphNode* Node : AllNodes)
 	{
-		LayoutInput.TotalPinCounts.Add(Node->Pins.Num());
-
-		int32 InputCount = 0;
-		for (UEdGraphPin* Pin : Node->Pins)
-		{
-			if (Pin->Direction == EGPD_Input)
-			{
-				++InputCount;
-			}
-		}
-		LayoutInput.InputPinCounts.Add(InputCount);
-	}
-
-	const FDamagePipelineLayoutOutput LayoutOutput =
-		FDamagePipelineLayoutEngine::Compute(LayoutInput);
-
-	for (int32 i = 0; i < AllNodes.Num(); ++i)
-	{
-		if (LayoutOutput.RuleNodePositions.IsValidIndex(i))
-		{
-			AllNodes[i]->NodePosX = LayoutOutput.RuleNodePositions[i].X;
-			AllNodes[i]->NodePosY = LayoutOutput.RuleNodePositions[i].Y;
-		}
+		Node->NodePosX = 0;
+		Node->NodePosY = 0;
 	}
 }

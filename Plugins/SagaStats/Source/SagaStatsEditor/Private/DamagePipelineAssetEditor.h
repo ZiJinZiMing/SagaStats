@@ -47,6 +47,18 @@ private:
 
 	FDelegateHandle PropertyChangedHandle;
 
+	/**
+	 * 注册一个 ticker：下一帧读取所有节点的 Slate 真实尺寸，重新计算 Y 坐标，
+	 * 解决 LayoutEngine 用估算尺寸导致的节点重叠问题。
+	 */
+	void ScheduleLayoutCorrection();
+
+	/**
+	 * 执行真实尺寸布局校正。
+	 * @return 是否需要下一帧继续重试（如 Slate widget 尚未创建完成）
+	 */
+	bool ApplyRealSizeLayoutCorrection();
+
 	static const FName GraphTabId;
 	static const FName DetailsTabId;
 

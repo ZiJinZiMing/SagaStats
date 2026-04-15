@@ -1,6 +1,6 @@
 // DamagePipelineConnectionDrawingPolicy.cpp
 #include "DamagePipelineConnectionDrawingPolicy.h"
-#include "DamagePipelineLayoutEngine.h" // for DamagePipelineLayoutConstants::ChannelWidth
+#include "DamagePipelineLayoutConstants.h" // for DamagePipelineLayoutConstants::ChannelWidth
 #include "Graph/DamagePipelineGraphNode.h"
 #include "EdGraph/EdGraphSchema.h"
 #include "EdGraph/EdGraphPin.h"

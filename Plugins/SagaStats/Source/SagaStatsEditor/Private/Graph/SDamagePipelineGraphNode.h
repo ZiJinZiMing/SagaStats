@@ -30,20 +30,20 @@ private:
 	/** 取得 "1. RuleName" 标题文本（拓扑序号 1-based + Rule 名）*/
 	FText GetNodeTitle() const;
 
-	/** 取得 "Cond: ..." 条件文本 */
-	FText GetConditionText() const;
-
-	/** 取得 "Produces: TypeName" 产出类型文本 */
-	FText GetProducesText() const;
-
 	/** Rule->Description 原文；空时返回空字符串 */
 	FText GetDescriptionText() const;
 
 	/** Description 区可见性：空时 Collapsed（节点自动缩紧），非空时 Visible */
 	EVisibility GetDescriptionVisibility() const;
 
+	/** UpdateGraphNode 中按 Condition 树行动态构造条件行（文本 + 可选色块） */
+	void PopulateConditionBox();
+
 	/** 缓存的 UDamagePipelineGraphNode 指针 */
 	UDamagePipelineGraphNode* PipelineGraphNode = nullptr;
+
+	/** Condition 区的 VBox 句柄——SAssignNew 绑定，PopulateConditionBox 往里追加行 */
+	TSharedPtr<class SVerticalBox> ConditionBox;
 };
 
 /**
