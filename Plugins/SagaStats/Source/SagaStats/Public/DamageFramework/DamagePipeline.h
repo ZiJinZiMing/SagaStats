@@ -4,8 +4,6 @@
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
 #include "DamageFramework/DamageRule.h"
-#include "DamageFramework/DamagePredicate.h"
-#include "DamageFramework/DamageContext.h"
 #include "DamagePipeline.generated.h"
 
 /**

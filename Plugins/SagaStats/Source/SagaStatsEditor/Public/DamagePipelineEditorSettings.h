@@ -5,17 +5,6 @@
 #include "Engine/DeveloperSettings.h"
 #include "DamagePipelineEditorSettings.generated.h"
 
-/** Rule 节点序号的渲染方式 */
-UENUM()
-enum class EDPIndexRenderStyle : uint8
-{
-	/** "1. RuleName" 字符串前缀 */
-	Prefix UMETA(DisplayName = "Prefix (1. RuleName)"),
-
-	/** 左上角圆角徽章 + 独立 RuleName */
-	Badge UMETA(DisplayName = "Badge (corner overlay)")
-};
-
 /** Condition 树多行排版的格式 */
 UENUM()
 enum class EDPConditionFormatStyle : uint8
@@ -43,10 +32,6 @@ public:
 
 	// UDeveloperSettings
 	virtual FName GetCategoryName() const override { return TEXT("Plugins"); }
-
-	/** Rule 节点序号的渲染方式：字符串前缀 或 左上角徽章 */
-	UPROPERTY(EditAnywhere, config, Category = "Display")
-	EDPIndexRenderStyle IndexRenderStyle;
 
 	/** Condition 多行排版格式：纯缩进 或 带括号 */
 	UPROPERTY(EditAnywhere, config, Category = "Display")

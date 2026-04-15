@@ -27,7 +27,7 @@ public:
 	virtual void UpdateGraphNode() override;
 
 private:
-	/** 取得 "#N RuleName" 标题文本 */
+	/** 取得 "1. RuleName" 标题文本（拓扑序号 1-based + Rule 名）*/
 	FText GetNodeTitle() const;
 
 	/** 取得 "Cond: ..." 条件文本 */

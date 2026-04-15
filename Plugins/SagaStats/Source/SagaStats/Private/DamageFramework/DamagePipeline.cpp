@@ -1,6 +1,7 @@
 // DamagePipeline.cpp — 自洽的 Pipeline：拓扑排序烘焙 + 执行 + Mermaid DAG 导出
 #include "DamageFramework/DamagePipeline.h"
 #include "DamageFramework/DamageCondition.h"
+#include "DamageFramework/DamageContext.h"
 #include "SagaStatsLog.h"
 #include "Misc/FileHelper.h"
 #include "HAL/PlatformFileManager.h"

@@ -106,14 +106,14 @@ void SDamagePipelineGraphNode::UpdateGraphNode()
 
 FText SDamagePipelineGraphNode::GetNodeTitle() const
 {
-	if (PipelineGraphNode && PipelineGraphNode->Rule.IsValid())
+	if (!PipelineGraphNode || !PipelineGraphNode->Rule.IsValid())
 	{
-		return FText::FromString(FString::Printf(
-			TEXT("#%d %s"),
-			PipelineGraphNode->SortIndex,
-			*PipelineGraphNode->Rule->GetName()));
+		return LOCTEXT("InvalidNode", "(Invalid)");
 	}
-	return LOCTEXT("InvalidNode", "(Invalid)");
+
+	const FString RuleName = PipelineGraphNode->Rule->GetName();
+	const int32 DisplayIndex = PipelineGraphNode->SortIndex + 1;
+	return FText::FromString(FString::Printf(TEXT("%d. %s"), DisplayIndex, *RuleName));
 }
 
 FText SDamagePipelineGraphNode::GetConditionText() const

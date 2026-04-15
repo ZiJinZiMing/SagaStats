@@ -13,11 +13,11 @@ void UDamagePipelineGraphNode::SetupNode(UDamageRule* InRule, int32 InSortIndex)
 
 FText UDamagePipelineGraphNode::GetNodeTitle(ENodeTitleType::Type TitleType) const
 {
-	if (Rule.IsValid())
+	if (!Rule.IsValid())
 	{
-		return FText::FromString(FString::Printf(TEXT("#%d %s"), SortIndex, *Rule->GetName()));
+		return LOCTEXT("InvalidNode", "(Invalid)");
 	}
-	return LOCTEXT("InvalidNode", "(Invalid)");
+	return FText::FromString(FString::Printf(TEXT("%d. %s"), SortIndex + 1, *Rule->GetName()));
 }
 
 FText UDamagePipelineGraphNode::GetTooltipText() const
