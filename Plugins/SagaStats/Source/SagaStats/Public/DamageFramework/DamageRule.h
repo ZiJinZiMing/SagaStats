@@ -19,6 +19,10 @@ class SAGASTATS_API UDamageRule : public UDataAsset
 	GENERATED_BODY()
 
 public:
+	/** TD 可读的机制描述（多行 FText，用于在 Graph 节点中显示 Rule 的行为意图） */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DamageRule", meta = (MultiLine = true))
+	FText Description;
+
 	/** Condition 谓词容器（Predicate/Condition 双层，可为空 = 始终执行） */
 	UPROPERTY(EditAnywhere, Instanced, BlueprintReadWrite)
 	TObjectPtr<UDamagePredicate> Condition;

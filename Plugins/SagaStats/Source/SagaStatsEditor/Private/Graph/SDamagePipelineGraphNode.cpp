@@ -7,6 +7,7 @@
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Styling/AppStyle.h"
+#include "Styling/CoreStyle.h"
 
 #define LOCTEXT_NAMESPACE "SDamagePipelineGraphNode"
 
@@ -78,6 +79,20 @@ void SDamagePipelineGraphNode::UpdateGraphNode()
 						.Text(this, &SDamagePipelineGraphNode::GetProducesText)
 						.ColorAndOpacity(FLinearColor(0.4f, 0.7f, 0.4f))
 					]
+
+					// Description（空值自动缩紧；\n 硬换行 + AutoWrapText 软换行双重策略）
+					+ SVerticalBox::Slot()
+					.AutoHeight()
+					.Padding(FMargin(0.f, 2.f, 0.f, 0.f))
+					[
+						SNew(STextBlock)
+						.Visibility(this, &SDamagePipelineGraphNode::GetDescriptionVisibility)
+						.Text(this, &SDamagePipelineGraphNode::GetDescriptionText)
+						.ColorAndOpacity(FLinearColor(0.6f, 0.6f, 0.6f))
+						.Font(FCoreStyle::GetDefaultFontStyle("Regular", 8))
+						.AutoWrapText(true)
+						.WrapTextAt(300.f)
+					]
 				]
 
 				// --- Pin area ---
@@ -143,6 +158,25 @@ FText SDamagePipelineGraphNode::GetProducesText() const
 		return LOCTEXT("ProducesNone", "Produces: (none)");
 	}
 	return FText::GetEmpty();
+}
+
+FText SDamagePipelineGraphNode::GetDescriptionText() const
+{
+	if (PipelineGraphNode && PipelineGraphNode->Rule.IsValid())
+	{
+		return PipelineGraphNode->Rule->Description;
+	}
+	return FText::GetEmpty();
+}
+
+EVisibility SDamagePipelineGraphNode::GetDescriptionVisibility() const
+{
+	if (PipelineGraphNode && PipelineGraphNode->Rule.IsValid()
+		&& !PipelineGraphNode->Rule->Description.IsEmpty())
+	{
+		return EVisibility::Visible;
+	}
+	return EVisibility::Collapsed;
 }
 
 // ---------------------------------------------------------------------

@@ -36,6 +36,12 @@ private:
 	/** 取得 "Produces: TypeName" 产出类型文本 */
 	FText GetProducesText() const;
 
+	/** Rule->Description 原文；空时返回空字符串 */
+	FText GetDescriptionText() const;
+
+	/** Description 区可见性：空时 Collapsed（节点自动缩紧），非空时 Visible */
+	EVisibility GetDescriptionVisibility() const;
+
 	/** 缓存的 UDamagePipelineGraphNode 指针 */
 	UDamagePipelineGraphNode* PipelineGraphNode = nullptr;
 };
