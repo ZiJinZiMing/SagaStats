@@ -40,7 +40,12 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintPure, Category = "DamageCondition")
 	FString GetDisplayString() const;
 
-	virtual FString GetDisplayString_Implementation() const { return GetClass()->GetName(); }
+	virtual FString GetDisplayString_Implementation() const
+	{
+		FString Name = GetClass()->GetName();
+		Name.RemoveFromEnd(TEXT("_C"));
+		return Name;
+	}
 
 protected:
 	/** 蓝图子类在类默认值中设置；C++ 子类 override GetConsumedEffectType()。实例上不可见。 */
