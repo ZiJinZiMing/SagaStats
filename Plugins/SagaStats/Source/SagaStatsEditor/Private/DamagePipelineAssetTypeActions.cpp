@@ -1,6 +1,7 @@
 // DamagePipelineAssetTypeActions.cpp
 #include "DamagePipelineAssetTypeActions.h"
 #include "DamagePipelineAssetEditor.h"
+#include "SagaStatsEditor.h"
 #include "DamageFramework/DamagePipeline.h"
 
 #define LOCTEXT_NAMESPACE "DamagePipelineAssetTypeActions"
@@ -22,7 +23,7 @@ UClass* FDamagePipelineAssetTypeActions::GetSupportedClass() const
 
 uint32 FDamagePipelineAssetTypeActions::GetCategories()
 {
-	return EAssetTypeCategories::Gameplay;
+	return FSagaStatsEditorModule::Get().GetDamagePipelineAssetCategory();
 }
 
 void FDamagePipelineAssetTypeActions::OpenAssetEditor(const TArray<UObject*>& InObjects, TSharedPtr<IToolkitHost> EditWithinLevelEditor)

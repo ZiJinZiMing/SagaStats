@@ -161,6 +161,11 @@ void FSagaStatsEditorModule::OnPostEngineInit()
 		{
 			IAssetTools& AssetTools = FModuleManager::LoadModuleChecked<FAssetToolsModule>(TEXT("AssetTools")).Get();
 
+			// 注册自定义分类："Damage Pipeline"
+			DamagePipelineAssetCategory = AssetTools.RegisterAdvancedAssetCategory(
+				FName(TEXT("DamagePipeline")),
+				LOCTEXT("DamagePipelineAssetCategory", "Damage Pipeline"));
+
 			constexpr EAssetTypeCategories::Type AssetCategory = EAssetTypeCategories::Gameplay;
 			SG_EDITOR_NS_LOG(Verbose, TEXT("FSGAssetTypeActions_AttributeSet"))
 			RegisterAssetTypeAction(AssetTools, MakeShared<FSGAssetTypeActions_AttributeSet>(AssetCategory));

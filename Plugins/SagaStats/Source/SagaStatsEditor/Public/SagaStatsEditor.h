@@ -7,6 +7,7 @@
 
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
+#include "AssetTypeCategories.h"
 
 class SSGAttributeListReferenceViewer;
 class IAssetTypeActions;
@@ -30,6 +31,9 @@ public:
 
     void RegisterAssetTypeAction(class IAssetTools& AssetTools, TSharedRef<IAssetTypeActions> Action);
 
+    /** 返回 "Damage Pipeline" 自定义资产分类的 bit，供 Factory::GetMenuCategories 使用 */
+    EAssetTypeCategories::Type GetDamagePipelineAssetCategory() const { return DamagePipelineAssetCategory; }
+
 
 
 private:
@@ -50,4 +54,7 @@ private:
 
     /** All created asset type actions. Cached here so that we can unregister it during shutdown. */
     TArray<TSharedPtr<IAssetTypeActions>> CreatedAssetTypeActions;
+
+    /** 自定义资产分类 bit（DataAsset + Blueprint + Effect Struct 都挂到这个分类下）*/
+    EAssetTypeCategories::Type DamagePipelineAssetCategory = EAssetTypeCategories::Misc;
 };
