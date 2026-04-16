@@ -1,3 +1,9 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamageOperationBlueprintFactory.h — 右键菜单 Create → DamageOperation 蓝图子类
 #pragma once
 

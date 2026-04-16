@@ -1,7 +1,13 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamageRuleFactory.cpp
 #include "AssetTypes/DamageRuleFactory.h"
 #include "SagaStatsEditor.h"
-#include "DamageFramework/DamageRule.h"
+#include "DamagePipeline/DamageRule.h"
 
 #define LOCTEXT_NAMESPACE "DamageRuleFactory"
 

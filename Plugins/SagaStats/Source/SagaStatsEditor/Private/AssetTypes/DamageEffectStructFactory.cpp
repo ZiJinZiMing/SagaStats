@@ -1,3 +1,9 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamageEffectStructFactory.cpp
 #include "AssetTypes/DamageEffectStructFactory.h"
 #include "SagaStatsEditor.h"

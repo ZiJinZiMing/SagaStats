@@ -8,6 +8,56 @@
 
 ---
 
+## 可调参数速查表
+
+调整 Graph 外观时，先查这张表定位要改的常量，再去源文件改值、重编译。
+
+### 布局常量
+
+> **修改位置**：`Plugins/SagaStats/Source/SagaStatsEditor/Private/Graph/DamagePipelineLayoutConstants.h`
+
+| 常量 | 默认值 | 作用 | 建议范围 | 调大/调小的效果 |
+|---|---|---|---|---|
+| `BaseGap` | 20 | 节点间的基础 X 间距（纯 padding，不含通道） | 10~60 | 大 → 横向稀疏；小 → 紧凑，但通道仍有 ChannelWidth 保底 |
+| `ChannelWidth` | 12 | 每个输入 Pin 独占的垂直走线通道宽度（DrawingPolicy 按此算 DropX） | 8~25 | 大 → 输入多的节点前有更宽通道；小 → 紧凑但 wire 间距缩小 |
+| `GapBetweenNodesY` | 10 | 节点底边到下一个节点顶边的 Y 间距 | 0~40 | 大 → 竖向松散；0 → 节点紧贴（无间隙） |
+
+**布局公式**（Slate 真实尺寸驱动，在 `FDamagePipelineAssetEditor::ApplyRealSizeLayoutCorrection` 中执行）：
+```
+X[i+1] = X[i] + RealNodeWidth[i] + BaseGap + InputPinCount[i+1] × ChannelWidth
+Y[i+1] = Y[i] + RealNodeHeight[i] + GapBetweenNodesY
+```
+节点的真实 width/height 由 Slate `GetDesiredSize()` 提供，不再使用估算值。
+
+### 样式常量
+
+> **修改位置**：`Plugins/SagaStats/Source/SagaStatsEditor/Private/Graph/SDamagePipelineGraphNode.cpp`
+
+| 常量 | 位置 | 默认值 | 作用 |
+|---|---|---|---|
+| Condition 字体 | `PopulateConditionBox` | `FCoreStyle::GetDefaultFontStyle("Mono", 9)` | 等宽 DroidSansMono 9pt，保证 ASCII 树对齐 |
+| Condition 颜色 | `PopulateConditionBox` | `FLinearColor(0.7, 0.7, 0.2)` 黄色 | Condition 行文字颜色 |
+| 色块尺寸 | `PopulateConditionBox` | `FVector2D(10, 10)` | Condition leaf 行右侧的 EffectType 色块大小 |
+| Description 字体 | `UpdateGraphNode` | `FCoreStyle::GetDefaultFontStyle("Regular", 8)` | 小号灰色描述文字 |
+| Description 颜色 | `UpdateGraphNode` | `FLinearColor(0.6, 0.6, 0.6)` 灰色 | — |
+| Description 换行宽度 | `UpdateGraphNode` | `WrapTextAt(300.f)` | 软换行安全网宽度（像素），通常 ≤ 节点实际宽度 |
+| 节点背景色 | `UpdateGraphNode` | `FLinearColor(0.83, 0.91, 0.99)` 浅蓝 | 节点 Body 的 `BorderBackgroundColor` |
+
+### 调色板（Pin + Condition 色块共享）
+
+> **修改位置**：`Plugins/SagaStats/Source/SagaStatsEditor/Private/Graph/DamagePipelineGraphSchema.cpp` — `GetColorForEffectType()`
+
+12 色固定调色板（沿用 Mermaid 导出色系），按 EffectType 类名哈希分配：
+
+```
+#e6194b  #3cb44b  #4363d8  #f58231  #911eb4  #46f0f0
+#f032e6  #bcf60c  #fabebe  #008080  #e6beff  #9a6324
+```
+
+无 EffectType 时回退色：`(0.42, 0.56, 0.75)` 蓝灰。
+
+---
+
 ## 文档导航
 
 本文只讲"如何把运行时 DAG 画成一张易读的图"。如果你想知道：

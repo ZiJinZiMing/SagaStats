@@ -1,3 +1,9 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamagePipelineConnectionDrawingPolicy.cpp
 #include "DamagePipelineConnectionDrawingPolicy.h"
 #include "DamagePipelineLayoutConstants.h" // for DamagePipelineLayoutConstants::ChannelWidth
@@ -78,7 +84,7 @@ void FDamagePipelineConnectionDrawingPolicy::DrawSplineWithArrow(
 	{
 		// 通道化 DropX：每个输入 pin 在目标节点左侧独占一条通道。
 		// DropX = DstRect.Left - (InputIdx + 1) × ChannelWidth
-		// 配合阶梯 Y 布局，任意两条边的垂直段（X）和水平段（Y）都不会重合。
+		// 配合阶梯 Y 排列，不同目标节点的边的垂直段（X）和水平段（Y）不会重合。
 		double DropX = (Start.X + End.X) * 0.5; // fallback
 
 		UDamagePipelineGraphNode* DstNode = nullptr;

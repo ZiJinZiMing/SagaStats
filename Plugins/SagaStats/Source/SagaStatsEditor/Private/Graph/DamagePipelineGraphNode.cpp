@@ -1,7 +1,13 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamagePipelineGraphNode.cpp
 #include "Graph/DamagePipelineGraphNode.h"
-#include "DamageFramework/DamageRule.h"
-#include "DamageFramework/DamagePredicate.h"
+#include "DamagePipeline/DamageRule.h"
+#include "DamagePipeline/DamagePredicate.h"
 
 #define LOCTEXT_NAMESPACE "DamagePipelineGraphNode"
 
@@ -58,7 +64,7 @@ void UDamagePipelineGraphNode::AllocateDefaultPins()
 		OutPin->PinType.PinSubCategoryObject = ProducesType;
 	}
 
-	// 输入 Pin：此 Rule 依赖的 Effect 类型（每个 ConsumedEffectType 一个 Pin）
+	// 输入 Pin：此 Rule 依赖的 Effect 类型（每个依赖的 EffectType 一个 Pin）
 	TArray<UScriptStruct*> ConsumedTypes = Rule->GetConsumedEffectTypes();
 	for (UScriptStruct* Type : ConsumedTypes)
 	{

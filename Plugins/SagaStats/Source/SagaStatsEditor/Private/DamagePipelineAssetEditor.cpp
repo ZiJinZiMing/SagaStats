@@ -1,9 +1,15 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamagePipelineAssetEditor.cpp — DamagePipeline 自定义资产编辑器实现
 
 #include "DamagePipelineAssetEditor.h"
 
-#include "DamageFramework/DamagePipeline.h"
-#include "DamageFramework/DamageRule.h"
+#include "DamagePipeline/DamagePipeline.h"
+#include "DamagePipeline/DamageRule.h"
 #include "DamagePipelineCommands.h"
 #include "Graph/DamagePipelineGraph.h"
 #include "Graph/DamagePipelineGraphSchema.h"
@@ -29,6 +35,14 @@ FDamagePipelineAssetEditor::~FDamagePipelineAssetEditor()
 	if (PropertyChangedHandle.IsValid())
 	{
 		FCoreUObjectDelegates::OnObjectPropertyChanged.Remove(PropertyChangedHandle);
+	}
+
+	// 清理 Graph 对象——它 Outer 挂在 Pipeline DataAsset 上，
+	// 不回收的话每次 InitEditor 都会新建一份泄漏到 Pipeline 的子对象图
+	if (PipelineGraph && PipelineGraph->IsValidLowLevel())
+	{
+		PipelineGraph->MarkAsGarbage();
+		PipelineGraph = nullptr;
 	}
 }
 
@@ -91,7 +105,7 @@ void FDamagePipelineAssetEditor::InitEditor(const EToolkitMode::Type Mode, const
 
 	InitAssetEditor(Mode, Host, TEXT("DamagePipelineEditorApp"), Layout, true, true, Pipeline);
 
-	// 首次打开时也需要真实尺寸校正（LayoutEngine 用的是估算，可能误差大）
+	// 首次打开时需要真实尺寸布局（RebuildGraph 只创建数据层，位置留在 (0,0)）
 	ScheduleLayoutCorrection();
 }
 

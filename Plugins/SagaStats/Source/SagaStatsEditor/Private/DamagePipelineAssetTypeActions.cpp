@@ -1,8 +1,14 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamagePipelineAssetTypeActions.cpp
 #include "DamagePipelineAssetTypeActions.h"
 #include "DamagePipelineAssetEditor.h"
 #include "SagaStatsEditor.h"
-#include "DamageFramework/DamagePipeline.h"
+#include "DamagePipeline/DamagePipeline.h"
 
 #define LOCTEXT_NAMESPACE "DamagePipelineAssetTypeActions"
 

@@ -1,3 +1,9 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamagePipelineConnectionDrawingPolicy.h — 电路板风格连线绘制策略
 #pragma once
 
@@ -9,7 +15,7 @@ class UEdGraphSchema;
 /**
  * 电路板风格连线绘制策略。
  *
- * 配合阶梯 + 通道布局，绘制是 3 段 Manhattan 折线：
+ * 配合阶梯式节点排列 + 通道化 DropX，绘制是 3 段 Manhattan 折线：
  * - H 从源 pin 至 DropX
  * - V 从源 Y 至目标 Y
  * - H 至目标 pin

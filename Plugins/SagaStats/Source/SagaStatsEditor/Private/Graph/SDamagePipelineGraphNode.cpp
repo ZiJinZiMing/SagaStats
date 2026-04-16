@@ -1,14 +1,21 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // SDamagePipelineGraphNode.cpp
 #include "Graph/SDamagePipelineGraphNode.h"
 #include "Graph/DamagePipelineGraphNode.h"
 #include "Graph/DamagePipelineGraphSchema.h"
-#include "DamageFramework/DamageRule.h"
-#include "DamageFramework/DamagePredicate.h"
+#include "DamagePipeline/DamageRule.h"
+#include "DamagePipeline/DamagePredicate.h"
 #include "SGraphNode.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/SBoxPanel.h"
+#include "Widgets/SNullWidget.h"
 #include "Widgets/Colors/SColorBlock.h"
 #include "Styling/AppStyle.h"
 #include "Styling/CoreStyle.h"

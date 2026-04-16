@@ -1,3 +1,9 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamagePipelineAssetEditor.h — DamagePipeline 的自定义资产编辑器（Details + Graph）
 #pragma once
 
@@ -48,8 +54,7 @@ private:
 	FDelegateHandle PropertyChangedHandle;
 
 	/**
-	 * 注册一个 ticker：下一帧读取所有节点的 Slate 真实尺寸，重新计算 Y 坐标，
-	 * 解决 LayoutEngine 用估算尺寸导致的节点重叠问题。
+	 * 注册一个 ticker：下一帧读取所有节点的 Slate 真实尺寸，计算阶梯布局坐标（X + Y）。
 	 */
 	void ScheduleLayoutCorrection();
 

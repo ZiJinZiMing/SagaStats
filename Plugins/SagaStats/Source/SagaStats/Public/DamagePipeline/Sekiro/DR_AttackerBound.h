@@ -1,0 +1,54 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Jinming Zhang
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
+// DR_AttackerBound.h — 攻击者绑定机制（Effect + Condition + Operation）
+#pragma once
+
+#include "CoreMinimal.h"
+#include "StructUtils/InstancedStruct.h"
+#include "DamagePipeline/DamageOperationBase.h"
+#include "DamagePipeline/DamageCondition.h"
+#include "DamagePipeline/DamageContext.h"
+#include "DR_AttackerBound.generated.h"
+
+// ============================================================================
+// Effect
+// ============================================================================
+
+USTRUCT(BlueprintType)
+struct SAGASTATS_API FAttackerBoundEffect
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsBound = false;
+};
+
+// ============================================================================
+// Condition
+// ============================================================================
+
+UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsBound"))
+class SAGASTATS_API UDamageCondition_IsBound : public UDamageCondition
+{
+	GENERATED_BODY()
+public:
+	virtual UScriptStruct* GetEffectType() const override { return FAttackerBoundEffect::StaticStruct(); }
+	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
+};
+
+// ============================================================================
+// Operation
+// ============================================================================
+
+UCLASS(HideDropDown)
+class SAGASTATS_API UDamageOperation_AttackerBound : public UDamageOperationBase
+{
+	GENERATED_BODY()
+public:
+	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
+	virtual UScriptStruct* GetEffectType() const override { return FAttackerBoundEffect::StaticStruct(); }
+};

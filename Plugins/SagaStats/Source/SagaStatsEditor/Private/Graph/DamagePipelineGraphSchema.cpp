@@ -1,3 +1,9 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamagePipelineGraphSchema.cpp
 #include "Graph/DamagePipelineGraphSchema.h"
 #include "DamagePipelineConnectionDrawingPolicy.h"
@@ -9,7 +15,7 @@ const FPinConnectionResponse UDamagePipelineGraphSchema::CanCreateConnection(con
 
 FLinearColor UDamagePipelineGraphSchema::GetColorForEffectType(const UScriptStruct* EffectType)
 {
-	// 调色板沿用 mmd 导出：#e6194b #3cb44b #4363d8 #f58231 #911eb4 #46f0f0 #f032e6 #bcf60c #fabebe #008080 #e6beff #9a6324
+	// 独立 12 色调色板（按 EffectType 类名哈希取模分配）：#e6194b #3cb44b #4363d8 #f58231 #911eb4 #46f0f0 #f032e6 #bcf60c #fabebe #008080 #e6beff #9a6324
 	static const FLinearColor Palette[] = {
 		FLinearColor::FromSRGBColor(FColor(0xe6, 0x19, 0x4b)),
 		FLinearColor::FromSRGBColor(FColor(0x3c, 0xb4, 0x4b)),

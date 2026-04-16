@@ -1,7 +1,13 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamageOperationBlueprintFactory.cpp
 #include "AssetTypes/DamageOperationBlueprintFactory.h"
 #include "SagaStatsEditor.h"
-#include "DamageFramework/DamageOperationBase.h"
+#include "DamagePipeline/DamageOperationBase.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"

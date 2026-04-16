@@ -1,3 +1,9 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamagePipelineGraphSchema.h — 只读 DAG 图表的 Schema
 #pragma once
 
@@ -26,7 +32,7 @@ public:
 	 */
 	static FLinearColor GetColorForEffectType(const class UScriptStruct* EffectType);
 
-	// 自定义连线绘制策略：电路板风格 Manhattan 折线 + 通道化 DropX（配合阶梯布局）
+	// 自定义连线绘制策略：电路板风格 Manhattan 折线 + 通道化 DropX（配合阶梯式节点排列）
 	virtual class FConnectionDrawingPolicy* CreateConnectionDrawingPolicy(
 		int32 InBackLayerID, int32 InFrontLayerID, float InZoomFactor,
 		const class FSlateRect& InClippingRect, class FSlateWindowElementList& InDrawElements,

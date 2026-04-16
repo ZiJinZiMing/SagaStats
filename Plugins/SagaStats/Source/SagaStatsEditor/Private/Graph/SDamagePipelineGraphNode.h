@@ -1,3 +1,9 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // SDamagePipelineGraphNode.h — DamagePipeline 图表节点的自定义 Slate 外观
 #pragma once
 
@@ -11,8 +17,9 @@ class UDamagePipelineGraphNode;
  * SDamagePipelineGraphNode
  *
  * DamageRule 图表节点的自定义可视化：
- * - 标题区：#N RuleName
- * - 内容区：Condition 文本 + Produces 类型名
+ * - 标题区：N. RuleName（1-based 拓扑序号）
+ * - 内容区：Condition ASCII 树（等宽字体 + 每行 EffectType 色块）+ Description（灰色小字）
+ * - Pin 区：左输入 / 右输出（AutoWidth 撑开节点）
  * - 浅蓝背景色
  */
 class SDamagePipelineGraphNode : public SGraphNode

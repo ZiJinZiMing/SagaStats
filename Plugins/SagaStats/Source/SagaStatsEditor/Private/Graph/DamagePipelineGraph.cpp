@@ -1,9 +1,15 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamagePipelineGraph.cpp
 #include "Graph/DamagePipelineGraph.h"
 #include "Graph/DamagePipelineGraphNode.h"
 #include "Graph/DamagePipelineGraphSchema.h"
-#include "DamageFramework/DamagePipeline.h"
-#include "DamageFramework/DamageRule.h"
+#include "DamagePipeline/DamagePipeline.h"
+#include "DamagePipeline/DamageRule.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(DamagePipelineGraph)
 
@@ -31,7 +37,7 @@ void UDamagePipelineGraph::RebuildGraph(UDamagePipeline* Pipeline)
 	// Set schema
 	Schema = UDamagePipelineGraphSchema::StaticClass();
 
-	// ── 4. Create nodes + build producer map ──
+	// ── 3. Create nodes + build producer map ──
 	// Producer map: ProducesEffectType -> Node that produces it
 	TMap<UScriptStruct*, UDamagePipelineGraphNode*> ProducerMap;
 
@@ -60,7 +66,7 @@ void UDamagePipelineGraph::RebuildGraph(UDamagePipeline* Pipeline)
 		}
 	}
 
-	// ── 5. Create connections: match input pins to producer output pins by FName ──
+	// ── 4. Create connections: match input pins to producer output pins by FName ──
 	for (UDamagePipelineGraphNode* ConsumerNode : AllNodes)
 	{
 		for (UEdGraphPin* InputPin : ConsumerNode->Pins)

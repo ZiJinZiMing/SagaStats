@@ -1,3 +1,9 @@
+/***************************************************************************************************************
+* Plugin:       SagaStats
+* Author:       Claude(@JinmingZhang)
+* Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
+****************************************************************************************************************/
+
 // DamagePipelineGraph.h — DamagePipeline 的只读 DAG 可视化图表
 #pragma once
 
@@ -11,8 +17,9 @@ class UDamagePipeline;
  * UDamagePipelineGraph — DamagePipeline 的只读图表。
  *
  * 以 DamageRule 为节点、EffectType 产销关系为边，展示管线的 DAG 拓扑结构。
- * 布局采用阶梯算法（Staircase）：节点按执行序从左到右排列，同时按累积 Pin 行数
- * 向下阶梯错位，保证每个 Pin 的 Y 全局唯一——水平段按构造不重合。
+ * RebuildGraph 负责创建节点和连接 Pin（纯数据层职责），节点位置置 (0,0)。
+ * 真实布局由 FDamagePipelineAssetEditor::ApplyRealSizeLayoutCorrection
+ * 在 Slate widget 就绪后读取真实尺寸完成。
  */
 UCLASS()
 class UDamagePipelineGraph : public UEdGraph
@@ -25,7 +32,7 @@ public:
 	 * - 清除所有现有节点
 	 * - 为每个 DamageRule 创建 UDamagePipelineGraphNode
 	 * - 基于 EffectType 匹配（ProducesEffectType → ConsumedEffectType）创建 Pin 连接
-	 * - 调用阶梯布局引擎生成坐标
+	 * - 节点位置留空 (0,0)，真实布局由 AssetEditor Ticker 完成
 	 */
 	void RebuildGraph(UDamagePipeline* Pipeline);
 };
