@@ -100,10 +100,10 @@ Plugins/SagaStats/Source/SagaStats/
 │   ├── DamagePipelineResults.h  — Game 侧读写 DC 的唯一外部 API（WriteEffect/ReadEffect/HasEffect/GetAllEffects）
 │   ├── DamagePipelineTestActor.h — 运行时测试 Actor
 │   └── Sekiro/                 — 只狼验证用的具体 DamageRule（Effect+Condition+Operation 三位一体）
-│       ├── DR_AttackContext.h   — FSekiroAttackContext + IsLightning/IsInAir Condition
+│       ├── SekiroAttackContext.h — FSekiroAttackContext（攻击事件的原始描述，Game 侧预填入 DC 的外部输入；无 Producer）
 │       ├── DR_Mixup.h           — FMixupEffect + IsGuard/IsJustGuard
 │       ├── DR_Guard.h           — FGuardEffect + GuardSuccess/GuardIsJustGuard
-│       ├── DR_Death.h / DR_Hurt.h / DR_Collapse.h / ...
+│       ├── DR_Hurt.h / DR_Collapse.h / DR_CollapseJustGuard.h — 其余 3 个测试 Rule
 └── Private/DamagePipeline/      — 对应 .cpp 实现
 ```
 
@@ -186,7 +186,7 @@ SagaStatsEditor/
 | SideScrolling | `Source/MySagaStats/Variant_SideScrolling/` | `/Game/Variant_SideScrolling/Lvl_SideScrolling` |
 | Platforming | `Source/MySagaStats/Variant_Platforming/` | `/Game/Variant_Platforming/Lvl_Platforming` |
 
-测试 Actor：`ADamagePipelineTestActor`（按 1-5 键触发 5 个只狼场景）。
+测试 Actor：`ADamagePipelineTestActor`（5 Rule 最小验证集：Mixup/Guard/Hurt/Collapse/CollapseJustGuard；按 1-3 键触发 3 个只狼场景）。
 
 ## 历史对话记录
 

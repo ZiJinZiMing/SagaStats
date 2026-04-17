@@ -4,7 +4,10 @@
 * Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
 ****************************************************************************************************************/
 
-// Sekiro/DamagePipelineTestActor.cpp — 只狼测试 Actor 实现
+// Sekiro/DamagePipelineTestActor.cpp — 只狼最小验证 Actor（5 Rule × 3 Scenario）
+//
+// 保留的 5 个 Rule 作为 C++ 测试单元：Mixup / Guard / Hurt / Collapse / CollapseJustGuard
+// 3 个场景覆盖：普通命中 / 格挡 / 完美格挡
 #include "DamagePipeline/Sekiro/DamagePipelineTestActor.h"
 #include "DamagePipeline/DamageContext.h"
 #include "DamagePipeline/DamageCondition.h"
@@ -12,19 +15,11 @@
 #include "DamagePipeline/DamagePredicate.h"
 #include "DamagePipeline/DamagePipelineResults.h"
 
-// 引入所有只狼 DamageRule（每个文件包含 Effect + Condition + Operation）
-#include "DamagePipeline/Sekiro/DR_AttackContext.h"
+#include "DamagePipeline/Sekiro/SekiroAttackContext.h"
 #include "DamagePipeline/Sekiro/DR_Mixup.h"
 #include "DamagePipeline/Sekiro/DR_Guard.h"
-#include "DamagePipeline/Sekiro/DR_Death.h"
 #include "DamagePipeline/Sekiro/DR_Hurt.h"
 #include "DamagePipeline/Sekiro/DR_Collapse.h"
-#include "DamagePipeline/Sekiro/DR_Poison.h"
-#include "DamagePipeline/Sekiro/DR_AttackerBound.h"
-#include "DamagePipeline/Sekiro/DR_LightningInAir.h"
-#include "DamagePipeline/Sekiro/DR_LightningOnGround.h"
-#include "DamagePipeline/Sekiro/DR_Toughness.h"
-#include "DamagePipeline/Sekiro/DR_SuperArmor.h"
 #include "DamagePipeline/Sekiro/DR_CollapseJustGuard.h"
 
 #include "SagaStatsLog.h"
@@ -86,94 +81,49 @@ void ADamagePipelineTestActor::BuildSekiroPipeline()
 	Pipeline = NewObject<UDamagePipeline>(this, FName("SekiroMVPPipeline"));
 	Pipeline->bAutoExportMermaid = true;
 
-	// ================================================================
-	// 第一阶段：创建所有 DamageRule（ProducesEffectType 自动从 OperationClass CDO 获取）
-	// ================================================================
-
-	UDamageRule* Mixup = MakeDamageRule(this, "Mixup", UDamageOperation_Mixup::StaticClass());
-	UDamageRule* Guard = MakeDamageRule(this, "Guard", UDamageOperation_Guard::StaticClass());
-	UDamageRule* Death = MakeDamageRule(this, "Death", UDamageOperation_Death::StaticClass());
-	UDamageRule* Collapse = MakeDamageRule(this, "Collapse", UDamageOperation_Collapse::StaticClass());
-	UDamageRule* Hurt = MakeDamageRule(this, "Hurt", UDamageOperation_Hurt::StaticClass());
-	UDamageRule* CollapseGuard = MakeDamageRule(this, "CollapseGuard", UDamageOperation_CollapseGuard::StaticClass());
+	// ------------------------------------------------------------------
+	// 5 个 Rule
+	// ------------------------------------------------------------------
+	UDamageRule* Mixup             = MakeDamageRule(this, "Mixup",             UDamageOperation_Mixup::StaticClass());
+	UDamageRule* Guard             = MakeDamageRule(this, "Guard",             UDamageOperation_Guard::StaticClass());
+	UDamageRule* Hurt              = MakeDamageRule(this, "Hurt",              UDamageOperation_Hurt::StaticClass());
+	UDamageRule* Collapse          = MakeDamageRule(this, "Collapse",          UDamageOperation_Collapse::StaticClass());
 	UDamageRule* CollapseJustGuard = MakeDamageRule(this, "CollapseJustGuard", UDamageOperation_CollapseJustGuard::StaticClass());
-	UDamageRule* AttackerBound = MakeDamageRule(this, "AttackerBound", UDamageOperation_AttackerBound::StaticClass());
-	UDamageRule* Poison = MakeDamageRule(this, "Poison", UDamageOperation_Poison::StaticClass());
-	UDamageRule* Toughness = MakeDamageRule(this, "Toughness", UDamageOperation_Toughness::StaticClass());
-	UDamageRule* SuperArmor = MakeDamageRule(this, "SuperArmor", UDamageOperation_SuperArmor::StaticClass());
-	UDamageRule* LightningOnGround = MakeDamageRule(this, "LightningOnGround", UDamageOperation_LightningOnGround::StaticClass());
-	UDamageRule* LightningInAir = MakeDamageRule(this, "LightningInAir", UDamageOperation_LightningInAir::StaticClass());
 
-	// ================================================================
-	// 第二阶段：设置 Condition（Predicate/Condition 双层）
-	// ================================================================
+	// ------------------------------------------------------------------
+	// Condition 装配
+	// ------------------------------------------------------------------
 
-	Guard->Condition = MakeAnd(this, {
-		MakeDamageCondition<UDamageCondition_IsGuard>(this),
-		MakeDamageCondition<UDamageCondition_LightningInAir>(this, true)
-	});
+	// Mixup: 无 Condition（始终触发，负责生产 FMixupEffect 供下游消费）
 
-	auto MakeHurtCondition = [this]() -> UDamagePredicate*
+	// Guard: 攻击是 Guard 类型（消费 FMixupEffect.bIsGuard）
+	Guard->Condition = MakeDamageCondition<UDamageCondition_IsGuard>(this);
+
+	// Hurt / Collapse: 不是 "Guard 成功" —— NOT(IsGuard AND GuardSuccess)
+	auto MakeNotGuardSuccessCondition = [this]() -> UDamagePredicate*
 	{
 		return MakeAnd(this, {
-			MakeAnd(this, {
-				MakeDamageCondition<UDamageCondition_IsGuard>(this),
-				MakeDamageCondition<UDamageCondition_GuardSuccess>(this)
-			}, true),
-			MakeDamageCondition<UDamageCondition_LightningInAir>(this, true)
-		});
+			MakeDamageCondition<UDamageCondition_IsGuard>(this),
+			MakeDamageCondition<UDamageCondition_GuardSuccess>(this)
+		}, /*bReverse=*/true);
 	};
+	Hurt->Condition     = MakeNotGuardSuccessCondition();
+	Collapse->Condition = MakeNotGuardSuccessCondition();
 
-	Death->Condition = MakeHurtCondition();
-	Collapse->Condition = MakeHurtCondition();
-	Hurt->Condition = MakeHurtCondition();
-	Toughness->Condition = MakeHurtCondition();
-	SuperArmor->Condition = MakeHurtCondition();
-
-	CollapseGuard->Condition = MakeAnd(this, {
-		MakeDamageCondition<UDamageCondition_GuardSuccess>(this),
-		MakeDamageCondition<UDamageCondition_GuardIsJustGuard>(this, true),
-		MakeDamageCondition<UDamageCondition_LightningInAir>(this, true)
-	});
-
+	// CollapseJustGuard: Guard 成功 且 是完美格挡
 	CollapseJustGuard->Condition = MakeAnd(this, {
 		MakeDamageCondition<UDamageCondition_GuardSuccess>(this),
-		MakeDamageCondition<UDamageCondition_GuardIsJustGuard>(this),
-		MakeDamageCondition<UDamageCondition_LightningInAir>(this, true)
+		MakeDamageCondition<UDamageCondition_GuardIsJustGuard>(this)
 	});
 
-	AttackerBound->Condition = MakeAnd(this, {
-		MakeDamageCondition<UDamageCondition_GuardSuccess>(this),
-		MakeDamageCondition<UDamageCondition_GuardIsJustGuard>(this),
-		MakeDamageCondition<UDamageCondition_LightningInAir>(this, true)
-	});
-
-	Poison->Condition = MakeDamageCondition<UDamageCondition_GuardIsJustGuard>(this, true);
-
-	LightningOnGround->Condition = MakeAnd(this, {
-		MakeDamageCondition<UDamageCondition_IsLightning>(this),
-		MakeDamageCondition<UDamageCondition_IsInAir>(this, true)
-	});
-
-	LightningInAir->Condition = MakeAnd(this, {
-		MakeDamageCondition<UDamageCondition_IsLightning>(this),
-		MakeDamageCondition<UDamageCondition_IsInAir>(this)
-	});
-
-	// ================================================================
+	// ------------------------------------------------------------------
 	// Build
-	// ================================================================
-
-	Pipeline->DamageRules = {
-		Mixup, Guard, Death, Collapse, Hurt,
-		CollapseGuard, CollapseJustGuard, AttackerBound,
-		Poison, Toughness, SuperArmor,
-		LightningOnGround, LightningInAir
-	};
+	// ------------------------------------------------------------------
+	Pipeline->DamageRules = { Mixup, Guard, Hurt, Collapse, CollapseJustGuard };
 
 	FPipelineSortResult SortResult = Pipeline->Build();
 
-	PrintToScreen(FString::Printf(TEXT("=== Sekiro MVP v4.7 Pipeline Built: %d Rules ==="), Pipeline->DamageRules.Num()), FColor::Cyan);
+	PrintToScreen(FString::Printf(TEXT("=== Sekiro MVP Pipeline Built: %d Rules ==="), Pipeline->DamageRules.Num()), FColor::Cyan);
 
 	FString SortOrder;
 	for (int32 i = 0; i < SortResult.SortedRules.Num(); i++)
@@ -187,14 +137,12 @@ void ADamagePipelineTestActor::BuildSekiroPipeline()
 void ADamagePipelineTestActor::RunAllScenarios()
 {
 	PrintToScreen(TEXT("========================================"), FColor::Cyan);
-	PrintToScreen(TEXT("  Running All 5 Sekiro Test Scenarios"), FColor::Cyan);
+	PrintToScreen(TEXT("  Running All 3 Sekiro Test Scenarios"), FColor::Cyan);
 	PrintToScreen(TEXT("========================================"), FColor::Cyan);
 
 	RunScenario_NormalHit();
 	RunScenario_Guard();
 	RunScenario_JustGuard();
-	RunScenario_LightningGround();
-	RunScenario_LightningInAir();
 }
 
 void ADamagePipelineTestActor::RunScenario(int32 ScenarioIndex)
@@ -204,10 +152,8 @@ void ADamagePipelineTestActor::RunScenario(int32 ScenarioIndex)
 	case 1: RunScenario_NormalHit(); break;
 	case 2: RunScenario_Guard(); break;
 	case 3: RunScenario_JustGuard(); break;
-	case 4: RunScenario_LightningGround(); break;
-	case 5: RunScenario_LightningInAir(); break;
 	default:
-		PrintToScreen(FString::Printf(TEXT("Invalid scenario: %d (use 1-5)"), ScenarioIndex), FColor::Red);
+		PrintToScreen(FString::Printf(TEXT("Invalid scenario: %d (use 1-3)"), ScenarioIndex), FColor::Red);
 		break;
 	}
 }
@@ -256,36 +202,6 @@ void ADamagePipelineTestActor::RunScenario_JustGuard()
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("3. JustGuard (Deflect)"), Context, Log);
-}
-
-void ADamagePipelineTestActor::RunScenario_LightningGround()
-{
-	Pipeline->ScenarioLabel = TEXT("4.LightningGround");
-	UDamageContext* Context = NewObject<UDamageContext>(this);
-	FSekiroAttackContext Atk;
-	Atk.bLightning = true;
-	Atk.bIsInAir = false;
-	Atk.DmgLevel = 3.0f;
-	Atk.CurrentHP = 100.0f;
-	UDamagePipelineResults::WriteEffect<FSekiroAttackContext>(Context, Atk);
-
-	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
-	PrintScenarioResult(TEXT("4. Lightning on Ground"), Context, Log);
-}
-
-void ADamagePipelineTestActor::RunScenario_LightningInAir()
-{
-	Pipeline->ScenarioLabel = TEXT("5.LightningInAir");
-	UDamageContext* Context = NewObject<UDamageContext>(this);
-	FSekiroAttackContext Atk;
-	Atk.bLightning = true;
-	Atk.bIsInAir = true;
-	Atk.DmgLevel = 3.0f;
-	Atk.CurrentHP = 100.0f;
-	UDamagePipelineResults::WriteEffect<FSekiroAttackContext>(Context, Atk);
-
-	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
-	PrintScenarioResult(TEXT("5. Lightning in Air"), Context, Log);
 }
 
 // ============================================================================

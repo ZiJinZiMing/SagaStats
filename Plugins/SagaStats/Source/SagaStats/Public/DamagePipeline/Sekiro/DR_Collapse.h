@@ -45,7 +45,7 @@ class SAGASTATS_API UDamageCondition_CollapseIsCollapse : public UDamageConditio
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetEffectType() const override { return FCollapseEffect::StaticStruct(); }
+	UDamageCondition_CollapseIsCollapse() { EffectType = FCollapseEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
@@ -58,7 +58,7 @@ class SAGASTATS_API UDamageCondition_CollapseGuardIsCollapse : public UDamageCon
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetEffectType() const override { return FCollapseGuardEffect::StaticStruct(); }
+	UDamageCondition_CollapseGuardIsCollapse() { EffectType = FCollapseGuardEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
@@ -71,8 +71,8 @@ class SAGASTATS_API UDamageOperation_Collapse : public UDamageOperationBase
 {
 	GENERATED_BODY()
 public:
+	UDamageOperation_Collapse() { EffectType = FCollapseEffect::StaticStruct(); }
 	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
-	virtual UScriptStruct* GetEffectType() const override { return FCollapseEffect::StaticStruct(); }
 };
 
 UCLASS(HideDropDown)
@@ -80,6 +80,6 @@ class SAGASTATS_API UDamageOperation_CollapseGuard : public UDamageOperationBase
 {
 	GENERATED_BODY()
 public:
+	UDamageOperation_CollapseGuard() { EffectType = FCollapseGuardEffect::StaticStruct(); }
 	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
-	virtual UScriptStruct* GetEffectType() const override { return FCollapseGuardEffect::StaticStruct(); }
 };

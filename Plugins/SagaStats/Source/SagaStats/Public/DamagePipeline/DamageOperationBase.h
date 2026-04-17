@@ -17,6 +17,29 @@
  *
  * Execute(Context, OutEffect) — 框架传入默认初始化的 OutEffect，Operation 只需填字段。
  * DamagePipeline 负责创建 OutEffect 和写入 Context。Operation 不感知 Context 写入。
+ *
+ * ============================================================================
+ * EffectType 声明：C++ / 蓝图 双路径（对齐 UDamageCondition_Effect 的模式）
+ * ============================================================================
+ *
+ * Operation 子类必须声明自己产出的 Effect 类型。C++ 和蓝图**路径对齐**——两者都通过
+ * "设置 EffectType 字段"表达；基类默认 GetEffectType() 读取字段。
+ *
+ * - **C++ 子类**（推荐，构造函数赋字段）：
+ *     UCLASS()
+ *     class UDamageOperation_Guard : public UDamageOperationBase
+ *     {
+ *         UDamageOperation_Guard() { EffectType = FGuardEffect::StaticStruct(); }
+ *         virtual void Execute_Implementation(UDamageContext* Ctx, FInstancedStruct& OutEffect) override;
+ *     };
+ *
+ * - **蓝图子类**：
+ *     右键菜单 "Damage Operation (Blueprint)" → 在 Class Defaults 里设置 `EffectType` 字段
+ *     → override Execute 事件。
+ *
+ * EffectType 字段在非 CDO 实例上**自动隐藏**（EditCondition="IsClassDefaultContext" +
+ * EditConditionHides）——防止在 DamageRule 装配时误改（EffectType 是类级属性，不是实例级）。
+ * 高级用法：override GetEffectType() 返回动态类型（罕见）。
  */
 UCLASS(Abstract, Blueprintable)
 class SAGASTATS_API UDamageOperationBase : public UObject
@@ -25,6 +48,11 @@ class SAGASTATS_API UDamageOperationBase : public UObject
 
 public:
 
+	/**
+	 * 本 Operation 产出的 Effect 类型。
+	 * C++ 子类：override 返回 `FXxxEffect::StaticStruct()`（推荐）。
+	 * 蓝图子类：不 override，在 Class Defaults 里设置 EffectType 字段，基类默认实现读取它。
+	 */
 	virtual UScriptStruct* GetEffectType() const { return EffectType; }
 
 	/**
@@ -50,7 +78,18 @@ public:
 	}
 
 protected:
-	/** 此 Operation 产出的 Effect 类型（蓝图子类在类默认值中设置；C++ 子类可 override） */
-	UPROPERTY(EditDefaultsOnly, Category = "DamageRule")
+	/**
+	 * 蓝图子类在 Blueprint Class Defaults 中设置；C++ 子类通过 override `GetEffectType()` 替代。
+	 *
+	 * 非 CDO 实例上通过 IsClassDefaultContext() + EditConditionHides 完全隐藏，
+	 * 防止在 DamageRule 装配 OperationClass 时把本字段当作实例级属性误改。
+	 */
+	UPROPERTY(EditAnywhere, Category = "DamageRule",
+		meta = (EditCondition = "IsClassDefaultContext", EditConditionHides))
 	UScriptStruct* EffectType = nullptr;
+
+private:
+	/** EditCondition 驱动函数：CDO/Archetype 返回 true → EffectType 可见可编辑；普通实例返回 false → 隐藏 */
+	UFUNCTION()
+	bool IsClassDefaultContext() const { return HasAnyFlags(RF_ClassDefaultObject | RF_ArchetypeObject); }
 };

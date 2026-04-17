@@ -39,7 +39,7 @@ class SAGASTATS_API UDamageCondition_IsGuard : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetEffectType() const override { return FMixupEffect::StaticStruct(); }
+	UDamageCondition_IsGuard() { EffectType = FMixupEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
@@ -48,7 +48,7 @@ class SAGASTATS_API UDamageCondition_IsJustGuard : public UDamageCondition_Effec
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetEffectType() const override { return FMixupEffect::StaticStruct(); }
+	UDamageCondition_IsJustGuard() { EffectType = FMixupEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
@@ -61,6 +61,6 @@ class SAGASTATS_API UDamageOperation_Mixup : public UDamageOperationBase
 {
 	GENERATED_BODY()
 public:
+	UDamageOperation_Mixup() { EffectType = FMixupEffect::StaticStruct(); }
 	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
-	virtual UScriptStruct* GetEffectType() const override { return FMixupEffect::StaticStruct(); }
 };

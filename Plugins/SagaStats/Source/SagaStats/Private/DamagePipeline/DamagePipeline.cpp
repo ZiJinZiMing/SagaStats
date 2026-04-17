@@ -442,8 +442,39 @@ void UDamagePipeline::ExportMermaidDAG(
 		if (FT) EffectTypeToProducer.Add(FT, Rule);
 	}
 
+	// ---- 构造多行 label 的 helper ----
+	// 在节点内多行 label 下，每行 pad 到相同 visual 字符数——配合 monospace 字体，
+	// Mermaid 默认居中对齐会让所有行 bounding box 等宽，文字视觉上从同一 X 左对齐。
+	// ASCII 树字符（├─ └─ │）的缩进层级因此能正确显示。
+	//
+	// Lines: TArray<TPair<Text, VisualLen>>
+	//   Text 可含 HTML 标签（<font> / <b>），VisualLen 是渲染字符数（不含标签）
+	auto BuildPaddedLabel = [](const TArray<TPair<FString, int32>>& Lines) -> FString
+	{
+		int32 MaxVL = 0;
+		for (const auto& L : Lines) MaxVL = FMath::Max(MaxVL, L.Value);
+
+		FString Out;
+		for (int32 i = 0; i < Lines.Num(); ++i)
+		{
+			if (i > 0) Out += TEXT("<br/>");
+			Out += Lines[i].Key;
+			const int32 Pad = MaxVL - Lines[i].Value;
+			for (int32 p = 0; p < Pad; ++p)
+			{
+				// U+00A0 NO-BREAK SPACE —— monospace 下占 1 字宽；
+				// 避免 Mermaid 把空格合并 / 把 &nbsp; 错误转义
+				Out += TEXT("\u00A0");
+			}
+		}
+		return Out;
+	};
+
 	// ---- 生成 Mermaid ----
 	FString M;
+
+	// 注入 monospace 字体（节点内 ASCII 树缩进需要等宽字符）
+	M += TEXT("%%{init: {'themeVariables': {'fontFamily': 'monospace'}}}%%\n");
 	M += TEXT("graph LR\n");
 
 	FString Label = ScenarioLabel.IsEmpty() ? TEXT("Damage Pipeline") : ScenarioLabel;
@@ -458,20 +489,24 @@ void UDamagePipeline::ExportMermaidDAG(
 	bool bHasInitialEffects = false;
 	if (Context)
 	{
-		FString InitLines;
+		TArray<TPair<FString, int32>> InitLines;
+		const FString HeaderText = TEXT("<b>DC Initial</b>");
+		const int32 HeaderVL = 10; // "DC Initial"
+		InitLines.Add({HeaderText, HeaderVL});
+
 		for (const auto& Pair : Context->GetAllDamageEffects())
 		{
 			if (!EffectTypeToProducer.Contains(Pair.Key))
 			{
-				if (!InitLines.IsEmpty()) InitLines += TEXT("<br/>");
 				FString TypeName = Pair.Key ? Pair.Key->GetName() : TEXT("null");
-				InitLines += FString::Printf(TEXT("[%s]"), *TypeName);
+				FString Line = FString::Printf(TEXT("[%s]"), *TypeName);
+				InitLines.Add({Line, Line.Len()});
 				bHasInitialEffects = true;
 			}
 		}
 		if (bHasInitialEffects)
 		{
-			M += FString::Printf(TEXT("    DC_Init[\"<b>DC Initial</b><br/>%s\"]:::initCtx\n\n"), *InitLines);
+			M += FString::Printf(TEXT("    DC_Init[\"%s\"]:::initCtx\n\n"), *BuildPaddedLabel(InitLines));
 		}
 	}
 
@@ -485,40 +520,64 @@ void UDamagePipeline::ExportMermaidDAG(
 		bool bExecuted = bExec ? *bExec : false;
 		FString StyleClass = bExecuted ? TEXT("exec") : TEXT("skip");
 
-		// Condition 文本：使用条件树的 GetDisplayString()
-		FString CondText = TEXT("(none)");
+		// 收集所有行到 (Text, VisualLen) 列表，最后 BuildPaddedLabel 统一 pad
+		TArray<TPair<FString, int32>> Lines;
+
+		// 标题行（格式与 Graph Editor 节点一致：1-based 序号 + RuleName）
+		{
+			FString Title = FString::Printf(TEXT("%d. %s"), i + 1, *Rule->GetName());
+			Lines.Add({Title, Title.Len()});
+		}
+
+		// Condition 行（可能多行 —— ASCII 树按 \n 拆）
 		if (Rule->Condition)
 		{
-			CondText = Rule->Condition->GetDisplayString();
-		}
-		CondText.ReplaceInline(TEXT("&&"), TEXT(" #amp;#amp; "));
-		CondText.ReplaceInline(TEXT("||"), TEXT(" #124;#124; "));
-		CondText.ReplaceInline(TEXT("\""), TEXT("#quot;"));
+			FString Raw = Rule->Condition->GetDisplayString();
+			Raw.ReplaceInline(TEXT("\""), TEXT("#quot;"));
 
-		// Produces 显示 Effect 类型名
-		FString ProducesText;
-		if (Rule->GetProducesEffectType())
-		{
-			FString TypeColor = RuleColorMap.FindRef(Rule->GetFName());
-			if (!TypeColor.IsEmpty())
+			TArray<FString> CondLines;
+			Raw.ParseIntoArray(CondLines, TEXT("\n"), /*CullEmpty=*/false);
+
+			for (int32 j = 0; j < CondLines.Num(); ++j)
 			{
-				ProducesText = FString::Printf(TEXT("<font color='%s'>#9632;</font> %s"),
-					*TypeColor, *Rule->GetProducesEffectType()->GetName());
-			}
-			else
-			{
-				ProducesText = Rule->GetProducesEffectType()->GetName();
+				// 首行加 "Cond: " 前缀，后续行加等宽空格让 ASCII 树缩进对齐
+				FString LineText = (j == 0 ? TEXT("Cond: ") : TEXT("      ")) + CondLines[j];
+				Lines.Add({LineText, LineText.Len()});
 			}
 		}
 		else
 		{
-			ProducesText = TEXT("(none)");
+			FString LineText = TEXT("Cond: (none)");
+			Lines.Add({LineText, LineText.Len()});
 		}
 
-		M += FString::Printf(
-			TEXT("    %s[\"%s #%d<br/>Cond: %s<br/>Produces:<br/>%s\"]:::%s\n"),
-			*Rule->GetName(), *Rule->GetName(), i,
-			*CondText, *ProducesText, *StyleClass);
+		// Produces: 行
+		{
+			FString T = TEXT("Produces:");
+			Lines.Add({T, T.Len()});
+		}
+
+		// Effect 行
+		{
+			FString ProdName = Rule->GetProducesEffectType()
+				? Rule->GetProducesEffectType()->GetName() : TEXT("(none)");
+			FString TypeColor = RuleColorMap.FindRef(Rule->GetFName());
+			if (!TypeColor.IsEmpty() && Rule->GetProducesEffectType())
+			{
+				// <font> 标签不计入 VisualLen；■ 占 1 字宽 + 空格 1 字宽
+				FString T = FString::Printf(TEXT("<font color='%s'>#9632;</font> %s"),
+					*TypeColor, *ProdName);
+				int32 VL = 1 /*■*/ + 1 /*space*/ + ProdName.Len();
+				Lines.Add({T, VL});
+			}
+			else
+			{
+				Lines.Add({ProdName, ProdName.Len()});
+			}
+		}
+
+		M += FString::Printf(TEXT("    %s[\"%s\"]:::%s\n"),
+			*Rule->GetName(), *BuildPaddedLabel(Lines), *StyleClass);
 	}
 
 	M += TEXT("\n");
@@ -596,28 +655,33 @@ void UDamagePipeline::ExportMermaidDAG(
 	// DC Final 节点（所有 DamageRule 产出的 Effect + 攻击上下文）
 	if (Context)
 	{
-		FString FinalLines;
+		TArray<TPair<FString, int32>> FinalLines;
+		FinalLines.Add({TEXT("<b>DC Final</b>"), 8 /* "DC Final" */});
+
 		for (const auto& Pair : Context->GetAllDamageEffects())
 		{
-			if (!FinalLines.IsEmpty()) FinalLines += TEXT("<br/>");
 			FString TypeName = Pair.Key ? Pair.Key->GetName() : TEXT("null");
 			// 查找产出此 Effect 的 DamageRule（攻击上下文无 producer）
+			FString Line;
 			if (const UDamageRule** Producer = EffectTypeToProducer.Find(Pair.Key))
 			{
-				FinalLines += FString::Printf(TEXT("%s: %s"), *(*Producer)->GetName(), *TypeName);
+				Line = FString::Printf(TEXT("%s: %s"), *(*Producer)->GetName(), *TypeName);
 			}
 			else
 			{
-				FinalLines += FString::Printf(TEXT("[ctx] %s"), *TypeName);
+				Line = FString::Printf(TEXT("[ctx] %s"), *TypeName);
 			}
+			FinalLines.Add({Line, Line.Len()});
 		}
-		if (!FinalLines.IsEmpty())
+
+		if (FinalLines.Num() > 1)
 		{
-			M += FString::Printf(TEXT("    DC_Final[\"<b>DC Final</b><br/>%s\"]:::finalCtx\n"), *FinalLines);
+			M += FString::Printf(TEXT("    DC_Final[\"%s\"]:::finalCtx\n"), *BuildPaddedLabel(FinalLines));
 		}
 		else
 		{
-			M += TEXT("    DC_Final[\"<b>DC Final</b><br/>(empty)\"]:::finalCtx\n");
+			FinalLines.Add({TEXT("(empty)"), 7});
+			M += FString::Printf(TEXT("    DC_Final[\"%s\"]:::finalCtx\n"), *BuildPaddedLabel(FinalLines));
 		}
 	}
 

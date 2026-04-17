@@ -39,7 +39,7 @@ class SAGASTATS_API UDamageCondition_GuardSuccess : public UDamageCondition_Effe
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetEffectType() const override { return FGuardEffect::StaticStruct(); }
+	UDamageCondition_GuardSuccess() { EffectType = FGuardEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
@@ -48,7 +48,7 @@ class SAGASTATS_API UDamageCondition_GuardIsJustGuard : public UDamageCondition_
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetEffectType() const override { return FGuardEffect::StaticStruct(); }
+	UDamageCondition_GuardIsJustGuard() { EffectType = FGuardEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override;
 };
 
@@ -61,6 +61,6 @@ class SAGASTATS_API UDamageOperation_Guard : public UDamageOperationBase
 {
 	GENERATED_BODY()
 public:
+	UDamageOperation_Guard() { EffectType = FGuardEffect::StaticStruct(); }
 	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
-	virtual UScriptStruct* GetEffectType() const override { return FGuardEffect::StaticStruct(); }
 };

@@ -22,17 +22,20 @@ class UDamageContext;
  * 基于 Effect 的条件原子。子类绑定一个 EffectType（声明 R5 产销依赖），
  * 框架在 Evaluate 前自动按 EffectType 从 DC 预取对应 Effect 传入。
  *
- * 子类写法（C++）：
+ * 子类写法（C++ 推荐，构造函数赋 EffectType 字段）：
  *   UCLASS()
  *   class UDamageCondition_IsLightning : public UDamageCondition_Effect
  *   {
- *       virtual UScriptStruct* GetEffectType() const override { return FSekiroAttackContext::StaticStruct(); }
+ *       UDamageCondition_IsLightning() { EffectType = FSekiroAttackContext::StaticStruct(); }
  *       virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& InEffect) const override;
  *   };
  *
  * 子类写法（蓝图）：
  *   通过右键菜单 "Damage Condition Effect (Blueprint)" 创建；
- *   在 Class Defaults 中填 EffectType；override Evaluate 事件。
+ *   在 Class Defaults 中填 EffectType 字段；override Evaluate 事件。
+ *
+ * C++ 和蓝图**路径对齐**：两者都通过"设置 EffectType 字段"表达。基类默认 GetEffectType()
+ * 读取字段。高级用法可 override GetEffectType() 返回动态类型（罕见）。
  *
  * 贡献 R5 产销依赖：Pipeline Build 时通过 GetEffectType() 加入依赖图。
  * 在 Graph 节点上：有输入 Pin + EffectType 色块。

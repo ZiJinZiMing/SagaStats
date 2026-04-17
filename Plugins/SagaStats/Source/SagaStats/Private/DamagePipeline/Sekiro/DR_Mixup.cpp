@@ -6,7 +6,7 @@
 
 // DR_Mixup.cpp — 猜拳判定机制实现
 #include "DamagePipeline/Sekiro/DR_Mixup.h"
-#include "DamagePipeline/Sekiro/DR_AttackContext.h"
+#include "DamagePipeline/Sekiro/SekiroAttackContext.h"
 
 // ============================================================================
 // Condition

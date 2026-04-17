@@ -14,8 +14,9 @@
 
 /**
  * 将此 Actor 放置在测试关卡中。
- * BeginPlay 时构建 Sekiro MVP Pipeline（13 个 DamageRule），
- * 运行多个测试场景，并在屏幕和日志中打印结果。
+ * BeginPlay 时构建 Sekiro MVP Pipeline（5 个 DamageRule：
+ *   Mixup / Guard / Hurt / Collapse / CollapseJustGuard），
+ * 运行 3 个测试场景（NormalHit / Guard / JustGuard），并在屏幕和日志中打印结果。
  */
 UCLASS(HideDropDown)
 class SAGASTATS_API ADamagePipelineTestActor : public AActor
@@ -52,6 +53,4 @@ private:
 	void RunScenario_NormalHit();
 	void RunScenario_Guard();
 	void RunScenario_JustGuard();
-	void RunScenario_LightningGround();
-	void RunScenario_LightningInAir();
 };

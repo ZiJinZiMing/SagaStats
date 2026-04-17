@@ -33,7 +33,7 @@ class SAGASTATS_API UDamageCondition_CollapseJustGuard : public UDamageCondition
 {
 	GENERATED_BODY()
 public:
-	virtual UScriptStruct* GetEffectType() const override { return FCollapseJustGuardEffect::StaticStruct(); }
+	UDamageCondition_CollapseJustGuard() { EffectType = FCollapseJustGuardEffect::StaticStruct(); }
 	virtual bool Evaluate_Implementation(const UDamageContext* Context, const FInstancedStruct& ConsumedEffect) const override { return ConsumedEffect.IsValid(); }
 };
 
@@ -46,6 +46,6 @@ class SAGASTATS_API UDamageOperation_CollapseJustGuard : public UDamageOperation
 {
 	GENERATED_BODY()
 public:
+	UDamageOperation_CollapseJustGuard() { EffectType = FCollapseJustGuardEffect::StaticStruct(); }
 	virtual void Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect) override;
-	virtual UScriptStruct* GetEffectType() const override { return FCollapseJustGuardEffect::StaticStruct(); }
 };
