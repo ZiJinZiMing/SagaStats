@@ -33,6 +33,17 @@ public:
 	// SGraphNode overrides
 	virtual void UpdateGraphNode() override;
 
+	/**
+	 * 返回 Pin 区的 Desired Height —— 节点内"左输入/右输出"SHorizontalBox 的高度。
+	 *
+	 * 用途：让 Y 方向布局只避让 Pin 区（因为连线的 R1 约束只要求 pin Y 唯一），
+	 * 表头区（Title + Condition + Description）可以在 Y 上和上一节点的下半区重叠。
+	 * 配合 X 方向阶梯，表头不会真的互相覆盖（X 不同）；整张图垂直紧凑度大幅提升。
+	 *
+	 * 调用前需先 SlatePrepass 以保证 DesiredSize 为真实值。
+	 */
+	float GetPinAreaDesiredHeight() const;
+
 private:
 	/** 取得 "1. RuleName" 标题文本（拓扑序号 1-based + Rule 名）*/
 	FText GetNodeTitle() const;
@@ -51,6 +62,9 @@ private:
 
 	/** Condition 区的 VBox 句柄——SAssignNew 绑定，PopulateConditionBox 往里追加行 */
 	TSharedPtr<class SVerticalBox> ConditionBox;
+
+	/** Pin 区的 HBox 句柄——SAssignNew 绑定，GetPinAreaDesiredHeight 查询其 DesiredSize.Y */
+	TSharedPtr<class SHorizontalBox> PinAreaBox;
 };
 
 /**

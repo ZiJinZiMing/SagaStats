@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
 #include "DamagePipeline/DamageOperationBase.h"
-#include "DamagePipeline/DamageCondition.h"
+#include "DamagePipeline/DamageCondition_Effect.h"
 #include "DamagePipeline/DamageContext.h"
 #include "DR_Hurt.generated.h"
 
@@ -32,7 +32,7 @@ struct SAGASTATS_API FHurtEffect
 // ============================================================================
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsHurt"))
-class SAGASTATS_API UDamageCondition_IsHurt : public UDamageCondition
+class SAGASTATS_API UDamageCondition_IsHurt : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:

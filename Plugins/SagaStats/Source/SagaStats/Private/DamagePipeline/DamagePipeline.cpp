@@ -7,6 +7,7 @@
 // DamagePipeline.cpp — 自洽的 Pipeline：拓扑排序烘焙 + 执行 + Mermaid DAG 导出
 #include "DamagePipeline/DamagePipeline.h"
 #include "DamagePipeline/DamageCondition.h"
+#include "DamagePipeline/DamageCondition_Effect.h"
 #include "DamagePipeline/DamageContext.h"
 #include "SagaStatsLog.h"
 #include "Misc/FileHelper.h"
@@ -237,16 +238,19 @@ Build()
 		}
 
 		// 校验 Condition 树中所有叶子的 EffectType
+		// - _Effect 子类：必须配置 EffectType（R5 产销依赖）
+		// - _Context 子类：不要求 EffectType（设计上就不贡献产销依赖）
 		if (Rule->Condition)
 		{
 			TArray<const UDamageCondition*> Leaves;
 			CollectLeafConditions(Rule->Condition, Leaves);
 			for (const UDamageCondition* Cond : Leaves)
 			{
-				if (!Cond->GetEffectType())
+				const UDamageCondition_Effect* EffectCond = Cast<UDamageCondition_Effect>(Cond);
+				if (EffectCond && !EffectCond->GetEffectType())
 				{
 					UE_LOG(LogSagaStats, Error,
-						TEXT("Pipeline Build 校验失败: DamageRule [%s] 的 Condition [%s] 未配置 EffectType"),
+						TEXT("Pipeline Build 校验失败: DamageRule [%s] 的 Condition_Effect [%s] 未配置 EffectType"),
 						*Rule->GetName(), *Cond->GetClass()->GetName());
 					bValidationFailed = true;
 				}

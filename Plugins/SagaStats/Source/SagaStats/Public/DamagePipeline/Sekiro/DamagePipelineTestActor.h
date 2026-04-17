@@ -37,9 +37,6 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "DamageRule Test")
 	void RunAllScenarios();
 
-
-	UPROPERTY(EditAnywhere)
-	UScriptStruct* EffectType;  
 protected:
 	virtual void BeginPlay() override;
 

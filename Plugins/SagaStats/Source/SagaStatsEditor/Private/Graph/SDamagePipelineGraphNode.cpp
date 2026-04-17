@@ -101,10 +101,12 @@ void SDamagePipelineGraphNode::UpdateGraphNode()
 				// --- Pin area ---
 				// 左右两列都用 AutoWidth，中间 FillWidth spacer 拉开。
 				// 这样 pin 的真实宽度会通过 desired size 向上传，撑开整个节点。
+				// PinAreaBox 句柄用于 Layout 阶段只避让"Pin 区"而非整个节点——
+				// 表头可以在 Y 上和上一节点下半区重叠（详见 GetPinAreaDesiredHeight 注释）。
 				+ SVerticalBox::Slot()
 				.AutoHeight()
 				[
-					SNew(SHorizontalBox)
+					SAssignNew(PinAreaBox, SHorizontalBox)
 
 					+ SHorizontalBox::Slot()
 					.AutoWidth()
@@ -237,6 +239,11 @@ EVisibility SDamagePipelineGraphNode::GetDescriptionVisibility() const
 		return EVisibility::Visible;
 	}
 	return EVisibility::Collapsed;
+}
+
+float SDamagePipelineGraphNode::GetPinAreaDesiredHeight() const
+{
+	return PinAreaBox.IsValid() ? PinAreaBox->GetDesiredSize().Y : 0.f;
 }
 
 // ---------------------------------------------------------------------

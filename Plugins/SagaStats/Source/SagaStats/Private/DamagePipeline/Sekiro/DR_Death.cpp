@@ -24,7 +24,7 @@ bool UDamageCondition_IsDead::Evaluate_Implementation(const UDamageContext* Cont
 
 void UDamageOperation_Death::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)
 {
-	const FSekiroAttackContext* Atk = Context->GetEffect<FSekiroAttackContext>();
+	const FSekiroAttackContext* Atk = ReadEffect<FSekiroAttackContext>(Context);
 	FDeathEffect Result;
 	if (Atk)
 	{

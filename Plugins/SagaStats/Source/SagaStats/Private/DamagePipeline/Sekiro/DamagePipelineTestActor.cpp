@@ -8,7 +8,9 @@
 #include "DamagePipeline/Sekiro/DamagePipelineTestActor.h"
 #include "DamagePipeline/DamageContext.h"
 #include "DamagePipeline/DamageCondition.h"
+#include "DamagePipeline/DamageCondition_Effect.h"
 #include "DamagePipeline/DamagePredicate.h"
+#include "DamagePipeline/DamagePipelineResults.h"
 
 // 引入所有只狼 DamageRule（每个文件包含 Effect + Condition + Operation）
 #include "DamagePipeline/Sekiro/DR_AttackContext.h"
@@ -221,7 +223,7 @@ void ADamagePipelineTestActor::RunScenario_NormalHit()
 	FSekiroAttackContext Atk;
 	Atk.DmgLevel = 3.0f;
 	Atk.CurrentHP = 100.0f;
-	Context->SetEffect<FSekiroAttackContext>(Atk);
+	UDamagePipelineResults::WriteEffect<FSekiroAttackContext>(Context, Atk);
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("1. Normal Slash Hit"), Context, Log);
@@ -235,7 +237,7 @@ void ADamagePipelineTestActor::RunScenario_Guard()
 	Atk.DmgLevel = 3.0f;
 	Atk.GuardLevel = 3.0f;
 	Atk.CurrentHP = 100.0f;
-	Context->SetEffect<FSekiroAttackContext>(Atk);
+	UDamagePipelineResults::WriteEffect<FSekiroAttackContext>(Context, Atk);
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("2. Guard (non-JustGuard)"), Context, Log);
@@ -250,7 +252,7 @@ void ADamagePipelineTestActor::RunScenario_JustGuard()
 	Atk.GuardLevel = 5.0f;
 	Atk.CurrentHP = 100.0f;
 	Atk.bIsPlayer = true;
-	Context->SetEffect<FSekiroAttackContext>(Atk);
+	UDamagePipelineResults::WriteEffect<FSekiroAttackContext>(Context, Atk);
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("3. JustGuard (Deflect)"), Context, Log);
@@ -265,7 +267,7 @@ void ADamagePipelineTestActor::RunScenario_LightningGround()
 	Atk.bIsInAir = false;
 	Atk.DmgLevel = 3.0f;
 	Atk.CurrentHP = 100.0f;
-	Context->SetEffect<FSekiroAttackContext>(Atk);
+	UDamagePipelineResults::WriteEffect<FSekiroAttackContext>(Context, Atk);
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("4. Lightning on Ground"), Context, Log);
@@ -280,7 +282,7 @@ void ADamagePipelineTestActor::RunScenario_LightningInAir()
 	Atk.bIsInAir = true;
 	Atk.DmgLevel = 3.0f;
 	Atk.CurrentHP = 100.0f;
-	Context->SetEffect<FSekiroAttackContext>(Atk);
+	UDamagePipelineResults::WriteEffect<FSekiroAttackContext>(Context, Atk);
 
 	TArray<FRuleExecutionEntry> Log = Pipeline->Execute(Context);
 	PrintScenarioResult(TEXT("5. Lightning in Air"), Context, Log);
@@ -310,7 +312,7 @@ void ADamagePipelineTestActor::PrintScenarioResult(
 	}
 
 	PrintToScreen(TEXT("  Context DamageEffects:"), FColor::Yellow);
-	for (const auto& Pair : Context->GetAllDamageEffects())
+	for (const auto& Pair : UDamagePipelineResults::GetAllEffects(Context))
 	{
 		FString TypeName = Pair.Key ? Pair.Key->GetName() : TEXT("null");
 		PrintToScreen(FString::Printf(TEXT("    [%s]"), *TypeName), FColor::Green);

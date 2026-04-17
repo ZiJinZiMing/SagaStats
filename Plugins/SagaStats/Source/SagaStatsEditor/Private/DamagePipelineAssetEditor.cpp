@@ -18,6 +18,7 @@
 #include "GraphEditor.h"
 #include "SGraphPanel.h"
 #include "SGraphNode.h"
+#include "Graph/SDamagePipelineGraphNode.h"
 #include "Graph/DamagePipelineLayoutConstants.h"
 #include "PropertyEditorModule.h"
 #include "Widgets/Docking/SDockTab.h"
@@ -351,9 +352,18 @@ bool FDamagePipelineAssetEditor::ApplyRealSizeLayoutCorrection()
 	}
 
 	// 单遍遍历：用真实 width/height 同时累积 X 和 Y
-	// 阶梯布局不变——每个节点 Y 单调递增，保证每个 Pin 全局唯一 Y
+	//
+	// X 方向：阶梯排列，等于上一节点真实宽度 + BaseGap + 下一节点输入通道区
+	// Y 方向：**只避让 Pin 区**，表头区允许和上一节点下半区在 Y 上重叠——
+	//   因为连线的 R1 约束只要求 Pin 的 Y 唯一，表头 Y 重叠不影响连线。
+	//   配合 X 方向阶梯（节点 X 不同），表头不会真的视觉覆盖。
+	//
+	// 反推公式：
+	//   下一节点 PinArea 顶 = 上一节点 PinArea 底 + Gap
+	//   下一节点 NodePosY   = 下一节点 PinArea 顶 - 下一节点 HeaderHeight
+	//                       = 下一节点 PinArea 顶 - (下一节点 TotalH - 下一节点 PinAreaH)
 	double CurX = 0.0;
-	double CurY = 0.0;
+	double PrevPinAreaBottom = 0.0;
 	bool bAnyChanged = false;
 	for (int32 i = 0; i < SortedNodes.Num(); ++i)
 	{
@@ -362,8 +372,30 @@ bool FDamagePipelineAssetEditor::ApplyRealSizeLayoutCorrection()
 		const float RealW = FMath::Max(DesiredSize.X, 50.f);
 		const float RealH = FMath::Max(DesiredSize.Y, 50.f);
 
+		// Pin 区高度（从 SDamagePipelineGraphNode 查询）；查询失败时回退到整节点高度（等价于原"避让整节点"行为）
+		TSharedPtr<SDamagePipelineGraphNode> DPWidget =
+			StaticCastSharedPtr<SDamagePipelineGraphNode>(Widgets[i]);
+		const float MyPinAreaH = DPWidget.IsValid()
+			? DPWidget->GetPinAreaDesiredHeight()
+			: RealH;
+		const float MyHeaderH = FMath::Max(0.f, RealH - MyPinAreaH);
+
+		// Y 计算
+		double MyPinAreaTop;
+		double MyNodeTop;
+		if (i == 0)
+		{
+			MyNodeTop = 0.0;
+			MyPinAreaTop = MyHeaderH;
+		}
+		else
+		{
+			MyPinAreaTop = PrevPinAreaBottom + DamagePipelineLayoutConstants::GapBetweenNodesY;
+			MyNodeTop = MyPinAreaTop - MyHeaderH;
+		}
+
 		const int32 NewX = FMath::RoundToInt(CurX);
-		const int32 NewY = FMath::RoundToInt(CurY);
+		const int32 NewY = FMath::RoundToInt(MyNodeTop);
 		if (Node->NodePosX != NewX || Node->NodePosY != NewY)
 		{
 			Node->NodePosX = NewX;
@@ -371,8 +403,8 @@ bool FDamagePipelineAssetEditor::ApplyRealSizeLayoutCorrection()
 			bAnyChanged = true;
 		}
 
-		// Y：累加真实高度 + 固定间距
-		CurY += RealH + DamagePipelineLayoutConstants::GapBetweenNodesY;
+		// 更新 PrevPinAreaBottom 供下一节点使用
+		PrevPinAreaBottom = MyPinAreaTop + MyPinAreaH;
 
 		// X：累加真实宽度 + BaseGap + 下一节点需要的输入通道区
 		const int32 NextInputCount = InputCounts.IsValidIndex(i + 1) ? InputCounts[i + 1] : 0;

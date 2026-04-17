@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
 #include "DamagePipeline/DamageOperationBase.h"
-#include "DamagePipeline/DamageCondition.h"
+#include "DamagePipeline/DamageCondition_Effect.h"
 #include "DamagePipeline/DamageContext.h"
 #include "DR_Guard.generated.h"
 
@@ -35,7 +35,7 @@ struct SAGASTATS_API FGuardEffect
 // ============================================================================
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "GuardSuccess"))
-class SAGASTATS_API UDamageCondition_GuardSuccess : public UDamageCondition
+class SAGASTATS_API UDamageCondition_GuardSuccess : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:
@@ -44,7 +44,7 @@ public:
 };
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "GuardIsJustGuard"))
-class SAGASTATS_API UDamageCondition_GuardIsJustGuard : public UDamageCondition
+class SAGASTATS_API UDamageCondition_GuardIsJustGuard : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:

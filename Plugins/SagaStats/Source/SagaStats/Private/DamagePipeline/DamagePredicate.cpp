@@ -92,7 +92,17 @@ bool UDamagePredicate_Single::Evaluate(const UDamageContext* Context) const
 
 TArray<UScriptStruct*> UDamagePredicate_Single::GetDependencyEffectTypes() const
 {
-	if (Condition) return {Condition->GetEffectType()};
+	// Condition 子类分两类：
+	//   _Effect 子类：GetEffectType 返回具体类型 → 贡献 R5 产销依赖
+	//   _Context 子类：不 override，基类默认返回 nullptr → 不贡献依赖
+	// 过滤 nullptr 避免上游（Pipeline Build、Graph Pin 创建）拿 null 崩溃。
+	if (Condition)
+	{
+		if (UScriptStruct* Type = Condition->GetEffectType())
+		{
+			return {Type};
+		}
+	}
 	return {};
 }
 

@@ -4,26 +4,26 @@
 * Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
 ****************************************************************************************************************/
 
-// DamageConditionBlueprintFactory.cpp — Effect 版 Condition 蓝图工厂
-#include "AssetTypes/DamageConditionBlueprintFactory.h"
+// DamageConditionContextBlueprintFactory.cpp — Context 版 Condition 蓝图工厂
+#include "AssetTypes/DamageConditionContextBlueprintFactory.h"
 #include "SagaStatsEditor.h"
-#include "DamagePipeline/DamageCondition_Effect.h"
+#include "DamagePipeline/DamageCondition_Context.h"
 #include "Kismet2/KismetEditorUtilities.h"
 #include "Engine/Blueprint.h"
 #include "Engine/BlueprintGeneratedClass.h"
 
-#define LOCTEXT_NAMESPACE "DamageConditionBlueprintFactory"
+#define LOCTEXT_NAMESPACE "DamageConditionContextBlueprintFactory"
 
-UDamageConditionBlueprintFactory::UDamageConditionBlueprintFactory()
+UDamageConditionContextBlueprintFactory::UDamageConditionContextBlueprintFactory()
 {
 	bCreateNew = true;
 	bEditAfterNew = true;
 	SupportedClass = UBlueprint::StaticClass();
 }
 
-UObject* UDamageConditionBlueprintFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
+UObject* UDamageConditionContextBlueprintFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, FName InName, EObjectFlags Flags, UObject* Context, FFeedbackContext* Warn)
 {
-	UClass* ParentClass = UDamageCondition_Effect::StaticClass();
+	UClass* ParentClass = UDamageCondition_Context::StaticClass();
 	if (!FKismetEditorUtilities::CanCreateBlueprintOfClass(ParentClass))
 	{
 		return nullptr;
@@ -39,14 +39,14 @@ UObject* UDamageConditionBlueprintFactory::FactoryCreateNew(UClass* InClass, UOb
 		NAME_None);
 }
 
-uint32 UDamageConditionBlueprintFactory::GetMenuCategories() const
+uint32 UDamageConditionContextBlueprintFactory::GetMenuCategories() const
 {
 	return FSagaStatsEditorModule::Get().GetDamagePipelineAssetCategory();
 }
 
-FText UDamageConditionBlueprintFactory::GetDisplayName() const
+FText UDamageConditionContextBlueprintFactory::GetDisplayName() const
 {
-	return LOCTEXT("DamageConditionEffectBlueprintFactoryDisplayName", "Damage Condition Effect (Blueprint)");
+	return LOCTEXT("DamageConditionContextBlueprintFactoryDisplayName", "Damage Condition Context (Blueprint)");
 }
 
 #undef LOCTEXT_NAMESPACE

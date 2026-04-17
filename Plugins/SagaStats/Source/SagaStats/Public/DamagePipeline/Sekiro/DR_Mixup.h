@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
 #include "DamagePipeline/DamageOperationBase.h"
-#include "DamagePipeline/DamageCondition.h"
+#include "DamagePipeline/DamageCondition_Effect.h"
 #include "DamagePipeline/DamageContext.h"
 #include "DR_Mixup.generated.h"
 
@@ -35,7 +35,7 @@ struct SAGASTATS_API FMixupEffect
 // ============================================================================
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsGuard"))
-class SAGASTATS_API UDamageCondition_IsGuard : public UDamageCondition
+class SAGASTATS_API UDamageCondition_IsGuard : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:
@@ -44,7 +44,7 @@ public:
 };
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsJustGuard"))
-class SAGASTATS_API UDamageCondition_IsJustGuard : public UDamageCondition
+class SAGASTATS_API UDamageCondition_IsJustGuard : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:

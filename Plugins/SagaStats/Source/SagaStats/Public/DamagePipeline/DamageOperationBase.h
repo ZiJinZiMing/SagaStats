@@ -9,9 +9,8 @@
 
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
+#include "DamagePipeline/DamageContext.h"
 #include "DamageOperationBase.generated.h"
-
-class UDamageContext;
 
 /**
  * UDamageOperationBase — DamageOperation 逻辑的抽象基类。
@@ -37,7 +36,19 @@ public:
 	void Execute(UDamageContext* Context, UPARAM(ref) FInstancedStruct& OutEffect);
 
 	virtual void Execute_Implementation(UDamageContext* Context, UPARAM(ref) FInstancedStruct& OutEffect) {}
-	
+
+	/**
+	 * 子类读取上游 Effect 的便利接口。基类是 UDamageContext 的 friend，能访问 protected GetEffect。
+	 *
+	 * 注意：本接口**不做 R5 产销依赖校验**——Operation 目前可读任意 Effect 而不声明依赖（已知漏洞）。
+	 * R5 强制留到后续：Operation 侧需要引入 ConsumesEffectTypes 声明 + Build 时校验。
+	 */
+	template<typename T>
+	static const T* ReadEffect(const UDamageContext* Context)
+	{
+		return Context ? Context->GetEffect<T>() : nullptr;
+	}
+
 protected:
 	/** 此 Operation 产出的 Effect 类型（蓝图子类在类默认值中设置；C++ 子类可 override） */
 	UPROPERTY(EditDefaultsOnly, Category = "DamageRule")

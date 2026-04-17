@@ -30,7 +30,7 @@ bool UDamageCondition_IsJustGuard::Evaluate_Implementation(const UDamageContext*
 
 void UDamageOperation_Mixup::Execute_Implementation(UDamageContext* Context, FInstancedStruct& OutEffect)
 {
-	const FSekiroAttackContext* Atk = Context->GetEffect<FSekiroAttackContext>();
+	const FSekiroAttackContext* Atk = ReadEffect<FSekiroAttackContext>(Context);
 	FMixupEffect Result;
 	if (Atk)
 	{

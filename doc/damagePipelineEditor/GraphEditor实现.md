@@ -1,10 +1,13 @@
 # DamagePipeline Graph Editor — 实现原理与代码清单
 
+> ⚠️ **本文档是 L4 工具层实现细节**，不是 DSL 本体。
+> 核心领域模型（DamageRule / DamageEffect / DamageCondition / DamageContext）见 [`../damagePipeline/`](../damagePipeline/)。
+
 > **一句话本质**：DamagePipeline 的 Graph 编辑器是一套**只读 DAG 可视化器**，核心命题是"让 Rule → Effect → Rule 的产销关系一眼可读"。实现上的关键发明是**阶梯 Y + 通道 X 的双重唯一性布局**——通过在**布局层**保证每个 Pin 的 Y 和每条边的垂直段 X 都在全图唯一，**按构造**消除 wire-wire 和 wire-node 的所有叠加冲突，而不是用事后的避让启发式去打补丁。
 
-**文档日期**：2026-04-15
+**文档日期**：2026-04-15（2026-04-17 迁移到本目录）
 **关联模块**：`Plugins/SagaStats/Source/SagaStatsEditor/` 下的 Graph/\* 子目录
-**前置阅读**：`README.md`（DamagePipeline 设计哲学）、`架构设计.md`（运行时模型）
+**前置阅读**：[`../damagePipeline/README.md`](../damagePipeline/README.md)（DamagePipeline 设计哲学）、[`../damagePipeline/架构设计.md`](../damagePipeline/架构设计.md)（运行时模型）
 
 ---
 
@@ -24,10 +27,18 @@
 
 **布局公式**（Slate 真实尺寸驱动，在 `FDamagePipelineAssetEditor::ApplyRealSizeLayoutCorrection` 中执行）：
 ```
-X[i+1] = X[i] + RealNodeWidth[i] + BaseGap + InputPinCount[i+1] × ChannelWidth
-Y[i+1] = Y[i] + RealNodeHeight[i] + GapBetweenNodesY
+X 方向（等宽节点接续 + 通道区）：
+  X[i+1] = X[i] + RealNodeWidth[i] + BaseGap + InputPinCount[i+1] × ChannelWidth
+
+Y 方向（第 5 代：PinArea 接续，表头允许 Y 重叠）：
+  PinAreaTop[i+1]  = PinAreaBottom[i] + GapBetweenNodesY
+  NodeTop[i+1]     = PinAreaTop[i+1] - HeaderHeight[i+1]
+                   = PinAreaTop[i+1] - (RealNodeHeight[i+1] - PinAreaHeight[i+1])
+
+  其中 PinAreaHeight 由 SDamagePipelineGraphNode::GetPinAreaDesiredHeight() 给出
+  （查询 Pin 区 SHorizontalBox 的 DesiredSize.Y）
 ```
-节点的真实 width/height 由 Slate `GetDesiredSize()` 提供，不再使用估算值。
+节点的真实 width/height 由 Slate `GetDesiredSize()` 提供。Y 方向**只避让 Pin 区**（连线 R1 约束只要求 pin Y 唯一），**表头区在 Y 上和上一节点下半区重叠**——配合 X 方向阶梯，节点的表头不会真的视觉覆盖；整张图垂直紧凑度大幅提升（节点数越多效果越明显）。
 
 ### 样式常量
 
@@ -61,8 +72,8 @@ Y[i+1] = Y[i] + RealNodeHeight[i] + GapBetweenNodesY
 ## 文档导航
 
 本文只讲"如何把运行时 DAG 画成一张易读的图"。如果你想知道：
-- DamageRule / DamageContext / DamagePipeline 的运行时语义 → `架构设计.md`
-- 各核心术语（Rule/Effect/Operation/Predicate）→ `术语速查表.md`
+- DamageRule / DamageContext / DamagePipeline 的运行时语义 → [`../damagePipeline/架构设计.md`](../damagePipeline/架构设计.md)
+- 各核心术语（Rule/Effect/Operation/Predicate）→ [`../damagePipeline/术语速查表.md`](../damagePipeline/术语速查表.md)
 
 ---
 
@@ -171,7 +182,7 @@ NodeX[k] = NodeX[k-1] + NodeWidth + BaseGap + InputCount[k] × ChannelWidth
 
 ### 决策 4：按 EffectType 配色
 
-连线颜色直接来自输出 Pin 的 `PinType.PinSubCategoryObject`（UScriptStruct*），通过 `Schema->GetPinTypeColor` 查 12 色 mmd 调色板，按 `GetTypeHash(TypeObj->GetName())` 取色——**跨会话稳定**。`DE_Mixup` 永远是粉色，`DE_Guard` 永远是蓝色。
+连线颜色直接来自输出 Pin 的 `PinType.PinSubCategoryObject`（UScriptStruct\*），通过 `Schema->GetPinTypeColor` 查 12 色 mmd 调色板，按 `GetTypeHash(TypeObj->GetName())` 取色——**跨会话稳定**。`DE_Mixup` 永远是粉色，`DE_Guard` 永远是蓝色。
 
 ---
 
@@ -186,7 +197,7 @@ graph LR
     Graph -->|Schema| Schema[UDamagePipelineGraphSchema<br/>UEdGraphSchema 子类]
     Graph -->|节点| Node[UDamagePipelineGraphNode<br/>UEdGraphNode 子类]
     Schema -->|连线策略| DrawingPolicy[FDamagePipelineConnectionDrawingPolicy<br/>FConnectionDrawingPolicy 子类]
-    Graph -->|布局调用| LayoutEngine[FDamagePipelineLayoutEngine<br/>静态工具类]
+    AssetEditor -->|真实尺寸布局| RealSizeLayout[ApplyRealSizeLayoutCorrection<br/>Slate DesiredSize 驱动]
     Node -->|Slate 外观| SNode[SDamagePipelineGraphNode<br/>SGraphNode 子类]
 ```
 
@@ -194,12 +205,11 @@ graph LR
 
 | 类 | 路径 | 继承 | 职责 |
 |---|---|---|---|
-| `UDamagePipelineGraph` | `Public/Graph/DamagePipelineGraph.h` | `UEdGraph` | 只读 DAG 容器。`RebuildGraph(Pipeline)` 是主入口，按拓扑序创建节点、连 Pin、跑布局引擎 |
+| `UDamagePipelineGraph` | `Public/Graph/DamagePipelineGraph.h` | `UEdGraph` | 只读 DAG 容器。`RebuildGraph(Pipeline)` 创建节点+连 Pin；位置(0,0)由 AssetEditor 的真实尺寸布局覆盖 |
 | `UDamagePipelineGraphNode` | `Public/Graph/DamagePipelineGraphNode.h` | `UEdGraphNode` | 持有 `TWeakObjectPtr<UDamageRule> Rule` + `SortIndex`；`AllocateDefaultPins` 从 Rule 拿 Produces/Consumes 建 Pin |
 | `UDamagePipelineGraphSchema` | `Public/Graph/DamagePipelineGraphSchema.h` | `UEdGraphSchema` | 只读 Schema：禁手动连线、按类型配色、挂接自定义 DrawingPolicy |
 | `FDamagePipelineConnectionDrawingPolicy` | `Private/Graph/DamagePipelineConnectionDrawingPolicy.h` | `FConnectionDrawingPolicy` | 每帧捕获节点矩形，用 DropX 公式画 3 段 Manhattan |
-| `FDamagePipelineLayoutEngine` | `Private/Graph/DamagePipelineLayoutEngine.h` | 静态工具类 | 阶梯+通道布局算法。输入 PinCounts → 输出 NodePositions |
-| `SDamagePipelineGraphNode` | `Private/Graph/SDamagePipelineGraphNode.h` | `SGraphNode` | 节点的 Slate 外观（标题、Cond 文本、Produces 标注） |
+| `SDamagePipelineGraphNode` | `Private/Graph/SDamagePipelineGraphNode.h` | `SGraphNode` | 节点的 Slate 外观（标题、Condition ASCII 树 + 色块、Description） |
 
 ### 关键函数与数据流
 
@@ -218,44 +228,39 @@ graph LR
    按 SortedRules 顺序 NewObject UDamagePipelineGraphNode
    SetupNode(Rule, Index) + AllocateDefaultPins + AddNode
    同时构造 ProducerMap: UScriptStruct* → Node
+   节点位置统一设为 (0, 0)——真实位置由 AssetEditor 的 ApplyRealSizeLayoutCorrection 用 Slate DesiredSize 计算
 
 4. Create connections
    遍历每个 Consumer 的 Input Pin，按 PinName 匹配 Producer 的 Output Pin，MakeLinkTo
 
-5. 阶梯 + 通道布局
-   收集 TotalPinCounts / InputPinCounts（来自 Node->Pins 遍历）
-   调用 FDamagePipelineLayoutEngine::Compute
-   把 Output.RuleNodePositions 写回 Node->NodePosX/Y
+5. 等待 AssetEditor 一帧后调用 ApplyRealSizeLayoutCorrection
+   通过 FTSTicker 注册 one-shot 回调，等 Slate widget 就绪后用真实 DesiredSize 算最终 NodePosX/Y
 ```
 
-#### 布局：`FDamagePipelineLayoutEngine::Compute(Input)`
+#### 布局：`FDamagePipelineAssetEditor::ApplyRealSizeLayoutCorrection`
 
-`Private/Graph/DamagePipelineLayoutEngine.cpp` — 纯函数，无外部依赖。完整算法 ~25 行：
+`Private/DamagePipelineAssetEditor.cpp` — Slate 真实尺寸驱动的布局。通过 `SGraphPanel::GetNodeWidgetFromGuid` 查节点 Slate widget，调 `SlatePrepass(1.0f)` 强制 DesiredSize 缓存，然后逐节点按公式累加 X/Y：
 
 ```cpp
-for (int32 i = 0; i < RuleCount; ++i)
+double CurX = 0.0, CurY = 0.0;
+for (int32 i = 0; i < SortedNodes.Num(); ++i)
 {
-    RuleNodePositions[i] = FVector2D(CurX, CurY);
-
-    // Y 累积：阶梯
-    CurY += HeaderPadding + TotalPinCounts[i] × PinRowHeight + BottomPadding + GapBetweenNodesY;
-
-    // X 累积：下一个节点的输入通道数决定 gap
-    if (i + 1 < RuleCount)
-    {
-        CurX += NodeWidth + BaseGap + InputPinCounts[i+1] × ChannelWidth;
-    }
+    const FVector2f DesiredSize = Widgets[i]->GetDesiredSize();
+    const float RealW = FMath::Max(DesiredSize.X, 50.f);
+    const float RealH = FMath::Max(DesiredSize.Y, 50.f);
+    Node->NodePosX = FMath::RoundToInt(CurX);
+    Node->NodePosY = FMath::RoundToInt(CurY);
+    CurY += RealH + DamagePipelineLayoutConstants::GapBetweenNodesY;
+    const int32 NextInputCount = InputCounts.IsValidIndex(i + 1) ? InputCounts[i + 1] : 0;
+    CurX += RealW + DamagePipelineLayoutConstants::BaseGap
+          + (double)NextInputCount * (double)DamagePipelineLayoutConstants::ChannelWidth;
 }
 ```
 
-常量定义（`DamagePipelineLayoutConstants` 命名空间）：
-- `ChannelWidth = 20px` — 每条输入通道宽度
-- `NodeWidth = 320px` — 节点宽度估计值（仅用于 X 累积占位；实际 DropX 用 Slate 实测矩形）
-- `BaseGap = 50px` — 节点之间最小 X gap
-- `PinRowHeight = 40px` — Pin 行高度
-- `HeaderPadding = 60px` — 节点顶部留白
-- `BottomPadding = 30px` — 节点底部留白
-- `GapBetweenNodesY = 40px` — 节点 Y 方向间距
+常量定义（`DamagePipelineLayoutConstants` 命名空间，`Private/Graph/DamagePipelineLayoutConstants.h`）：
+- `BaseGap = 20.f` — 节点之间 X 基础 gap
+- `ChannelWidth = 12.f` — 每条输入通道宽度
+- `GapBetweenNodesY = 10.f` — 节点 Y 间距
 
 #### 挂接：`UDamagePipelineGraphSchema::CreateConnectionDrawingPolicy`
 
@@ -321,7 +326,7 @@ for (UScriptStruct* Type : Rule->GetConsumedEffectTypes())
 }
 ```
 
-**关键点**：Pin 的 `PinSubCategoryObject` 存 `UScriptStruct*`——这是连接到 LayoutEngine 和 DrawingPolicy 的唯一桥梁。配色、通道分配、Producer/Consumer 匹配都依赖这个字段。
+**关键点**：Pin 的 `PinSubCategoryObject` 存 `UScriptStruct*`——这是连接到布局和 DrawingPolicy 的唯一桥梁。配色、通道分配、Producer/Consumer 匹配都依赖这个字段。
 
 ### 文件清单
 
@@ -332,73 +337,16 @@ Source/SagaStatsEditor/
 │   ├── DamagePipelineGraphNode.h          — UEdGraphNode + Rule 引用
 │   └── DamagePipelineGraphSchema.h        — UEdGraphSchema + 连线配色 / DrawingPolicy 挂接
 ├── Private/Graph/
-│   ├── DamagePipelineGraph.cpp            — RebuildGraph 主流程（~120 行）
+│   ├── DamagePipelineGraph.cpp            — RebuildGraph 主流程
 │   ├── DamagePipelineGraphNode.cpp        — SetupNode / GetNodeTitle / AllocateDefaultPins
 │   ├── DamagePipelineGraphSchema.cpp      — GetPinTypeColor 12 色调色板 + CreateConnectionDrawingPolicy
-│   ├── DamagePipelineLayoutEngine.h       — 阶梯+通道布局引擎声明 + 常量命名空间
-│   ├── DamagePipelineLayoutEngine.cpp     — Compute 算法（~45 行）
+│   ├── DamagePipelineLayoutConstants.h    — 布局常量命名空间（BaseGap/ChannelWidth/GapBetweenNodesY）
 │   ├── DamagePipelineConnectionDrawingPolicy.h  — 连线策略类声明
-│   ├── DamagePipelineConnectionDrawingPolicy.cpp — Draw / DrawSplineWithArrow / DrawManhattanPath（~170 行）
+│   ├── DamagePipelineConnectionDrawingPolicy.cpp — Draw / DrawSplineWithArrow / DrawManhattanPath
 │   ├── SDamagePipelineGraphNode.h         — 节点 Slate 外观
-│   └── SDamagePipelineGraphNode.cpp       — Cond / Produces 文字布局
-└── DamagePipelineAssetEditor.{h,cpp}      — 资产编辑器 Toolkit，Build 按钮触发 RebuildGraph
+│   └── SDamagePipelineGraphNode.cpp       — Condition ASCII 树 + 色块 + Description
+└── DamagePipelineAssetEditor.{h,cpp}      — 资产编辑器 Toolkit，Build 按钮触发 RebuildGraph + ApplyRealSizeLayoutCorrection
 ```
-
----
-
-## Sekiro 示例走查
-
-假设 Sekiro 5 条 Rule（按拓扑序）：
-
-| # | Rule | 输入 | 输出 |
-|---|---|---|---|
-| 0 | DR_Mixup | — | DE_Mixup |
-| 1 | DR_Guard | DE_Mixup | DE_Guard |
-| 2 | DR_NormalHit | DE_Mixup, DE_Guard | DE_NormalHit |
-| 3 | DR_Collapse | DE_NormalHit | DE_Collapse |
-| 4 | DR_CollapseGuard | DE_Guard | DE_CollapseGuard |
-
-### 布局算出来是什么
-
-Y 方向（阶梯）——每节点高度 = 60 + pin 数 × 40 + 30 + 40 间距：
-
-| 节点 | Pin 数 | NodeY | 顶部 pin Y |
-|---|---|---|---|
-| #0 DR_Mixup | 1 (仅输出) | 0 | 60 |
-| #1 DR_Guard | 2 (1 入 + 1 出) | 170 | 230 |
-| #2 DR_NormalHit | 3 (2 入 + 1 出) | 420 | 480 |
-| #3 DR_Collapse | 2 | 710 | 770 |
-| #4 DR_CollapseGuard | 2 | 920 | 980 |
-
-X 方向（通道）——每节点前 gap = 50 + InputCount × 20：
-
-| 节点 | 输入数 | gap | NodeX |
-|---|---|---|---|
-| #0 | 0 | — | 0 |
-| #1 | 1 | 70 | 320+70=390 |
-| #2 | 2 | 90 | 390+320+90=800 |
-| #3 | 1 | 70 | 800+320+70=1190 |
-| #4 | 1 | 70 | 1190+320+70=1580 |
-
-### 连线走位
-
-`0→2` (DE_Mixup → NormalHit.input[0]):
-- InputIdx = 0, DropX = NormalHit.Left - 20
-- 路径：Mixup 输出 → (DropX, Mixup_out_Y=60) → (DropX, NormalHit_in0_Y=540) → NormalHit 输入 0
-
-`1→2` (DE_Guard → NormalHit.input[1]):
-- InputIdx = 1, DropX = NormalHit.Left - 40
-- 和 0→2 的 DropX 差 20px，垂直段在不同 X
-
-`1→4` (DE_Guard → CollapseGuard.input[0]):
-- InputIdx = 0, DropX = CollapseGuard.Left - 20
-- 这是长边，但垂直段在 CollapseGuard 前的独有通道，和 0→2 / 1→2 / 2→3 毫无 X 重叠
-
-`2→3` (DE_NormalHit → Collapse.input[0]):
-- InputIdx = 0, DropX = Collapse.Left - 20
-- 短边，垂直段在 Collapse 前独有通道
-
-**验证**：四条边的水平段 Y 各不相同（60/230/480/540/770/980 都是独有 pin 行），垂直段 X 各不相同（每个目标节点左前方独有通道）。没有任何两条线共享像素。
 
 ---
 
@@ -407,7 +355,7 @@ X 方向（通道）——每节点前 gap = 50 + InputCount × 20：
 实现层约束，改动前先看：
 
 - **R1** — `AllocateDefaultPins` 必须设 `PinSubCategoryObject = UScriptStruct*`，这是配色和通道映射的唯一入口
-- **R2** — LayoutEngine 是纯函数，不依赖 UE 对象模型，便于单元测试
+- **R2** — 布局用 Slate 真实 DesiredSize 驱动，不使用节点尺寸估计值——避免实测与估计偏差导致连线穿身
 - **R3** — DrawingPolicy 的 `NodeRectByObject` 是 frame-local 裸指针映射，生命周期严格在一次 Draw 调用栈内
 - **R4** — 新增 Rule / 新增 Effect 不需要改 Graph Editor 代码，只需 `AllocateDefaultPins` 正确建 Pin、`GetPinTypeColor` 的哈希调色板自动分配颜色
 - **R5** — Cycle detection 在 `Pipeline->Build()` 里，Graph Editor 只显示 Error 日志并保持空图，不尝试部分绘制
@@ -421,8 +369,9 @@ X 方向（通道）——每节点前 gap = 50 + InputCount × 20：
 - 检查 `GetPinTypeColor` 里 `PinCategory == "DamageEffect"` 是否命中
 
 ### 连线穿过节点身体
-- 不应该发生。如果发生了，说明某个节点的 Y 范围和通道 X 有重叠——检查 `NodeWidth = 320` 估计值是否比 UE 实测节点宽度小（实测节点宽度 > 估计值会导致 gap 被挤掉）
-- 临时加大 `NodeWidth` 或 `BaseGap` 常量
+- 真实尺寸驱动下理论上不应发生
+- 如果发生，检查 `ApplyRealSizeLayoutCorrection` 里的 DesiredSize 是否是 0（Slate widget 没准备好）
+- 临时加大 `BaseGap` 或 `ChannelWidth` 常量做应急
 
 ### 连线叠线
 - 不应该发生。如果发生了，两种可能：
@@ -436,14 +385,17 @@ X 方向（通道）——每节点前 gap = 50 + InputCount × 20：
 
 ## 历史决策备忘
 
-这套实现是第 3 代。历史上试过：
+这套实现走到当前形态经历了四代：
+
 - **第 1 代**：简单 XSpacing + zigzag Y（`i % 3`）。布局无语义基础、边穿节点。
 - **第 2 代**：Sugiyama-lite（dummy 插入 + barycenter 迭代 + Real 锚定 Y=0 + per-edge MidX hash + NodeBounds 避让）。算法正确但"启发式叠启发式"，每次遇到新冲突就加一层补丁，wire congestion 无法根治。~500 行代码。
-- **第 3 代（当前）**：阶梯 Y + 通道 X。**把冲突消灭在布局层**。~45 行 LayoutEngine + ~170 行 DrawingPolicy，净代码量比第 2 代少 ~250 行，且按构造无冲突。
+- **第 3 代**：阶梯 Y + 通道 X（静态常量估算节点尺寸）。**把冲突消灭在布局层**，但节点尺寸是估计值，实际 Slate 尺寸偏差导致间距不紧凑。
+- **第 4 代**：阶梯 Y + 通道 X + **Slate 真实尺寸驱动**。`ApplyRealSizeLayoutCorrection` 用 `GetDesiredSize()` 取节点真实宽高，FTSTicker 延迟一帧等 Slate 就绪。LayoutEngine 整个被删除，布局代码融入 AssetEditor 一次性完成。
+- **第 5 代（当前）**：**PinArea 驱动 Y**。识别到"连线 R1 只要求 pin Y 唯一，表头 Y 不受约束"后，把 Y 累加公式从"避让整节点高度"改为"避让 PinArea 高度"。`SDamagePipelineGraphNode` 给 Pin 区 SHorizontalBox 起名 `PinAreaBox`，暴露 `GetPinAreaDesiredHeight()`；`ApplyRealSizeLayoutCorrection` 按 `PinAreaTop[i+1] = PinAreaBottom[i] + Gap` 反推 `NodePosY`。节点表头和上一节点下半区在 Y 上重叠——因为 X 方向阶梯所以视觉上仍错开——图变紧凑。
 
-**教训**：算法的优雅来自约束，不是来自启发式。当你发现自己在给每个冲突打补丁时，停下来重新设计约束。
+**教训**：算法的优雅来自约束，不是来自启发式；架构的优雅来自使用系统真实数据，不是自己维护一套估计值。
 
 ---
 
-**文档版本**：1.0
-**最后更新**：2026-04-15
+**文档版本**：1.1（迁移到 damagePipelineEditor/ 子目录 + Slate 真实尺寸驱动章节对齐）
+**最后更新**：2026-04-17

@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
 #include "DamagePipeline/DamageOperationBase.h"
-#include "DamagePipeline/DamageCondition.h"
+#include "DamagePipeline/DamageCondition_Effect.h"
 #include "DamagePipeline/DamageContext.h"
 #include "DR_Collapse.generated.h"
 
@@ -41,7 +41,7 @@ struct SAGASTATS_API FCollapseGuardEffect
 // ============================================================================
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "CollapseIsCollapse"))
-class SAGASTATS_API UDamageCondition_CollapseIsCollapse : public UDamageCondition
+class SAGASTATS_API UDamageCondition_CollapseIsCollapse : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:
@@ -54,7 +54,7 @@ public:
 // ============================================================================
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "CollapseGuardIsCollapse"))
-class SAGASTATS_API UDamageCondition_CollapseGuardIsCollapse : public UDamageCondition
+class SAGASTATS_API UDamageCondition_CollapseGuardIsCollapse : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:

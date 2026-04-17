@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
 #include "DamagePipeline/DamageOperationBase.h"
-#include "DamagePipeline/DamageCondition.h"
+#include "DamagePipeline/DamageCondition_Effect.h"
 #include "DamagePipeline/DamageContext.h"
 #include "DR_Toughness.generated.h"
 
@@ -29,7 +29,7 @@ struct SAGASTATS_API FToughnessEffect
 // ============================================================================
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "Toughness"))
-class SAGASTATS_API UDamageCondition_Toughness : public UDamageCondition
+class SAGASTATS_API UDamageCondition_Toughness : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:

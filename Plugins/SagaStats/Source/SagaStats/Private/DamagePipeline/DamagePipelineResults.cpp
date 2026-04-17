@@ -4,38 +4,45 @@
 * Description:  SagaStats offers modular damage process and meter systems to support adaptable status management
 ****************************************************************************************************************/
 
-// DamageContextLibrary.cpp — DamageContext 蓝图 CustomThunk 实现
-#include "DamagePipeline/DamageContextLibrary.h"
-#include "DamagePipeline/DamageContext.h"
+// DamagePipelineResults.cpp — Game 侧读写 DamageContext 的唯一外部 API 入口实现
+#include "DamagePipeline/DamagePipelineResults.h"
 #include "Blueprint/BlueprintExceptionInfo.h"
 
-#define LOCTEXT_NAMESPACE "UDamageContextLibrary"
+#define LOCTEXT_NAMESPACE "UDamagePipelineResults"
+
+// ============================================================================
+// C++ 模板的非模板补充
+// ============================================================================
+
+const TMap<TObjectPtr<UScriptStruct>, FInstancedStruct>& UDamagePipelineResults::GetAllEffects(const UDamageContext* Context)
+{
+	static const TMap<TObjectPtr<UScriptStruct>, FInstancedStruct> Empty;
+	return Context ? Context->GetAllDamageEffects() : Empty;
+}
 
 // ============================================================================
 // 蓝图桩函数（CustomThunk 走 exec 版本，这些永远不会被调用）
 // ============================================================================
 
-void UDamageContextLibrary::SetEffect(UDamageContext* Context, const int32& Value)
+void UDamagePipelineResults::WriteEffect(UDamageContext* Context, const int32& Value)
 {
 	checkNoEntry();
 }
 
-void UDamageContextLibrary::GetEffect(UDamageContext* Context, EStructUtilsResult& ExecResult, int32& OutValue)
+void UDamagePipelineResults::ReadEffect(const UDamageContext* Context, EStructUtilsResult& ExecResult, int32& OutValue)
 {
 	checkNoEntry();
 }
 
 // ============================================================================
-// CustomThunk: SetEffect
+// CustomThunk: WriteEffect（Execute 前预填攻击上下文或外部输入）
 // ============================================================================
 
-DEFINE_FUNCTION(UDamageContextLibrary::execSetEffect)
+DEFINE_FUNCTION(UDamagePipelineResults::execWriteEffect)
 {
-	// 参数1: UDamageContext*
 	P_GET_OBJECT(UDamageContext, ContextObj);
 	UDamageContext* DC = Cast<UDamageContext>(ContextObj);
 
-	// 参数2: 通配结构体
 	Stack.MostRecentPropertyAddress = nullptr;
 	Stack.MostRecentPropertyContainer = nullptr;
 	Stack.StepCompiledIn<FStructProperty>(nullptr);
@@ -49,7 +56,7 @@ DEFINE_FUNCTION(UDamageContextLibrary::execSetEffect)
 	{
 		FBlueprintExceptionInfo ExceptionInfo(
 			EBlueprintExceptionType::AccessViolation,
-			LOCTEXT("SetEffect_NullContext", "SetEffect called on null DamageContext")
+			LOCTEXT("WriteEffect_NullContext", "WriteEffect called on null DamageContext")
 		);
 		FBlueprintCoreDelegates::ThrowScriptException(P_THIS, Stack, ExceptionInfo);
 	}
@@ -57,7 +64,7 @@ DEFINE_FUNCTION(UDamageContextLibrary::execSetEffect)
 	{
 		FBlueprintExceptionInfo ExceptionInfo(
 			EBlueprintExceptionType::AbortExecution,
-			LOCTEXT("SetEffect_InvalidValue", "Failed to resolve the input struct type for SetEffect")
+			LOCTEXT("WriteEffect_InvalidValue", "Failed to resolve the input struct type for WriteEffect")
 		);
 		FBlueprintCoreDelegates::ThrowScriptException(P_THIS, Stack, ExceptionInfo);
 	}
@@ -72,19 +79,16 @@ DEFINE_FUNCTION(UDamageContextLibrary::execSetEffect)
 }
 
 // ============================================================================
-// CustomThunk: GetEffect
+// CustomThunk: ReadEffect（Execute 后读取 Rule 产出）
 // ============================================================================
 
-DEFINE_FUNCTION(UDamageContextLibrary::execGetEffect)
+DEFINE_FUNCTION(UDamagePipelineResults::execReadEffect)
 {
-	// 参数1: UDamageContext*
 	P_GET_OBJECT(UDamageContext, ContextObj);
-	UDamageContext* DC = Cast<UDamageContext>(ContextObj);
+	const UDamageContext* DC = Cast<const UDamageContext>(ContextObj);
 
-	// 参数2: ExecResult
 	P_GET_ENUM_REF(EStructUtilsResult, ExecResult);
 
-	// 参数3: 通配结构体
 	Stack.MostRecentPropertyAddress = nullptr;
 	Stack.MostRecentPropertyContainer = nullptr;
 	Stack.StepCompiledIn<FStructProperty>(nullptr);
@@ -100,7 +104,7 @@ DEFINE_FUNCTION(UDamageContextLibrary::execGetEffect)
 	{
 		FBlueprintExceptionInfo ExceptionInfo(
 			EBlueprintExceptionType::AccessViolation,
-			LOCTEXT("GetEffect_NullContext", "GetEffect called on null DamageContext")
+			LOCTEXT("ReadEffect_NullContext", "ReadEffect called on null DamageContext")
 		);
 		FBlueprintCoreDelegates::ThrowScriptException(P_THIS, Stack, ExceptionInfo);
 	}
@@ -108,7 +112,7 @@ DEFINE_FUNCTION(UDamageContextLibrary::execGetEffect)
 	{
 		FBlueprintExceptionInfo ExceptionInfo(
 			EBlueprintExceptionType::AbortExecution,
-			LOCTEXT("GetEffect_InvalidValue", "Failed to resolve the output struct type for GetEffect")
+			LOCTEXT("ReadEffect_InvalidValue", "Failed to resolve the output struct type for ReadEffect")
 		);
 		FBlueprintCoreDelegates::ThrowScriptException(P_THIS, Stack, ExceptionInfo);
 	}

@@ -10,7 +10,7 @@
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
 #include "DamagePipeline/DamageOperationBase.h"
-#include "DamagePipeline/DamageCondition.h"
+#include "DamagePipeline/DamageCondition_Effect.h"
 #include "DamagePipeline/DamageContext.h"
 #include "DR_Poison.generated.h"
 
@@ -32,7 +32,7 @@ struct SAGASTATS_API FPoisonEffect
 // ============================================================================
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsPoisoned"))
-class SAGASTATS_API UDamageCondition_IsPoisoned : public UDamageCondition
+class SAGASTATS_API UDamageCondition_IsPoisoned : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:

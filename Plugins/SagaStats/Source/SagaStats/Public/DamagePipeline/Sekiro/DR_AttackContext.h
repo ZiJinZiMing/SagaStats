@@ -9,7 +9,7 @@
 
 #include "CoreMinimal.h"
 #include "StructUtils/InstancedStruct.h"
-#include "DamagePipeline/DamageCondition.h"
+#include "DamagePipeline/DamageCondition_Effect.h"
 #include "DamagePipeline/DamageContext.h"
 #include "DR_AttackContext.generated.h"
 
@@ -46,7 +46,7 @@ struct SAGASTATS_API FSekiroAttackContext
 // ============================================================================
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsLightning"))
-class SAGASTATS_API UDamageCondition_IsLightning : public UDamageCondition
+class SAGASTATS_API UDamageCondition_IsLightning : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:
@@ -55,7 +55,7 @@ public:
 };
 
 UCLASS(BlueprintType, HideDropDown, meta = (DisplayName = "IsInAir"))
-class SAGASTATS_API UDamageCondition_IsInAir : public UDamageCondition
+class SAGASTATS_API UDamageCondition_IsInAir : public UDamageCondition_Effect
 {
 	GENERATED_BODY()
 public:
